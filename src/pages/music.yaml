@@ -276,15 +276,22 @@ script:
 
   - id: play_next
     then:
-      - sendspin.command:
-          id: sendspin_hub
-          command: next
+      - lambda: |-
+          ESP_LOGI("music", "MUSIC_HA_ACTION next entity=%s", "${music_player_entity}");
+      - homeassistant.action:
+          action: media_player.media_next_track
+          data:
+            entity_id: ${music_player_entity}
 
   - id: play_prev
     then:
-      - sendspin.command:
-          id: sendspin_hub
-          command: previous
+      - lambda: |-
+          ESP_LOGI("music", "MUSIC_HA_ACTION previous entity=%s", "${music_player_entity}");
+      - homeassistant.action:
+          action: media_player.media_previous_track
+          data:
+            entity_id: ${music_player_entity}
+
   - id: play_toggle
     then:
       - lambda: |-
@@ -298,20 +305,12 @@ script:
             id(local_progress_sync_ms) = millis();
           }
           lv_label_set_text(id(play_label), will_play ? "${icon_pause}" : "${icon_play}");
-      - if:
-          condition:
-            lambda: |-
-              return id(sendspin_playback_state).state == "playing" ||
-                     id(media_player_status).state == "playing" ||
-                     id(media_player_status).state == "buffering";
-          then:
-            - sendspin.command:
-                id: sendspin_hub
-                command: pause
-          else:
-            - sendspin.command:
-                id: sendspin_hub
-                command: play
+      - lambda: |-
+          ESP_LOGI("music", "MUSIC_HA_ACTION play_pause entity=%s", "${music_player_entity}");
+      - homeassistant.action:
+          action: media_player.media_play_pause
+          data:
+            entity_id: ${music_player_entity}
   - id: music_volume_up
     then:
       - lambda: |-
@@ -319,9 +318,13 @@ script:
           if (v > 100) v = 100;
           id(music_volume) = v;
           id(music_volume_override_until_ms) = millis() + 1200;
-      - sendspin.volume_set:
-          id: sendspin_hub
-          volume: !lambda "return id(music_volume);"
+      - lambda: |-
+          ESP_LOGI(
+            "music",
+            "MUSIC_HA_ACTION volume_set entity=%s volume=%.2f",
+            "${music_player_entity}",
+            id(music_volume) / 100.0f
+          );
       - homeassistant.action:
           action: media_player.volume_set
           data:
@@ -340,9 +343,13 @@ script:
           if (v < 0) v = 0;
           id(music_volume) = v;
           id(music_volume_override_until_ms) = millis() + 1200;
-      - sendspin.volume_set:
-          id: sendspin_hub
-          volume: !lambda "return id(music_volume);"
+      - lambda: |-
+          ESP_LOGI(
+            "music",
+            "MUSIC_HA_ACTION volume_set entity=%s volume=%.2f",
+            "${music_player_entity}",
+            id(music_volume) / 100.0f
+          );
       - homeassistant.action:
           action: media_player.volume_set
           data:
