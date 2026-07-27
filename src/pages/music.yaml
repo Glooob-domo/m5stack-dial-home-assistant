@@ -22,9 +22,9 @@ font:
       weight: 300
       type: gfonts
     id: font_music_title
-    size: 14
+    size: 15
     bpp: 4
-    glyphs: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .,!?-''_()"'
+    glyphs: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .,!?-''_()"&áéíóúÁÉÍÓÚñÑüÜçÇ¿¡’'
 
   - file: ./src/assets/fonts/media_player_icons.ttf
     id: media_player_icons
@@ -527,7 +527,7 @@ lvgl:
 
               - obj:
                   x: 54
-                  y: 8
+                  y: 2
                   width: 120
                   height: 120
                   radius: 60
