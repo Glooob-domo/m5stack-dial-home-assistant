@@ -388,6 +388,17 @@ script:
           id(air_encoder_step_accum) = 0;
       - script.execute: refresh_air
 
+  - id: air_confirm_edit
+    then:
+      - if:
+          condition:
+            lambda: 'return id(air_control_mode) != 0;'
+          then:
+            - globals.set: {id: air_control_mode, value: '0'}
+            - globals.set: {id: air_encoder_step_accum, value: '0'}
+            - rtttl.play: "b:d=3,o=6,b=200:c"
+            - script.execute: refresh_air
+
   - id: air_power_toggle
     then:
       - if:
