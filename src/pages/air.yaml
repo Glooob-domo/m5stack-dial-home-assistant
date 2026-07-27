@@ -730,6 +730,7 @@ script:
           };
 
           int fan_seg_count = 0;
+          bool fan_seg_auto = false;
           if (fan_supported) {
             std::string fan_mode_seg;
             if (cm == 1 && !is_invalid(id(air_fan_mode_pending))) {
@@ -738,21 +739,32 @@ script:
               fan_mode_seg = id(ha_air_fan_mode).state;
             }
             if (!is_invalid(fan_mode_seg)) {
-              std::vector<std::string> fan_modes;
-              split_csv(id(air_fan_modes_csv), fan_modes);
-              if (!fan_modes.empty()) {
-                size_t idx = fan_modes.size();
-                for (size_t i = 0; i < fan_modes.size(); i++) {
-                  if (fan_modes[i] == fan_mode_seg) {
-                    idx = i;
-                    break;
-                  }
+              if (fan_mode_seg == "auto") {
+                fan_seg_count = 5;
+                fan_seg_auto = true;
+              } else {
+                std::vector<std::string> fan_modes;
+                split_csv(id(air_fan_modes_csv), fan_modes);
+                std::vector<std::string> manual_modes;
+                for (const auto &m : fan_modes) {
+                  if (m != "auto") manual_modes.push_back(m);
                 }
-                if (idx < fan_modes.size()) {
-                  if (fan_modes.size() == 1) {
-                    fan_seg_count = 5;
+                if (!manual_modes.empty()) {
+                  size_t idx = manual_modes.size();
+                  for (size_t i = 0; i < manual_modes.size(); i++) {
+                    if (manual_modes[i] == fan_mode_seg) {
+                      idx = i;
+                      break;
+                    }
+                  }
+                  if (idx < manual_modes.size()) {
+                    if (manual_modes.size() == 1) {
+                      fan_seg_count = 5;
+                    } else {
+                      fan_seg_count = 1 + (int) ((idx * 4) / (manual_modes.size() - 1));
+                    }
                   } else {
-                    fan_seg_count = 1 + (int) ((idx * 4) / (fan_modes.size() - 1));
+                    fan_seg_count = 1;
                   }
                 } else {
                   fan_seg_count = 1;
@@ -761,14 +773,21 @@ script:
             }
           }
 
-          const lv_opa_t fan_seg_opa = (cm == 1) ? LV_OPA_COVER : LV_OPA_40;
           lv_obj_t *fan_segs[5] = {
             id(fan_seg_1), id(fan_seg_2), id(fan_seg_3), id(fan_seg_4), id(fan_seg_5)
           };
           for (int s = 0; s < 5; s++) {
             const bool on = fan_supported && fan_seg_count >= (s + 1);
             lv_obj_set_style_arc_color(fan_segs[s], lv_color_hex(0xFFFFFF), LV_PART_INDICATOR);
-            lv_obj_set_style_arc_opa(fan_segs[s], on ? fan_seg_opa : LV_OPA_TRANSP, LV_PART_INDICATOR);
+            if (!on) {
+              lv_obj_set_style_arc_opa(fan_segs[s], LV_OPA_TRANSP, LV_PART_INDICATOR);
+            } else if (fan_seg_auto) {
+              const lv_opa_t auto_opa = (cm == 1) ? LV_OPA_30 : (lv_opa_t)(255 * 15 / 100);
+              lv_obj_set_style_arc_opa(fan_segs[s], auto_opa, LV_PART_INDICATOR);
+            } else {
+              const lv_opa_t manual_opa = (cm == 1) ? LV_OPA_COVER : LV_OPA_40;
+              lv_obj_set_style_arc_opa(fan_segs[s], manual_opa, LV_PART_INDICATOR);
+            }
           }
 
 lvgl:
