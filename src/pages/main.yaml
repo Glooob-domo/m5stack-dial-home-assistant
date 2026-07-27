@@ -194,7 +194,7 @@ sensor:
                             then:
                               - lambda: |-
                                   id(air_encoder_step_accum) += 1;
-                                  const int threshold = (id(air_control_mode) == 0) ? 4 : 1;
+                                  const int threshold = (id(air_control_mode) == 0) ? 4 : 2;
                                   if (id(air_encoder_step_accum) >= threshold) {
                                     id(air_encoder_step_accum) = 0;
                                     if (id(air_control_mode) == 0) {
@@ -265,7 +265,7 @@ sensor:
                             then:
                               - lambda: |-
                                   id(air_encoder_step_accum) -= 1;
-                                  const int threshold = (id(air_control_mode) == 0) ? 4 : 1;
+                                  const int threshold = (id(air_control_mode) == 0) ? 4 : 2;
                                   if (id(air_encoder_step_accum) <= -threshold) {
                                     id(air_encoder_step_accum) = 0;
                                     if (id(air_control_mode) == 0) {

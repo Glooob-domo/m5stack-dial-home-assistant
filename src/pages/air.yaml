@@ -828,7 +828,7 @@ lvgl:
               - label:
                   id: lbl_air_info
                   align: CENTER
-                  y: 8
+                  y: 3
                   text: "Temp 28\xc2\xb0  Humid 60%"
                   text_font: font_air_label
                   text_color: 0x5A7598
@@ -837,7 +837,7 @@ lvgl:
               - label:
                   id: lbl_air_mode
                   align: CENTER
-                  y: 34
+                  y: 20
                   text: "AUTO"
                   text_font: font_air_mode
                   text_color: col_hvac_auto
@@ -846,7 +846,7 @@ lvgl:
               - label:
                   id: lbl_air_mode_hvac
                   align: CENTER
-                  y: 34
+                  y: 20
                   text: "AUTO"
                   text_font: font_air_mode_lg
                   text_color: col_hvac_auto
