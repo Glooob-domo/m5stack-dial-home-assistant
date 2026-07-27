@@ -497,7 +497,7 @@ lvgl:
       on_load:
         - lambda: |-
             lv_obj_t *static_objects[] = {
-              id(page_light_selector), id(light_selector_root), id(ls_stack)
+              id(light_selector_root), id(ls_stack)
             };
             for (auto *obj : static_objects) {
               lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
