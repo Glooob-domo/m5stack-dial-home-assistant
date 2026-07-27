@@ -19,21 +19,12 @@ external_components:
 font:
   - file:
       family: DM+Sans
-      weight: 600
+      weight: 300
       type: gfonts
     id: font_music_title
-    size: 17
-    bpp: 4
-    glyphs: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .,!?-''_()&áéíóúÁÉÍÓÚñÑüÜçÇ'
-
-  - file:
-      family: DM+Sans
-      weight: 500
-      type: gfonts
-    id: font_music_artist
     size: 14
     bpp: 4
-    glyphs: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .,!?-''_()&áéíóúÁÉÍÓÚñÑüÜçÇ'
+    glyphs: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .,!?-''_()"'
 
   - file: ./src/assets/fonts/media_player_icons.ttf
     id: media_player_icons
@@ -549,9 +540,8 @@ lvgl:
               - label:
                   id: lbl_music_title
                   x: 20
-                  y: 129
+                  y: 126
                   width: 200
-                  height: 19
                   text: "Ready to Play"
                   text_font: font_music_title
                   text_color: 0xFFFFFF
@@ -564,11 +554,10 @@ lvgl:
               - label:
                   id: lbl_music_artist
                   x: 20
-                  y: 149
+                  y: 144
                   width: 200
-                  height: 16
                   text: ""
-                  text_font: font_music_artist
+                  text_font: font_music_title
                   text_color: 0xAAAAAA
                   text_align: CENTER
                   on_boot:
@@ -579,16 +568,16 @@ lvgl:
                   text_font: media_player_icons
                   text: ${icon_volume}
                   x: 70
-                  y: 166
+                  y: 158
                   text_color: 0xFFFFFF
 
-              - obj: {id: vol_bar_1, x: 97,  y: 171, width: 6, height: 12, radius: 3, bg_color: 0xA98FFF, bg_opa: COVER, border_width: 0, clickable: false}
-              - obj: {id: vol_bar_2, x: 107, y: 171, width: 6, height: 12, radius: 3, bg_color: 0xA387FF, bg_opa: COVER, border_width: 0, clickable: false}
-              - obj: {id: vol_bar_3, x: 117, y: 171, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
-              - obj: {id: vol_bar_4, x: 127, y: 171, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
-              - obj: {id: vol_bar_5, x: 137, y: 171, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
-              - obj: {id: vol_bar_6, x: 147, y: 171, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
-              - obj: {id: vol_bar_7, x: 157, y: 171, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
+              - obj: {id: vol_bar_1, x: 97,  y: 163, width: 6, height: 12, radius: 3, bg_color: 0xA98FFF, bg_opa: COVER, border_width: 0, clickable: false}
+              - obj: {id: vol_bar_2, x: 107, y: 163, width: 6, height: 12, radius: 3, bg_color: 0xA387FF, bg_opa: COVER, border_width: 0, clickable: false}
+              - obj: {id: vol_bar_3, x: 117, y: 163, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
+              - obj: {id: vol_bar_4, x: 127, y: 163, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
+              - obj: {id: vol_bar_5, x: 137, y: 163, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
+              - obj: {id: vol_bar_6, x: 147, y: 163, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
+              - obj: {id: vol_bar_7, x: 157, y: 163, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
 
               - button:
                   x: 52
