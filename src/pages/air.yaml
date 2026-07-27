@@ -242,7 +242,7 @@ script:
     then:
       - globals.set: {id: in_air, value: 'false'}
       - globals.set: {id: air_encoder_step_accum, value: '0'}
-      - script.execute: open_menu
+      - script.execute: open_menu_back
 
   - id: air_temp_up
     then:

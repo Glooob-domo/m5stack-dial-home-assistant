@@ -111,6 +111,18 @@ script:
           id: page_menu
           animation: MOVE_LEFT
 
+  - id: open_menu_back
+    then:
+      - lambda: |-
+          if (id(menu_sel) < 0 || id(menu_sel) >= 5) {
+            id(menu_sel) = 4;
+          }
+      - globals.set: {id: in_menu, value: 'true'}
+      - script.execute: refresh_menu
+      - lvgl.page.show:
+          id: page_menu
+          animation: MOVE_RIGHT
+
   - id: close_menu
     then:
       - globals.set: {id: in_menu, value: 'false'}

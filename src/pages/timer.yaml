@@ -475,7 +475,7 @@ script:
   - id: close_timer
     then:
       - globals.set: {id: in_timer, value: 'false'}
-      - script.execute: open_menu
+      - script.execute: open_menu_back
 
   - id: timer_finish_reset_visual
     then:

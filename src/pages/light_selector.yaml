@@ -387,11 +387,23 @@ script:
           id: page_light_selector
           animation: MOVE_LEFT
 
+  - id: open_light_selector_back
+    then:
+      - globals.set: {id: light_multilight_active, value: 'false'}
+      - globals.set: {id: in_light_selector, value: 'true'}
+      - globals.set: {id: in_menu, value: 'false'}
+      - globals.set: {id: in_light, value: 'false'}
+      - globals.set: {id: light_selector_encoder_accum, value: '0'}
+      - script.execute: refresh_light_selector
+      - lvgl.page.show:
+          id: page_light_selector
+          animation: MOVE_RIGHT
+
   - id: close_light_selector
     then:
       - globals.set: {id: in_light_selector, value: 'false'}
       - globals.set: {id: light_selector_encoder_accum, value: '0'}
-      - script.execute: open_menu
+      - script.execute: open_menu_back
 
   - id: light_selector_confirm
     then:
