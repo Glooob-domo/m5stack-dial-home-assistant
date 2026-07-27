@@ -396,7 +396,7 @@ script:
           then:
             - globals.set: {id: air_control_mode, value: '0'}
             - globals.set: {id: air_encoder_step_accum, value: '0'}
-            - rtttl.play: "b:d=3,o=6,b=200:c"
+            - rtttl.play: "b:d=16,o=6,b=200:c"
             - script.execute: refresh_air
 
   - id: air_power_toggle

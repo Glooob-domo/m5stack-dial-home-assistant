@@ -55,7 +55,7 @@ image:
     id: place_holder
     type: RGB565
     transparency: alpha_channel
-    resize: 110x110
+    resize: 100x100
 
 sendspin:
   id: sendspin_hub
@@ -71,7 +71,7 @@ generic_image:
     id: sendspin_cover_art
     format: jpg
     type: rgb565
-    resize: 110x110
+    resize: 100x100
     image_source: ALBUM
     on_image_decoded:
       - logger.log: "Album image decoded"
@@ -340,7 +340,7 @@ script:
             });
             lv_anim_start(&a);
           }
-      - rtttl.play: "b:d=3,o=6,b=200:c"
+      - rtttl.play: "b:d=16,o=6,b=200:c"
 
   - id: play_next
     then:
@@ -540,8 +540,10 @@ lvgl:
                     - image:
                         id: img_music_cover
                         src: place_holder
-                        x: 0
-                        y: 0
+                        x: 5
+                        y: 5
+                        width: 100
+                        height: 100
               - label:
                   id: lbl_music_title
                   x: 20
