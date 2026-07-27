@@ -126,12 +126,13 @@ Edit `src/main/entities.yaml`:
 ```yaml
 substitutions:
   weather_entity: weather.your_location
+  aqi_entity: sensor.jardin_aqi
   climate_entity: climate.your_ac
   music_player_entity: media_player.your_player
   timer_entity: timer.temporizador_dial
 ```
 
-You can find these entity IDs in Home Assistant under **Developer Tools -> States**.
+You can find these entity IDs in Home Assistant under **Developer Tools -> States**. `weather_entity` supplies weather conditions, while `aqi_entity` must be a numeric Home Assistant sensor. The legacy `aqi` attribute on `weather_entity` is used only as a temporary fallback when the AQI sensor is unavailable.
 
 For the music page, choose the media player that actually plays audio. It should report useful attributes such as `volume_level`, `media_title`, `media_duration`, and `media_position`. If the entity is `unavailable`, the Dial cannot sync it.
 
@@ -181,6 +182,7 @@ M5Dial V1.1 needs the hold pin to stay enabled when running from battery. This p
 
 - **Device is unavailable in Home Assistant**: make sure the `api` section is enabled and port `6053` is reachable.
 - **Wrong weather values**: change `weather_entity` in `src/main/entities.yaml`.
+- **AQI shows `--`**: set `aqi_entity` in `src/main/entities.yaml` to a numeric Home Assistant sensor.
 - **Wrong AC entity**: change `climate_entity` in `src/main/entities.yaml`.
 - **Music page shows unavailable**: choose the real player entity, not the Dial entity itself.
 - **Timer page shows unavailable**: create the Timer helper in Home Assistant and check `timer_entity` in `src/main/entities.yaml`.
