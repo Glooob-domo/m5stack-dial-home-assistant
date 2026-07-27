@@ -55,7 +55,7 @@ image:
     id: place_holder
     type: RGB565
     transparency: alpha_channel
-    resize: 80x80
+    resize: 110x110
 
 sendspin:
   id: sendspin_hub
@@ -71,7 +71,7 @@ generic_image:
     id: sendspin_cover_art
     format: jpg
     type: rgb565
-    resize: 80x80
+    resize: 110x110
     image_source: ALBUM
     on_image_decoded:
       - logger.log: "Album image decoded"
@@ -526,11 +526,11 @@ lvgl:
                     height: 0
 
               - obj:
-                  x: 54
+                  x: 65
                   y: 2
-                  width: 120
-                  height: 120
-                  radius: 60
+                  width: 110
+                  height: 110
+                  radius: 55
                   bg_opa: TRANSP
                   border_width: 0
                   clip_corner: true
@@ -540,12 +540,12 @@ lvgl:
                     - image:
                         id: img_music_cover
                         src: place_holder
-                        x: 8
-                        y: 6
+                        x: 0
+                        y: 0
               - label:
                   id: lbl_music_title
                   x: 20
-                  y: 116
+                  y: 118
                   width: 200
                   text: "Ready to Play"
                   text_font: font_music_title
@@ -559,7 +559,7 @@ lvgl:
               - label:
                   id: lbl_music_artist
                   x: 20
-                  y: 134
+                  y: 139
                   width: 200
                   text: ""
                   text_font: font_music_title
@@ -573,20 +573,20 @@ lvgl:
                   text_font: media_player_icons
                   text: ${icon_volume}
                   x: 70
-                  y: 151
+                  y: 160
                   text_color: 0xFFFFFF
 
-              - obj: {id: vol_bar_1, x: 97,  y: 156, width: 6, height: 12, radius: 3, bg_color: 0xA98FFF, bg_opa: COVER, border_width: 0, clickable: false}
-              - obj: {id: vol_bar_2, x: 107, y: 156, width: 6, height: 12, radius: 3, bg_color: 0xA387FF, bg_opa: COVER, border_width: 0, clickable: false}
-              - obj: {id: vol_bar_3, x: 117, y: 156, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
-              - obj: {id: vol_bar_4, x: 127, y: 156, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
-              - obj: {id: vol_bar_5, x: 137, y: 156, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
-              - obj: {id: vol_bar_6, x: 147, y: 156, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
-              - obj: {id: vol_bar_7, x: 157, y: 156, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
+              - obj: {id: vol_bar_1, x: 97,  y: 165, width: 6, height: 12, radius: 3, bg_color: 0xA98FFF, bg_opa: COVER, border_width: 0, clickable: false}
+              - obj: {id: vol_bar_2, x: 107, y: 165, width: 6, height: 12, radius: 3, bg_color: 0xA387FF, bg_opa: COVER, border_width: 0, clickable: false}
+              - obj: {id: vol_bar_3, x: 117, y: 165, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
+              - obj: {id: vol_bar_4, x: 127, y: 165, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
+              - obj: {id: vol_bar_5, x: 137, y: 165, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
+              - obj: {id: vol_bar_6, x: 147, y: 165, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
+              - obj: {id: vol_bar_7, x: 157, y: 165, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
 
               - button:
                   x: 52
-                  y: 174
+                  y: 185
                   width: 44
                   height: 44
                   bg_color: col_music_dark
@@ -609,7 +609,7 @@ lvgl:
 
               - button:
                   x: 102
-                  y: 175
+                  y: 186
                   id: play_btn
                   width: 44
                   height: 44
@@ -636,7 +636,7 @@ lvgl:
               - button:
                   id: next_btn
                   x: 151
-                  y: 174
+                  y: 185
                   width: 44
                   height: 44
                   bg_color: col_music_dark
