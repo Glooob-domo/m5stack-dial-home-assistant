@@ -496,6 +496,13 @@ lvgl:
       scrollbar_mode: "OFF"
       on_load:
         - lambda: |-
+            lv_obj_t *static_objects[] = {
+              id(page_light_selector), id(light_selector_root), id(ls_stack)
+            };
+            for (auto *obj : static_objects) {
+              lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
+              lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
+            }
             lv_obj_move_foreground(id(ls_overlay_far_up_lbl));
             lv_obj_move_foreground(id(ls_overlay_near_up_lbl));
             lv_obj_move_foreground(id(ls_overlay_near_dn_lbl));
@@ -507,6 +514,7 @@ lvgl:
         - script.execute: refresh_light_selector
       widgets:
         - obj:
+            id: light_selector_root
             align: CENTER
             width: 240
             height: 240
