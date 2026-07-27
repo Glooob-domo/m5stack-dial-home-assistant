@@ -146,10 +146,9 @@ interval:
                   id(timer_observed_active_cycle) &&
                   !id(timer_finish_feedback_sent) &&
                   id(ha_timer_state).state == "active") {
-                id(timer_ui_state) = FINISHED;
-                id(timer_finish_feedback_sent) = true;
-                id(timer_blink) = true;
-                id(timer_finish_beep).execute();
+                ESP_LOGI("timer", "TIMER_FINISHED source=local_zero finish_epoch=%lld now=%lld",
+                         (long long) id(timer_finish_epoch_utc), (long long) now.timestamp);
+                id(timer_enter_finished).execute();
               }
             }
             if (id(in_timer)) id(refresh_timer).execute();
@@ -161,6 +160,21 @@ interval:
           if (id(in_timer)) id(refresh_timer).execute();
 
 script:
+  - id: timer_enter_finished
+    then:
+      - if:
+          condition:
+            lambda: 'return !id(timer_finish_feedback_sent);'
+          then:
+            - lambda: |-
+                id(timer_ui_state) = 3;
+                id(timer_remaining_seconds) = 0;
+                // The historical refresh paints blink=true red, then alternates it each second.
+                id(timer_blink) = true;
+                id(timer_finish_feedback_sent) = true;
+            - script.execute: timer_finish_beep
+            - script.execute: refresh_timer
+
   - id: timer_finish_beep
     then:
       - rtttl.play: "timer_finish:d=16,o=6,b=180:c,e,g"
@@ -256,6 +270,25 @@ script:
           }
 
           if (state == "idle") {
+            auto now = id(esptime).now();
+            const int64_t now_epoch = now.is_valid() ? now.timestamp : -1;
+            const bool cancel_pending = id(timer_pending_action) == 3;
+            const bool finished_at_idle = id(timer_observed_active_cycle) &&
+                                          !id(timer_finish_feedback_sent) &&
+                                          id(timer_finish_epoch_utc) > 0 &&
+                                          now.is_valid() &&
+                                          !cancel_pending &&
+                                          now.timestamp >= id(timer_finish_epoch_utc) - 1;
+            if (finished_at_idle) {
+              ESP_LOGI("timer", "TIMER_FINISHED source=ha_idle_at_deadline finish_epoch=%lld now=%lld",
+                       (long long) id(timer_finish_epoch_utc), (long long) now_epoch);
+              id(timer_sync_ready) = true;
+              id(timer_enter_finished).execute();
+              return;
+            }
+            ESP_LOGI("timer", "TIMER_IDLE source=cancel_or_external finish_epoch=%lld now=%lld pending=%d",
+                     (long long) id(timer_finish_epoch_utc), (long long) now_epoch,
+                     id(timer_pending_action));
             if (id(timer_pending_action) == 3) {
               id(timer_action_pending) = false;
               id(timer_pending_action) = 0;
