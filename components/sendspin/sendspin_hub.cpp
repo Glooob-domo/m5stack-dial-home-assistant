@@ -29,6 +29,10 @@ static const size_t SENDSPIN_BINARY_CHUNK_HEADER_SIZE = 9;
 static const UBaseType_t WEBSOCKET_TASK_PRIORITY = 17;
 
 void SendspinHub::setup() {
+  ESP_LOGI(TAG, "Setup entered (priority=%.1f)", this->get_setup_priority());
+  ESP_LOGI(TAG, "Initial listener state: ws_server=%s started=%s", this->ws_server_ != nullptr ? "present" : "null",
+           this->ws_server_ != nullptr && this->ws_server_->is_started() ? "true" : "false");
+
   // Load persisted state
   this->load_last_played_server_();
 #ifdef USE_SENDSPIN_PLAYER
@@ -37,6 +41,8 @@ void SendspinHub::setup() {
 
   // Create the WebSocket server listener (always active - servers connect to us)
   this->ws_server_ = make_unique<SendspinWsServer>();
+  ESP_LOGI(TAG, "WebSocket server object created: %s; configured listener port=8928",
+           this->ws_server_ != nullptr ? "yes" : "no");
 
   // Configure callbacks for the server
   this->ws_server_->set_new_connection_callback(
@@ -57,6 +63,21 @@ void SendspinHub::setup() {
       return static_cast<SendspinServerConnection *>(this->dying_connection_.get());
     }
     return nullptr;
+  });
+
+  ESP_LOGI(TAG, "Setup complete: ws_server=%s started=%s", this->ws_server_ != nullptr ? "present" : "null",
+           this->ws_server_ != nullptr && this->ws_server_->is_started() ? "true" : "false");
+
+  this->set_timeout("sendspin_diag_15s", 15000, [this]() {
+    ESP_LOGI("firmware_diag",
+             "SENDSPIN_DIAG_BUILD_2BA446F ACTIVE network=%s server=%s started=%s port=8928",
+             network::is_connected() ? "true" : "false", this->ws_server_ != nullptr ? "present" : "missing",
+             this->ws_server_ != nullptr && this->ws_server_->is_started() ? "true" : "false");
+  });
+  this->set_timeout("sendspin_diag_30s", 30000, [this]() {
+    ESP_LOGI("firmware_diag", "SENDSPIN_DIAG_30S network=%s server=%s started=%s port=8928",
+             network::is_connected() ? "true" : "false", this->ws_server_ != nullptr ? "present" : "missing",
+             this->ws_server_ != nullptr && this->ws_server_->is_started() ? "true" : "false");
   });
 }
 
@@ -83,9 +104,37 @@ void SendspinHub::loop() {
 #endif
   }
 
-  // Start the WebSocket server when network is connected
-  if (this->ws_server_ != nullptr && network::is_connected() && !this->ws_server_->is_started()) {
-    this->ws_server_->start(this, this->task_stack_in_psram_, WEBSOCKET_TASK_PRIORITY);
+  // Start the WebSocket server when network is connected. Log state transitions and only the first
+  // start attempt per network-connected period so a persistent failure does not spam the log.
+  const bool network_connected = network::is_connected();
+  if (!this->network_state_known_ || this->last_network_connected_ != network_connected) {
+    ESP_LOGI(TAG, "Network state changed: connected=%s", network_connected ? "true" : "false");
+    this->network_state_known_ = true;
+    this->last_network_connected_ = network_connected;
+    if (!network_connected) {
+      this->server_start_attempt_logged_ = false;
+    }
+  }
+
+  if (this->ws_server_ == nullptr) {
+    if (!this->null_ws_server_logged_) {
+      ESP_LOGE(TAG, "Listener start skipped: WebSocket server object is null");
+      this->null_ws_server_logged_ = true;
+    }
+  } else if (network_connected && !this->ws_server_->is_started()) {
+    const bool started_before = this->ws_server_->is_started();
+    const bool log_attempt = !this->server_start_attempt_logged_;
+    if (log_attempt) {
+      ESP_LOGI(TAG, "Attempting WebSocket listener start: port=8928 started_before=%s", started_before ? "true" : "false");
+    }
+
+    const bool start_result = this->ws_server_->start(this, this->task_stack_in_psram_, WEBSOCKET_TASK_PRIORITY);
+    const bool started_after = this->ws_server_->is_started();
+    if (log_attempt || started_after) {
+      ESP_LOGI(TAG, "WebSocket listener start result=%s started_before=%s started_after=%s", start_result ? "true" : "false",
+               started_before ? "true" : "false", started_after ? "true" : "false");
+    }
+    this->server_start_attempt_logged_ = true;
   }
 
   // Call loop on the current connection if it exists

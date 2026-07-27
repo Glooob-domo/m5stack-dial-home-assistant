@@ -7,6 +7,9 @@
 
 #include "esphome/core/log.h"
 
+#include <cerrno>
+#include <cstring>
+
 #include <esp_timer.h>
 #include "lwip/sockets.h"  // for close()
 
@@ -39,8 +42,10 @@ static const char *const TAG = "sendspin.ws_server";
 SendspinWsServer::~SendspinWsServer() { this->stop(); }
 
 bool SendspinWsServer::start(SendspinHub *hub, bool task_stack_in_psram, unsigned task_priority) {
+  ESP_LOGI(TAG, "start() entered: port=8928 server=%s task_priority=%u psram_stack=%s", this->server_ != nullptr ? "present" : "null",
+           task_priority, task_stack_in_psram ? "true" : "false");
   if (this->server_ != nullptr) {
-    ESP_LOGW(TAG, "Server already started");
+    ESP_LOGW(TAG, "Server already started; start() returns true");
     return true;
   }
 
@@ -59,14 +64,20 @@ bool SendspinWsServer::start(SendspinHub *hub, bool task_stack_in_psram, unsigne
   config.global_user_ctx = (void *) this;
   config.global_user_ctx_free_fn = nullptr;
   config.ctrl_port = ESP_HTTPD_DEF_CTRL_PORT + 1;  // Avoid conflict with web_server component
+  ESP_LOGI(TAG, "HTTP server configured: port=%d ctrl_port=%d max_sockets=%d", config.server_port, config.ctrl_port,
+           config.max_open_sockets);
 
-  // Start the HTTP server
-  ESP_LOGI(TAG, "Starting server on port: %d (max connections: %d)", config.server_port, this->max_connections_);
+  // httpd_start performs the bind/listen internally.
+  ESP_LOGI(TAG, "Starting HTTP server bind/listen on port=%d (max connections=%d)", config.server_port,
+           this->max_connections_);
   esp_err_t err = httpd_start(&this->server_, &config);
   if (err != ESP_OK) {
-    ESP_LOGE(TAG, "Error starting server: %s", esp_err_to_name(err));
+    const int saved_errno = errno;
+    ESP_LOGE(TAG, "HTTP server bind/listen failed: port=%d err=%s (%d) errno=%d (%s)", config.server_port,
+             esp_err_to_name(err), err, saved_errno, strerror(saved_errno));
     return false;
   }
+  ESP_LOGI(TAG, "HTTP server bind/listen succeeded: port=%d handle=%p", config.server_port, this->server_);
 
   // Register the WebSocket handler
   const httpd_uri_t sendspin_ws_uri = {.uri = "/sendspin",
@@ -75,14 +86,22 @@ bool SendspinWsServer::start(SendspinHub *hub, bool task_stack_in_psram, unsigne
                                        .user_ctx = (void *) this,
                                        .is_websocket = true};
 
+  ESP_LOGI(TAG, "Registering WebSocket route: %s", sendspin_ws_uri.uri);
   err = httpd_register_uri_handler(this->server_, &sendspin_ws_uri);
   if (err != ESP_OK) {
-    ESP_LOGE(TAG, "Error registering URI handler: %s", esp_err_to_name(err));
-    httpd_stop(this->server_);
+    const int saved_errno = errno;
+    ESP_LOGE(TAG, "WebSocket route registration failed: route=%s port=%d err=%s (%d) errno=%d (%s)",
+             sendspin_ws_uri.uri, config.server_port, esp_err_to_name(err), err, saved_errno, strerror(saved_errno));
+    const esp_err_t stop_err = httpd_stop(this->server_);
+    if (stop_err != ESP_OK) {
+      ESP_LOGE(TAG, "HTTP server stop after route registration failure failed: err=%s (%d)", esp_err_to_name(stop_err),
+               stop_err);
+    }
     this->server_ = nullptr;
     return false;
   }
 
+  ESP_LOGI(TAG, "SendSpin WebSocket listener ready: ws://<dial-ip>:%d%s", config.server_port, sendspin_ws_uri.uri);
   return true;
 }
 

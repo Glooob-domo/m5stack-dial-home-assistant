@@ -8,8 +8,11 @@ substitutions:
   icon_volume: "\uF005"
 
 external_components:
-  - source: ./components
-    components: [generic_image, media_source, sendspin]
+  - source: github://hectorzin/smart-home-button@c0d6a0bd8401486ca1fa7ad3ae3bfbcaff036b94
+    components:
+      - generic_image
+      - media_source
+      - sendspin
     refresh: 0s
   
 
@@ -19,9 +22,9 @@ font:
       weight: 300
       type: gfonts
     id: font_music_title
-    size: 14
+    size: 15
     bpp: 4
-    glyphs: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .,!?-''_()"'
+    glyphs: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .,!?-''_()"&áéíóúÁÉÍÓÚñÑüÜçÇ¿¡’'
 
   - file: ./src/assets/fonts/media_player_icons.ttf
     id: media_player_icons
@@ -52,7 +55,7 @@ image:
     id: place_holder
     type: RGB565
     transparency: alpha_channel
-    resize: 80x80
+    resize: 100x100
 
 sendspin:
   id: sendspin_hub
@@ -68,7 +71,7 @@ generic_image:
     id: sendspin_cover_art
     format: jpg
     type: rgb565
-    resize: 80x80
+    resize: 100x100
     image_source: ALBUM
     on_image_decoded:
       - logger.log: "Album image decoded"
@@ -100,19 +103,33 @@ generic_image:
           lv_anim_start(&a);
 
 text_sensor:
+  - platform: homeassistant
+    id: ha_media_title
+    entity_id: ${music_player_entity}
+    attribute: media_title
+    internal: true
+    on_value:
+      - script.execute: refresh_music_metadata
+
+  - platform: homeassistant
+    id: ha_media_artist
+    entity_id: ${music_player_entity}
+    attribute: media_artist
+    internal: true
+    on_value:
+      - script.execute: refresh_music_metadata
+
   - platform: sendspin
     id: track_title
     type: title
     on_value:
-      - lambda: |-
-          if ( !x.empty() ) 
-            lv_label_set_text(id(lbl_music_title), x.c_str());
-          else
-            lv_label_set_text(id(lbl_music_title), "Ready to Play");
+      - script.execute: refresh_music_metadata
 
   - platform: sendspin
     id: track_artist
     type: artist
+    on_value:
+      - script.execute: refresh_music_metadata
 
   - platform: sendspin
     id: sendspin_playback_state
@@ -253,6 +270,9 @@ globals:
     type: uint32_t
     restore_value: false
     initial_value: '0'
+  - id: music_feedback_btn
+    type: int
+    initial_value: '0'
 
 script:
   - id: open_music
@@ -260,6 +280,7 @@ script:
       - globals.set: {id: in_music, value: 'true'}
       - globals.set: {id: in_menu, value: 'false'}
       - script.execute: refresh_music_volume
+      - script.execute: refresh_music_metadata
       - lvgl.page.show:
           id: page_music
           animation: MOVE_LEFT
@@ -271,19 +292,88 @@ script:
           id: page_clock
           animation: MOVE_RIGHT
 
+  - id: refresh_music_metadata
+    then:
+      - lambda: |-
+          auto pick = [](const std::string &ha, const std::string &ss) -> std::string {
+            if (!ha.empty()) return ha;
+            if (!ss.empty()) return ss;
+            return "";
+          };
+          std::string title = pick(id(ha_media_title).state, id(track_title).state);
+          if (title.empty()) title = "Ready to Play";
+          lv_label_set_text(id(lbl_music_title), title.c_str());
+          std::string artist = pick(id(ha_media_artist).state, id(track_artist).state);
+          lv_label_set_text(id(lbl_music_artist), artist.c_str());
+
+  - id: music_transport_feedback
+    mode: restart
+    then:
+      - lambda: |-
+          lv_obj_t *btn = nullptr;
+          switch (id(music_feedback_btn)) {
+            case 0: btn = id(prev_btn); break;
+            case 1: btn = id(play_btn); break;
+            default: btn = id(next_btn); break;
+          }
+          if (btn == nullptr) return;
+          if (id(music_feedback_btn) == 1) {
+            lv_obj_set_style_bg_opa(btn, LV_OPA_50, 0);
+            lv_anim_t a;
+            lv_anim_init(&a);
+            lv_anim_set_var(&a, btn);
+            lv_anim_set_values(&a, LV_OPA_50, LV_OPA_COVER);
+            lv_anim_set_time(&a, 180);
+            lv_anim_set_exec_cb(&a, [](void *var, int32_t v) {
+              lv_obj_set_style_bg_opa((lv_obj_t *)var, v, 0);
+            });
+            lv_anim_start(&a);
+          } else {
+            lv_obj_set_style_opa(btn, 120, 0);
+            lv_anim_t a;
+            lv_anim_init(&a);
+            lv_anim_set_var(&a, btn);
+            lv_anim_set_values(&a, 120, 255);
+            lv_anim_set_time(&a, 180);
+            lv_anim_set_exec_cb(&a, [](void *var, int32_t v) {
+              lv_obj_set_style_opa((lv_obj_t *)var, v, 0);
+            });
+            lv_anim_start(&a);
+          }
+      - rtttl.play: "b:d=16,o=6,b=200:c"
+
   - id: play_next
     then:
-      - sendspin.command:
-          id: sendspin_hub
-          command: next
+      - lambda: 'id(music_feedback_btn) = 2;'
+      - script.execute:
+          id: music_transport_feedback
+          wait_for_finish: false
+      - lambda: |-
+          ESP_LOGI("music", "MUSIC_HA_ACTION next entity=%s", "${music_player_entity}");
+      - homeassistant.action:
+          action: media_player.media_next_track
+          data:
+            entity_id: ${music_player_entity}
 
   - id: play_prev
     then:
-      - sendspin.command:
-          id: sendspin_hub
-          command: previous
+      - lambda: 'id(music_feedback_btn) = 0;'
+      - script.execute:
+          id: music_transport_feedback
+          wait_for_finish: false
+      - lambda: |-
+          ESP_LOGI("music", "MUSIC_HA_ACTION previous entity=%s", "${music_player_entity}");
+      - homeassistant.action:
+          action: media_player.media_previous_track
+          data:
+            entity_id: ${music_player_entity}
+
   - id: play_toggle
     then:
+      - lambda: 'id(music_feedback_btn) = 1;'
+      - script.execute:
+          id: music_transport_feedback
+          wait_for_finish: false
       - lambda: |-
           bool current_playing = id(sendspin_playback_state).state == "playing" ||
                                  id(media_player_status).state == "playing" ||
@@ -295,20 +385,12 @@ script:
             id(local_progress_sync_ms) = millis();
           }
           lv_label_set_text(id(play_label), will_play ? "${icon_pause}" : "${icon_play}");
-      - if:
-          condition:
-            lambda: |-
-              return id(sendspin_playback_state).state == "playing" ||
-                     id(media_player_status).state == "playing" ||
-                     id(media_player_status).state == "buffering";
-          then:
-            - sendspin.command:
-                id: sendspin_hub
-                command: pause
-          else:
-            - sendspin.command:
-                id: sendspin_hub
-                command: play
+      - lambda: |-
+          ESP_LOGI("music", "MUSIC_HA_ACTION play_pause entity=%s", "${music_player_entity}");
+      - homeassistant.action:
+          action: media_player.media_play_pause
+          data:
+            entity_id: ${music_player_entity}
   - id: music_volume_up
     then:
       - lambda: |-
@@ -316,9 +398,13 @@ script:
           if (v > 100) v = 100;
           id(music_volume) = v;
           id(music_volume_override_until_ms) = millis() + 1200;
-      - sendspin.volume_set:
-          id: sendspin_hub
-          volume: !lambda "return id(music_volume);"
+      - lambda: |-
+          ESP_LOGI(
+            "music",
+            "MUSIC_HA_ACTION volume_set entity=%s volume=%.2f",
+            "${music_player_entity}",
+            id(music_volume) / 100.0f
+          );
       - homeassistant.action:
           action: media_player.volume_set
           data:
@@ -337,9 +423,13 @@ script:
           if (v < 0) v = 0;
           id(music_volume) = v;
           id(music_volume_override_until_ms) = millis() + 1200;
-      - sendspin.volume_set:
-          id: sendspin_hub
-          volume: !lambda "return id(music_volume);"
+      - lambda: |-
+          ESP_LOGI(
+            "music",
+            "MUSIC_HA_ACTION volume_set entity=%s volume=%.2f",
+            "${music_player_entity}",
+            id(music_volume) / 100.0f
+          );
       - homeassistant.action:
           action: media_player.volume_set
           data:
@@ -387,8 +477,13 @@ lvgl:
       bg_color: col_music_bg
       bg_opa: COVER
       scrollbar_mode: "OFF"
+      on_load:
+        - lambda: |-
+            lv_obj_clear_flag(lv_scr_act(), LV_OBJ_FLAG_SCROLLABLE);
+            lv_obj_clear_flag(id(page_music_root), LV_OBJ_FLAG_SCROLLABLE);
       widgets:
         - obj:
+            id: page_music_root
             align: TOP_LEFT
             x: 0
             y: 0
@@ -431,11 +526,11 @@ lvgl:
                     height: 0
 
               - obj:
-                  x: 54
-                  y: 8
-                  width: 120
-                  height: 120
-                  radius: 60
+                  x: 65
+                  y: 2
+                  width: 110
+                  height: 110
+                  radius: 55
                   bg_opa: TRANSP
                   border_width: 0
                   clip_corner: true
@@ -445,12 +540,11 @@ lvgl:
                     - image:
                         id: img_music_cover
                         src: place_holder
-                        x: 8
-                        y: 6
+                        align: CENTER
               - label:
                   id: lbl_music_title
                   x: 20
-                  y: 134
+                  y: 118
                   width: 200
                   text: "Ready to Play"
                   text_font: font_music_title
@@ -462,25 +556,38 @@ lvgl:
                         lv_label_set_long_mode(id(lbl_music_title), LV_LABEL_LONG_SCROLL);
                         lv_label_set_recolor(id(lbl_music_title), true);
               - label:
+                  id: lbl_music_artist
+                  x: 20
+                  y: 139
+                  width: 200
+                  text: ""
+                  text_font: font_music_title
+                  text_color: 0xAAAAAA
+                  text_align: CENTER
+                  on_boot:
+                    - lambda: |-
+                        lv_obj_set_style_anim_time(id(lbl_music_artist), 15000, 0);
+                        lv_label_set_long_mode(id(lbl_music_artist), LV_LABEL_LONG_SCROLL);
+              - label:
                   text_font: media_player_icons
                   text: ${icon_volume}
                   x: 70
-                  y: 150
+                  y: 160
                   text_color: 0xFFFFFF
 
-              - obj: {id: vol_bar_1, x: 97,  y: 155, width: 6, height: 12, radius: 3, bg_color: 0xA98FFF, bg_opa: COVER, border_width: 0, clickable: false}
-              - obj: {id: vol_bar_2, x: 107, y: 155, width: 6, height: 12, radius: 3, bg_color: 0xA387FF, bg_opa: COVER, border_width: 0, clickable: false}
-              - obj: {id: vol_bar_3, x: 117, y: 155, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
-              - obj: {id: vol_bar_4, x: 127, y: 155, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
-              - obj: {id: vol_bar_5, x: 137, y: 155, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
-              - obj: {id: vol_bar_6, x: 147, y: 155, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
-              - obj: {id: vol_bar_7, x: 157, y: 155, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
+              - obj: {id: vol_bar_1, x: 97,  y: 165, width: 6, height: 12, radius: 3, bg_color: 0xA98FFF, bg_opa: COVER, border_width: 0, clickable: false}
+              - obj: {id: vol_bar_2, x: 107, y: 165, width: 6, height: 12, radius: 3, bg_color: 0xA387FF, bg_opa: COVER, border_width: 0, clickable: false}
+              - obj: {id: vol_bar_3, x: 117, y: 165, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
+              - obj: {id: vol_bar_4, x: 127, y: 165, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
+              - obj: {id: vol_bar_5, x: 137, y: 165, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
+              - obj: {id: vol_bar_6, x: 147, y: 165, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
+              - obj: {id: vol_bar_7, x: 157, y: 165, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
 
               - button:
-                  x: 62
-                  y: 184
-                  width: 24
-                  height: 24
+                  x: 52
+                  y: 185
+                  width: 44
+                  height: 44
                   bg_color: col_music_dark
                   bg_opa: TRANSP
                   shadow_opa: TRANSP
@@ -501,7 +608,7 @@ lvgl:
 
               - button:
                   x: 102
-                  y: 175
+                  y: 186
                   id: play_btn
                   width: 44
                   height: 44
@@ -516,6 +623,7 @@ lvgl:
                   on_boot:
                     - lambda: |-
                         lv_group_remove_obj(id(play_btn));
+                        lv_obj_set_ext_click_area(id(play_btn), 3);
                   widgets:
                     - label:
                         id: play_label
@@ -526,10 +634,10 @@ lvgl:
 
               - button:
                   id: next_btn
-                  x: 161
-                  y: 184
-                  width: 24
-                  height: 24
+                  x: 151
+                  y: 185
+                  width: 44
+                  height: 44
                   bg_color: col_music_dark
                   bg_opa: TRANSP
                   shadow_opa: TRANSP
@@ -548,6 +656,15 @@ lvgl:
                         align: CENTER
 
 interval:
+  - interval: 20s
+    then:
+      - lambda: |-
+          static bool logged = false;
+          if (!logged) {
+            logged = true;
+            ESP_LOGI("firmware_diag", "MUSIC_YAML_DIAG_C0D6A0B ACTIVE");
+          }
+
   - interval: 200ms
     then:
       - lambda: |-

@@ -348,6 +348,12 @@ class SendspinHub : public Component {
   /// @brief WebSocket server listener (server mode only).
   std::unique_ptr<SendspinWsServer> ws_server_;
 
+  // Listener startup diagnostics. These only gate logging; they do not affect retries or listener behavior.
+  bool network_state_known_{false};
+  bool last_network_connected_{false};
+  bool server_start_attempt_logged_{false};
+  bool null_ws_server_logged_{false};
+
   /// @brief Connection mode (server or client).
   // --- Handoff state ---
 
