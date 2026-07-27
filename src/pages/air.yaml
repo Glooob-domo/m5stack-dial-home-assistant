@@ -832,15 +832,16 @@ script:
           };
           for (int s = 0; s < 5; s++) {
             const bool on = fan_supported && fan_seg_count >= (s + 1);
-            lv_obj_set_style_arc_color(fan_segs[s], lv_color_hex(0xFFFFFF), LV_PART_INDICATOR);
+            const lv_opa_t seg_opa = (cm == 1) ? LV_OPA_COVER : (lv_opa_t)(255 * 70 / 100);
             if (!on) {
+              lv_obj_set_style_arc_color(fan_segs[s], lv_color_hex(0xFFFFFF), LV_PART_INDICATOR);
               lv_obj_set_style_arc_opa(fan_segs[s], LV_OPA_TRANSP, LV_PART_INDICATOR);
             } else if (fan_seg_auto) {
-              const lv_opa_t auto_opa = (cm == 1) ? LV_OPA_30 : (lv_opa_t)(255 * 15 / 100);
-              lv_obj_set_style_arc_opa(fan_segs[s], auto_opa, LV_PART_INDICATOR);
+              lv_obj_set_style_arc_color(fan_segs[s], lv_color_hex(0x22C55E), LV_PART_INDICATOR);
+              lv_obj_set_style_arc_opa(fan_segs[s], seg_opa, LV_PART_INDICATOR);
             } else {
-              const lv_opa_t manual_opa = (cm == 1) ? LV_OPA_COVER : LV_OPA_40;
-              lv_obj_set_style_arc_opa(fan_segs[s], manual_opa, LV_PART_INDICATOR);
+              lv_obj_set_style_arc_color(fan_segs[s], lv_color_hex(0xFFFFFF), LV_PART_INDICATOR);
+              lv_obj_set_style_arc_opa(fan_segs[s], seg_opa, LV_PART_INDICATOR);
             }
           }
 
