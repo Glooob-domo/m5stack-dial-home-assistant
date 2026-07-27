@@ -66,7 +66,7 @@ image:
 globals:
   - id: menu_sel
     type: int
-    initial_value: '0'
+    initial_value: '4'
   - id: in_menu
     type: bool
     initial_value: 'false'
@@ -101,7 +101,10 @@ dial_carousel:
 script:
   - id: open_menu
     then:
-      - globals.set: {id: menu_sel, value: '4'}
+      - lambda: |-
+          if (id(menu_sel) < 0 || id(menu_sel) >= 5) {
+            id(menu_sel) = 4;
+          }
       - globals.set: {id: in_menu, value: 'true'}
       - script.execute: refresh_menu
       - lvgl.page.show:
