@@ -106,19 +106,33 @@ time:
 script:
   - id: refresh_aqi
     then:
-      - lvgl.label.update:
-          id: lbl_uv
-          text: !lambda |-
-            const float primary = id(ha_aqi).state;
-            const float legacy = id(ha_weather_aqi).state;
-            const float aqi = std::isfinite(primary) ? primary : legacy;
-            static char buf[8];
-            if (!std::isfinite(aqi)) {
-              snprintf(buf, sizeof(buf), "--");
-            } else {
-              snprintf(buf, sizeof(buf), "%.0f", aqi);
-            }
-            return buf;
+      - lambda: |-
+          const float primary = id(ha_aqi).state;
+          const float legacy = id(ha_weather_aqi).state;
+          const float aqi = std::isfinite(primary) ? primary : legacy;
+
+          static auto aqi_color = [](float v) -> lv_color_t {
+            if (v <= 50.0f) return lv_color_hex(0x7CCB9A);
+            if (v <= 100.0f) return lv_color_hex(0xD8C16A);
+            if (v <= 150.0f) return lv_color_hex(0xE8A35B);
+            if (v <= 200.0f) return lv_color_hex(0xF87171);
+            if (v <= 300.0f) return lv_color_hex(0xB7A7D9);
+            return lv_color_hex(0x991B1B);
+          };
+
+          static char buf[8];
+          lv_color_t col;
+          if (!std::isfinite(aqi)) {
+            snprintf(buf, sizeof(buf), "--");
+            col = lv_color_hex(0x8EA0B8);
+          } else {
+            snprintf(buf, sizeof(buf), "%.0f", aqi);
+            col = aqi_color(aqi);
+          }
+
+          lv_label_set_text(id(lbl_uv), buf);
+          lv_obj_set_style_text_color(id(lbl_aqi), col, LV_PART_MAIN);
+          lv_obj_set_style_text_color(id(lbl_uv), col, LV_PART_MAIN);
 
   - id: dial_enter_selected
     then:
@@ -639,11 +653,12 @@ lvgl:
             text_color: col_text_hum
             text: "HUM"
         - label:
+            id: lbl_aqi
             align: CENTER
             x: 58
             y: 13
             text_font: font_lbl
-            text_color: col_text_aqi
+            text_color: col_text_lbl
             text: "AQI"
 
         - label:
@@ -668,7 +683,7 @@ lvgl:
             x: 58
             y: 31
             text_font: font_val
-            text_color: col_text_aqi
+            text_color: col_text_lbl
             text: "--"
 
         - obj:
