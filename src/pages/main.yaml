@@ -101,6 +101,7 @@ time:
     on_time_sync:
       then:
         - pcf8563.write_time:
+        - script.execute: timer_schedule_sync
 
 script:
   - id: dial_back
