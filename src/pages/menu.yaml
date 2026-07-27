@@ -172,6 +172,13 @@ script:
           else if (sel == 4) { id(close_menu).execute(); }
           else               { id(close_menu).execute(); }
 
+  - id: menu_touch_confirm
+    parameters:
+      selected: int
+    then:
+      - lambda: 'id(menu_sel) = ((selected % 5) + 5) % 5;'
+      - script.execute: menu_confirm
+
   - id: refresh_menu
     then:
       - lambda: |-
@@ -342,7 +349,9 @@ lvgl:
                         border_width: 0
                         scrollbar_mode: "OFF"
                         pad_all: 0
-                        clickable: false
+                        clickable: true
+                        on_click:
+                          - lambda: 'id(menu_touch_confirm).execute((id(menu_sel) + 3) % 5);'
                         widgets:
                           - image:
                               id: slot_far_up_img
@@ -368,7 +377,9 @@ lvgl:
                         border_width: 0
                         scrollbar_mode: "OFF"
                         pad_all: 0
-                        clickable: false
+                        clickable: true
+                        on_click:
+                          - lambda: 'id(menu_touch_confirm).execute((id(menu_sel) + 4) % 5);'
                         widgets:
                           - image:
                               id: slot_near_up_img
@@ -410,7 +421,9 @@ lvgl:
                         border_width: 0
                         scrollbar_mode: "OFF"
                         pad_all: 0
-                        clickable: false
+                        clickable: true
+                        on_click:
+                          - lambda: 'id(menu_touch_confirm).execute(id(menu_sel));'
                         widgets:
                           - image:
                               id: slot_center_img
@@ -446,7 +459,9 @@ lvgl:
                         border_width: 0
                         scrollbar_mode: "OFF"
                         pad_all: 0
-                        clickable: false
+                        clickable: true
+                        on_click:
+                          - lambda: 'id(menu_touch_confirm).execute((id(menu_sel) + 1) % 5);'
                         widgets:
                           - image:
                               id: slot_near_dn_img
@@ -472,7 +487,9 @@ lvgl:
                         border_width: 0
                         scrollbar_mode: "OFF"
                         pad_all: 0
-                        clickable: false
+                        clickable: true
+                        on_click:
+                          - lambda: 'id(menu_touch_confirm).execute((id(menu_sel) + 2) % 5);'
                         widgets:
                           - image:
                               id: slot_far_dn_img
