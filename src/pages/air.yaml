@@ -717,6 +717,60 @@ script:
           lv_obj_set_style_border_width(id(btn_air_swing), cm == 2 ? 2 : 0, LV_PART_MAIN);
           lv_obj_set_style_border_color(id(btn_air_swing), lv_color_hex(0x00D7FF), LV_PART_MAIN);
 
+          static auto split_csv = [](const std::string &csv, std::vector<std::string> &out) {
+            out.clear();
+            size_t start = 0;
+            while (start <= csv.size()) {
+              size_t pos = csv.find('|', start);
+              if (pos == std::string::npos) pos = csv.size();
+              if (pos > start) out.push_back(csv.substr(start, pos - start));
+              if (pos == csv.size()) break;
+              start = pos + 1;
+            }
+          };
+
+          int fan_seg_count = 0;
+          if (fan_supported) {
+            std::string fan_mode_seg;
+            if (cm == 1 && !is_invalid(id(air_fan_mode_pending))) {
+              fan_mode_seg = id(air_fan_mode_pending);
+            } else if (id(ha_air_fan_mode).has_state() && !is_invalid(id(ha_air_fan_mode).state)) {
+              fan_mode_seg = id(ha_air_fan_mode).state;
+            }
+            if (!is_invalid(fan_mode_seg)) {
+              std::vector<std::string> fan_modes;
+              split_csv(id(air_fan_modes_csv), fan_modes);
+              if (!fan_modes.empty()) {
+                size_t idx = fan_modes.size();
+                for (size_t i = 0; i < fan_modes.size(); i++) {
+                  if (fan_modes[i] == fan_mode_seg) {
+                    idx = i;
+                    break;
+                  }
+                }
+                if (idx < fan_modes.size()) {
+                  if (fan_modes.size() == 1) {
+                    fan_seg_count = 5;
+                  } else {
+                    fan_seg_count = 1 + (int) ((idx * 4) / (fan_modes.size() - 1));
+                  }
+                } else {
+                  fan_seg_count = 1;
+                }
+              }
+            }
+          }
+
+          const lv_opa_t fan_seg_opa = (cm == 1) ? LV_OPA_COVER : LV_OPA_40;
+          lv_obj_t *fan_segs[5] = {
+            id(fan_seg_1), id(fan_seg_2), id(fan_seg_3), id(fan_seg_4), id(fan_seg_5)
+          };
+          for (int s = 0; s < 5; s++) {
+            const bool on = fan_supported && fan_seg_count >= (s + 1);
+            lv_obj_set_style_arc_color(fan_segs[s], lv_color_hex(0xFFFFFF), LV_PART_INDICATOR);
+            lv_obj_set_style_arc_opa(fan_segs[s], on ? fan_seg_opa : LV_OPA_TRANSP, LV_PART_INDICATOR);
+          }
+
 lvgl:
   pages:
     - id: page_air
@@ -805,6 +859,101 @@ lvgl:
                     width: 10
                     height: 10
                     radius: 5
+
+              - arc:
+                  id: fan_seg_1
+                  x: 10
+                  y: 10
+                  width: 220
+                  height: 220
+                  start_angle: 334
+                  end_angle: 341
+                  min_value: 0
+                  max_value: 100
+                  value: 100
+                  arc_color: 0x454545
+                  arc_opa: COVER
+                  arc_width: 4
+                  adjustable: false
+                  clickable: false
+                  indicator: {arc_color: 0xFFFFFF, arc_width: 4, arc_opa: TRANSP, arc_rounded: true}
+                  knob: {bg_opa: TRANSP, border_width: 0, width: 0, height: 0}
+
+              - arc:
+                  id: fan_seg_2
+                  x: 10
+                  y: 10
+                  width: 220
+                  height: 220
+                  start_angle: 345
+                  end_angle: 352
+                  min_value: 0
+                  max_value: 100
+                  value: 100
+                  arc_color: 0x454545
+                  arc_opa: COVER
+                  arc_width: 4
+                  adjustable: false
+                  clickable: false
+                  indicator: {arc_color: 0xFFFFFF, arc_width: 4, arc_opa: TRANSP, arc_rounded: true}
+                  knob: {bg_opa: TRANSP, border_width: 0, width: 0, height: 0}
+
+              - arc:
+                  id: fan_seg_3
+                  x: 10
+                  y: 10
+                  width: 220
+                  height: 220
+                  start_angle: 356
+                  end_angle: 3
+                  min_value: 0
+                  max_value: 100
+                  value: 100
+                  arc_color: 0x454545
+                  arc_opa: COVER
+                  arc_width: 4
+                  adjustable: false
+                  clickable: false
+                  indicator: {arc_color: 0xFFFFFF, arc_width: 4, arc_opa: TRANSP, arc_rounded: true}
+                  knob: {bg_opa: TRANSP, border_width: 0, width: 0, height: 0}
+
+              - arc:
+                  id: fan_seg_4
+                  x: 10
+                  y: 10
+                  width: 220
+                  height: 220
+                  start_angle: 8
+                  end_angle: 15
+                  min_value: 0
+                  max_value: 100
+                  value: 100
+                  arc_color: 0x454545
+                  arc_opa: COVER
+                  arc_width: 4
+                  adjustable: false
+                  clickable: false
+                  indicator: {arc_color: 0xFFFFFF, arc_width: 4, arc_opa: TRANSP, arc_rounded: true}
+                  knob: {bg_opa: TRANSP, border_width: 0, width: 0, height: 0}
+
+              - arc:
+                  id: fan_seg_5
+                  x: 10
+                  y: 10
+                  width: 220
+                  height: 220
+                  start_angle: 19
+                  end_angle: 26
+                  min_value: 0
+                  max_value: 100
+                  value: 100
+                  arc_color: 0x454545
+                  arc_opa: COVER
+                  arc_width: 4
+                  adjustable: false
+                  clickable: false
+                  indicator: {arc_color: 0xFFFFFF, arc_width: 4, arc_opa: TRANSP, arc_rounded: true}
+                  knob: {bg_opa: TRANSP, border_width: 0, width: 0, height: 0}
 
               - label:
                   id: lbl_air_temp

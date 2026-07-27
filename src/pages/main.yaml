@@ -193,9 +193,9 @@ sensor:
                               lambda: 'return id(in_air) && !id(in_menu);'
                             then:
                               - lambda: |-
+                                  if (id(air_encoder_step_accum) < 0) id(air_encoder_step_accum) = 0;
                                   id(air_encoder_step_accum) += 1;
-                                  const int threshold = (id(air_control_mode) == 0) ? 4 : 2;
-                                  if (id(air_encoder_step_accum) >= threshold) {
+                                  if (id(air_encoder_step_accum) >= 4) {
                                     id(air_encoder_step_accum) = 0;
                                     if (id(air_control_mode) == 0) {
                                       id(air_temp_up).execute();
@@ -264,9 +264,9 @@ sensor:
                               lambda: 'return id(in_air) && !id(in_menu);'
                             then:
                               - lambda: |-
+                                  if (id(air_encoder_step_accum) > 0) id(air_encoder_step_accum) = 0;
                                   id(air_encoder_step_accum) -= 1;
-                                  const int threshold = (id(air_control_mode) == 0) ? 4 : 2;
-                                  if (id(air_encoder_step_accum) <= -threshold) {
+                                  if (id(air_encoder_step_accum) <= -4) {
                                     id(air_encoder_step_accum) = 0;
                                     if (id(air_control_mode) == 0) {
                                       id(air_temp_down).execute();
