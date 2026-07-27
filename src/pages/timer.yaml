@@ -48,6 +48,12 @@ globals:
   - id: timer_selected_seconds
     type: int
     initial_value: '300'
+  - id: timer_ha_default_seconds
+    type: int
+    initial_value: '300'
+  - id: timer_selection_dirty
+    type: bool
+    initial_value: 'false'
   - id: timer_remaining_seconds
     type: int
     initial_value: '300'
@@ -159,6 +165,10 @@ interval:
               id(timer_finish_feedback_sent) = false;
               id(timer_finished_visible_until_ms) = 0;
               id(timer_blink) = true;
+              if (!id(timer_selection_dirty)) {
+                id(timer_selected_seconds) = id(timer_ha_default_seconds);
+                id(timer_duration_seconds) = id(timer_ha_default_seconds);
+              }
               id(timer_remaining_seconds) = id(timer_selected_seconds);
             }
           }
@@ -255,6 +265,7 @@ script:
 
           int imported_duration = 0;
           if (parse_duration(id(ha_timer_duration).state, &imported_duration) && imported_duration > 0) {
+            id(timer_ha_default_seconds) = imported_duration;
             id(timer_duration_seconds) = imported_duration;
           }
 
@@ -276,6 +287,10 @@ script:
             id(timer_finish_feedback_sent) = false;
             id(timer_finished_visible_until_ms) = 0;
             id(timer_blink) = true;
+            if (!id(timer_selection_dirty)) {
+              id(timer_selected_seconds) = id(timer_ha_default_seconds);
+              id(timer_duration_seconds) = id(timer_ha_default_seconds);
+            }
             id(timer_remaining_seconds) = id(timer_selected_seconds);
             id(refresh_timer).execute();
             return;
@@ -338,6 +353,7 @@ script:
               id(timer_action_pending) = false;
               id(timer_pending_action) = 0;
             }
+            id(timer_selection_dirty) = false;
             id(timer_sync_ready) = true;
             id(refresh_timer).execute();
             return;
@@ -468,9 +484,10 @@ script:
             lambda: 'return id(timer_ui_state) == 0;'
           then:
             - lambda: |-
-                id(timer_selected_seconds) = 300;
-                id(timer_remaining_seconds) = 300;
-                id(timer_duration_seconds) = 300;
+                id(timer_selected_seconds) = id(timer_ha_default_seconds);
+                id(timer_remaining_seconds) = id(timer_ha_default_seconds);
+                id(timer_duration_seconds) = id(timer_ha_default_seconds);
+                id(timer_selection_dirty) = false;
                 id(timer_unit) = -1;
             - script.execute: refresh_timer
           else:
@@ -484,12 +501,14 @@ script:
           int h = id(timer_selected_seconds) / 3600;
           int m = (id(timer_selected_seconds) % 3600) / 60;
           int s = id(timer_selected_seconds) % 60;
+          const int before = id(timer_selected_seconds);
           if (unit == 0) h = (h + 1) % 24;
           else if (unit == 1) m = (m + 1) % 60;
           else if (unit == 2) s = (s + 1) % 60;
           id(timer_selected_seconds) = h * 3600 + m * 60 + s;
           id(timer_remaining_seconds) = id(timer_selected_seconds);
           id(timer_duration_seconds) = id(timer_selected_seconds);
+          if (id(timer_selected_seconds) != before) id(timer_selection_dirty) = true;
       - script.execute: refresh_timer
 
   - id: timer_encoder_down
@@ -500,12 +519,14 @@ script:
           int h = id(timer_selected_seconds) / 3600;
           int m = (id(timer_selected_seconds) % 3600) / 60;
           int s = id(timer_selected_seconds) % 60;
+          const int before = id(timer_selected_seconds);
           if (unit == 0) h = (h + 23) % 24;
           else if (unit == 1) m = (m + 59) % 60;
           else if (unit == 2) s = (s + 59) % 60;
           id(timer_selected_seconds) = h * 3600 + m * 60 + s;
           id(timer_remaining_seconds) = id(timer_selected_seconds);
           id(timer_duration_seconds) = id(timer_selected_seconds);
+          if (id(timer_selected_seconds) != before) id(timer_selection_dirty) = true;
       - script.execute: refresh_timer
 
   - id: refresh_timer
