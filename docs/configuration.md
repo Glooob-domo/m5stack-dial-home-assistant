@@ -17,12 +17,15 @@ Edit `src/main/entities.yaml` and replace the placeholders:
 ```yaml
 substitutions:
   weather_entity: weather.your_location
+  aqi_entity: sensor.jardin_aqi
   climate_entity: climate.your_ac
   music_player_entity: media_player.your_player
   timer_entity: timer.temporizador_dial
 ```
 
 Find these IDs in Home Assistant under Developer Tools -> States.
+
+`weather_entity` provides weather conditions. Set `aqi_entity` to a numeric Home Assistant sensor for air quality; the legacy `aqi` attribute on the weather entity is used only as a temporary fallback when that sensor is unavailable.
 
 ## 3. Timer Helper
 
