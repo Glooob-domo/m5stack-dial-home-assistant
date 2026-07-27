@@ -96,22 +96,47 @@ touchscreen:
             id(swipe_start_x) = touch.x;
             id(swipe_start_y) = touch.y;
             id(swipe_gesture_handled) = false;
+            ESP_LOGI("swipe", "SWIPE start x=%d y=%d", touch.x, touch.y);
           }
+          id(swipe_cur_x) = touch.x;
+          id(swipe_cur_y) = touch.y;
+    on_update:
+      - lambda: |-
+          if (id(swipe_start_x) < 0 || touches.empty()) return;
+          const auto &touch = touches[0];
           id(swipe_cur_x) = touch.x;
           id(swipe_cur_y) = touch.y;
     on_release:
       - lambda: |-
-          if (id(swipe_start_x) < 0 || id(swipe_gesture_handled)) return;
+          if (id(swipe_start_x) < 0) {
+            ESP_LOGI("swipe", "SWIPE ignored reason=no_start");
+            return;
+          }
+          if (id(swipe_gesture_handled)) {
+            ESP_LOGI("swipe", "SWIPE ignored reason=already_handled");
+            return;
+          }
           const int dx = id(swipe_cur_x) - id(swipe_start_x);
           const int dy = id(swipe_cur_y) - id(swipe_start_y);
+          ESP_LOGI("swipe", "SWIPE end x=%d y=%d dx=%d dy=%d",
+                   id(swipe_cur_x), id(swipe_cur_y), dx, dy);
           id(swipe_start_x) = -1;
           // A normal tap is left to LVGL and its widget-specific handler.
           // Only a clearly horizontal drag is considered navigation.
-          if (abs(dx) < 50 || abs(dy) >= abs(dx)) return;
+          if (abs(dx) < 50) {
+            ESP_LOGI("swipe", "SWIPE ignored reason=horizontal_distance");
+            return;
+          }
+          if (abs(dy) >= abs(dx)) {
+            ESP_LOGI("swipe", "SWIPE ignored reason=not_horizontal");
+            return;
+          }
           id(swipe_gesture_handled) = true;
           if (dx < 0) {
+            ESP_LOGI("swipe", "SWIPE dispatch direction=left");
             id(dial_gesture_left).execute();
           } else {
+            ESP_LOGI("swipe", "SWIPE dispatch direction=right");
             id(dial_gesture_right).execute();
           }
 

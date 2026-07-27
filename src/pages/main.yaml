@@ -122,66 +122,75 @@ script:
     then:
       - if:
           condition:
-            lambda: 'return id(in_menu) || id(in_light_selector);'
+            lambda: |-
+              return !id(in_menu) && !id(in_light_selector) && !id(in_light)
+                  && !id(in_air) && !id(in_music) && !id(in_timer)
+                  && !id(in_colorpicker);
           then:
-            - script.execute: dial_enter_selected
+            - script.execute: open_menu
           else:
             - if:
                 condition:
-                  lambda: |-
-                    return !id(in_light) && !id(in_air) && !id(in_music)
-                        && !id(in_timer) && !id(in_colorpicker);
+                  lambda: 'return id(in_menu);'
                 then:
-                  - script.execute: open_menu
+                  - script.execute: dial_enter_selected
+                else:
+                  - if:
+                      condition:
+                        lambda: 'return id(in_light_selector);'
+                      then:
+                        - script.execute: light_selector_confirm
 
   - id: dial_gesture_right
     then:
-      - if:
-          condition:
-            lambda: |-
-              return id(in_menu) || id(in_light_selector) || id(in_light)
-                  || id(in_air) || id(in_music) || id(in_timer)
-                  || id(in_colorpicker);
-          then:
-            - script.execute: dial_back
+      - script.execute: dial_back
 
   - id: dial_simple_click
     then:
       - if:
           condition:
-            lambda: 'return id(in_timer);'
+            lambda: |-
+              return !id(in_menu) && !id(in_light_selector) && !id(in_light)
+                  && !id(in_air) && !id(in_music) && !id(in_timer)
+                  && !id(in_colorpicker);
           then:
-            - script.execute: timer_toggle
+            - script.execute: open_menu
           else:
             - if:
                 condition:
-                  lambda: 'return id(in_air) && id(air_control_mode) != 0;'
+                  lambda: 'return id(in_timer);'
                 then:
-                  - script.execute: air_confirm_edit
+                  - script.execute: timer_toggle
                 else:
                   - if:
                       condition:
-                        lambda: 'return id(in_colorpicker);'
+                        lambda: 'return id(in_air) && id(air_control_mode) != 0;'
                       then:
-                        - script.execute: toggle_color_picker_mode
+                        - script.execute: air_confirm_edit
                       else:
                         - if:
                             condition:
-                              lambda: 'return id(in_light_selector);'
+                              lambda: 'return id(in_colorpicker);'
                             then:
-                              - script.execute: light_selector_confirm
+                              - script.execute: toggle_color_picker_mode
                             else:
                               - if:
                                   condition:
-                                    lambda: 'return id(in_menu);'
+                                    lambda: 'return id(in_light_selector);'
                                   then:
-                                    - script.execute: dial_enter_selected
+                                    - script.execute: light_selector_confirm
                                   else:
                                     - if:
                                         condition:
-                                          lambda: 'return id(in_air) || id(in_light) || id(in_music);'
+                                          lambda: 'return id(in_menu);'
                                         then:
-                                          - script.execute: dial_back
+                                          - script.execute: dial_enter_selected
+                                        else:
+                                          - if:
+                                              condition:
+                                                lambda: 'return id(in_air) || id(in_light) || id(in_music);'
+                                              then:
+                                                - script.execute: dial_back
 
   - id: dial_back
     then:
