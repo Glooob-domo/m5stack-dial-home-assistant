@@ -88,9 +88,6 @@ globals:
   - id: timer_finish_feedback_sent
     type: bool
     initial_value: 'false'
-  - id: timer_finished_visible_until_ms
-    type: uint32_t
-    initial_value: '0'
 
 text_sensor:
   - platform: homeassistant
@@ -148,29 +145,13 @@ interval:
                   id(ha_timer_state).state == "active") {
                 id(timer_ui_state) = FINISHED;
                 id(timer_finish_feedback_sent) = true;
-                id(timer_finished_visible_until_ms) = millis() + 2500;
                 id(timer_blink) = true;
                 id(timer_finish_beep).execute();
               }
             }
           }
-          if (id(timer_ui_state) == FINISHED) {
+          if (id(timer_ui_state) == FINISHED && id(in_timer)) {
             id(timer_blink) = !id(timer_blink);
-            if (id(ha_timer_state).state == "idle" &&
-                (int32_t) (millis() - id(timer_finished_visible_until_ms)) >= 0) {
-              id(timer_ui_state) = 0;
-              id(timer_finish_epoch_utc) = 0;
-              id(timer_active_cycle_finish_epoch) = 0;
-              id(timer_observed_active_cycle) = false;
-              id(timer_finish_feedback_sent) = false;
-              id(timer_finished_visible_until_ms) = 0;
-              id(timer_blink) = true;
-              if (!id(timer_selection_dirty)) {
-                id(timer_selected_seconds) = id(timer_ha_default_seconds);
-                id(timer_duration_seconds) = id(timer_ha_default_seconds);
-              }
-              id(timer_remaining_seconds) = id(timer_selected_seconds);
-            }
           }
           if (id(in_timer)) id(refresh_timer).execute();
 
@@ -275,8 +256,7 @@ script:
               id(timer_pending_action) = 0;
             }
             id(timer_sync_ready) = true;
-            if (id(timer_ui_state) == FINISHED &&
-                (int32_t) (millis() - id(timer_finished_visible_until_ms)) < 0) {
+            if (id(timer_ui_state) == FINISHED) {
               id(refresh_timer).execute();
               return;
             }
@@ -285,7 +265,6 @@ script:
             id(timer_active_cycle_finish_epoch) = 0;
             id(timer_observed_active_cycle) = false;
             id(timer_finish_feedback_sent) = false;
-            id(timer_finished_visible_until_ms) = 0;
             id(timer_blink) = true;
             if (!id(timer_selection_dirty)) {
               id(timer_selected_seconds) = id(timer_ha_default_seconds);
@@ -333,7 +312,6 @@ script:
                 id(timer_observed_active_cycle) = true;
                 id(timer_active_cycle_finish_epoch) = finish_epoch;
                 id(timer_finish_feedback_sent) = false;
-                id(timer_finished_visible_until_ms) = 0;
                 id(timer_blink) = true;
                 id(timer_ui_state) = ACTIVE;
               }
@@ -457,6 +435,26 @@ script:
       - globals.set: {id: in_timer, value: 'false'}
       - script.execute: open_menu
 
+  - id: timer_finish_reset_visual
+    then:
+      - if:
+          condition:
+            lambda: 'return id(timer_ui_state) == 3 && id(ha_timer_state).state == "idle";'
+          then:
+            - lambda: |-
+                id(timer_ui_state) = 0;
+                id(timer_finish_epoch_utc) = 0;
+                id(timer_active_cycle_finish_epoch) = 0;
+                id(timer_observed_active_cycle) = false;
+                id(timer_finish_feedback_sent) = false;
+                id(timer_blink) = true;
+                if (!id(timer_selection_dirty)) {
+                  id(timer_selected_seconds) = id(timer_ha_default_seconds);
+                  id(timer_duration_seconds) = id(timer_ha_default_seconds);
+                }
+                id(timer_remaining_seconds) = id(timer_selected_seconds);
+            - script.execute: refresh_timer
+
   - id: timer_toggle
     then:
       - if:
@@ -476,6 +474,12 @@ script:
                         lambda: 'return id(timer_ui_state) == 2;'
                       then:
                         - script.execute: timer_resume
+                      else:
+                        - if:
+                            condition:
+                              lambda: 'return id(timer_ui_state) == 3;'
+                            then:
+                              - script.execute: timer_finish_reset_visual
 
   - id: timer_reset_or_cancel
     then:
@@ -491,7 +495,13 @@ script:
                 id(timer_unit) = -1;
             - script.execute: refresh_timer
           else:
-            - script.execute: timer_cancel
+            - if:
+                condition:
+                  lambda: 'return id(timer_ui_state) == 3;'
+                then:
+                  - script.execute: timer_finish_reset_visual
+                else:
+                  - script.execute: timer_cancel
 
   - id: timer_encoder_up
     then:
