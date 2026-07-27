@@ -28,7 +28,7 @@ The project is based on ESPHome and LVGL. Most of the UI is split into separate 
 - Control the built-in LED ring with brightness, color, and preset color flows.
 - Adjust an air conditioner entity from Home Assistant.
 - Show a music page with playback buttons, volume, progress, and album art.
-- Run a simple countdown timer.
+- Control a Home Assistant countdown timer from the Dial.
 - Keep the device alive on battery power on M5Dial V1.1 by enabling the power-hold pin.
 
 ## Gallery
@@ -47,7 +47,7 @@ The project is based on ESPHome and LVGL. Most of the UI is split into separate 
 | Light | LED ring brightness, color, and effects |
 | AC | Target temperature and power control; fan/swing UI can be mapped to your own climate services |
 | Music | SendSpin media state, cover art, progress, volume, and transport controls |
-| Timer | Countdown timer with rotary adjustment |
+| Timer | Home Assistant countdown timer with rotary adjustment |
 
 ## Hardware
 
@@ -128,11 +128,24 @@ substitutions:
   weather_entity: weather.your_location
   climate_entity: climate.your_ac
   music_player_entity: media_player.your_player
+  timer_entity: timer.temporizador_dial
 ```
 
 You can find these entity IDs in Home Assistant under **Developer Tools -> States**.
 
 For the music page, choose the media player that actually plays audio. It should report useful attributes such as `volume_level`, `media_title`, `media_duration`, and `media_position`. If the entity is `unavailable`, the Dial cannot sync it.
+
+For the timer page, create a Home Assistant Timer helper and use its entity ID for `timer_entity`. For example, a YAML-defined helper can be configured as:
+
+```yaml
+timer:
+  temporizador_dial:
+    name: Temporizador Dial
+    duration: "00:05:00"
+    restore: true
+```
+
+Home Assistant is the timer source of truth: the Dial can be closed without stopping the countdown, and the same timer can also be controlled from dashboards, mobile devices, and automations. `restore: true` is recommended so active and paused timers survive Home Assistant restarts.
 
 ### 4. Check, build, and flash
 
@@ -170,6 +183,7 @@ M5Dial V1.1 needs the hold pin to stay enabled when running from battery. This p
 - **Wrong weather values**: change `weather_entity` in `src/main/entities.yaml`.
 - **Wrong AC entity**: change `climate_entity` in `src/main/entities.yaml`.
 - **Music page shows unavailable**: choose the real player entity, not the Dial entity itself.
+- **Timer page shows unavailable**: create the Timer helper in Home Assistant and check `timer_entity` in `src/main/entities.yaml`.
 - **Album art causes reboot**: keep the artwork small and do not increase LVGL memory use too much.
 - **First build cannot download fonts**: connect to the internet once so ESPHome can fetch Google Fonts, or replace `gfonts://` fonts with local font files.
 - **Battery does not keep the device on**: check the V1.1 power-hold configuration.
