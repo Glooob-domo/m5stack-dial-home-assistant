@@ -137,7 +137,10 @@ interval:
             if (now.is_valid()) {
               const int previous = id(timer_remaining_seconds);
               const int64_t delta = id(timer_finish_epoch_utc) - now.timestamp;
-              const int remaining = delta > 0 ? (int) delta : 0;
+              int remaining = delta > 0 ? (int) delta : 0;
+              if (id(timer_duration_seconds) > 0 && remaining > id(timer_duration_seconds)) {
+                remaining = id(timer_duration_seconds);
+              }
               id(timer_remaining_seconds) = remaining;
               if (previous > 0 && remaining == 0 &&
                   id(timer_observed_active_cycle) &&
@@ -149,6 +152,8 @@ interval:
                 id(timer_finish_beep).execute();
               }
             }
+            if (id(in_timer)) id(refresh_timer).execute();
+            return;
           }
           if (id(timer_ui_state) == FINISHED && id(in_timer)) {
             id(timer_blink) = !id(timer_blink);
@@ -318,7 +323,11 @@ script:
               auto now = id(esptime).now();
               if (now.is_valid()) {
                 const int64_t delta = finish_epoch - now.timestamp;
-                id(timer_remaining_seconds) = delta > 0 ? (int) delta : 0;
+                int remaining = delta > 0 ? (int) delta : 0;
+                if (id(timer_duration_seconds) > 0 && remaining > id(timer_duration_seconds)) {
+                  remaining = id(timer_duration_seconds);
+                }
+                id(timer_remaining_seconds) = remaining;
               } else {
                 int imported_remaining = 0;
                 if (parse_duration(id(ha_timer_remaining).state, &imported_remaining)) {
