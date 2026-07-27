@@ -104,6 +104,94 @@ time:
         - script.execute: timer_schedule_sync
 
 script:
+  - id: dial_enter_selected
+    then:
+      - if:
+          condition:
+            lambda: 'return id(in_menu);'
+          then:
+            - script.execute: menu_confirm
+          else:
+            - if:
+                condition:
+                  lambda: 'return id(in_light_selector);'
+                then:
+                  - script.execute: light_selector_confirm
+
+  - id: dial_gesture_left
+    then:
+      - if:
+          condition:
+            lambda: |-
+              return !id(in_menu) && !id(in_light_selector) && !id(in_light)
+                  && !id(in_air) && !id(in_music) && !id(in_timer)
+                  && !id(in_colorpicker);
+          then:
+            - script.execute: open_menu
+          else:
+            - if:
+                condition:
+                  lambda: 'return id(in_menu);'
+                then:
+                  - script.execute: dial_enter_selected
+                else:
+                  - if:
+                      condition:
+                        lambda: 'return id(in_light_selector);'
+                      then:
+                        - script.execute: light_selector_confirm
+
+  - id: dial_gesture_right
+    then:
+      - script.execute: dial_back
+
+  - id: dial_simple_click
+    then:
+      - if:
+          condition:
+            lambda: |-
+              return !id(in_menu) && !id(in_light_selector) && !id(in_light)
+                  && !id(in_air) && !id(in_music) && !id(in_timer)
+                  && !id(in_colorpicker);
+          then:
+            - script.execute: open_menu
+          else:
+            - if:
+                condition:
+                  lambda: 'return id(in_timer);'
+                then:
+                  - script.execute: timer_toggle
+                else:
+                  - if:
+                      condition:
+                        lambda: 'return id(in_air) && id(air_control_mode) != 0;'
+                      then:
+                        - script.execute: air_confirm_edit
+                      else:
+                        - if:
+                            condition:
+                              lambda: 'return id(in_colorpicker);'
+                            then:
+                              - script.execute: toggle_color_picker_mode
+                            else:
+                              - if:
+                                  condition:
+                                    lambda: 'return id(in_light_selector);'
+                                  then:
+                                    - script.execute: light_selector_confirm
+                                  else:
+                                    - if:
+                                        condition:
+                                          lambda: 'return id(in_menu);'
+                                        then:
+                                          - script.execute: dial_enter_selected
+                                        else:
+                                          - if:
+                                              condition:
+                                                lambda: 'return id(in_air) || id(in_light) || id(in_music);'
+                                              then:
+                                                - script.execute: dial_back
+
   - id: dial_back
     then:
       - lambda: |-
@@ -399,48 +487,12 @@ binary_sensor:
         then:
           - if:
               condition:
-                lambda: 'return id(in_air) && !id(button_debounce);'
+                lambda: 'return !id(button_debounce);'
               then:
                 - globals.set: {id: button_debounce, value: 'true'}
-                - script.execute: air_confirm_edit
+                - script.execute: dial_simple_click
                 - delay: 250ms
                 - globals.set: {id: button_debounce, value: 'false'}
-              else:
-                - if:
-                    condition:
-                      lambda: 'return id(in_colorpicker) && !id(button_debounce);'
-                    then:
-                      - globals.set: {id: button_debounce, value: 'true'}
-                      - script.execute: toggle_color_picker_mode
-                      - delay: 250ms
-                      - globals.set: {id: button_debounce, value: 'false'}
-                    else:
-                      - if:
-                          condition:
-                            lambda: 'return id(in_light_selector) && !id(button_debounce);'
-                          then:
-                            - globals.set: {id: button_debounce, value: 'true'}
-                            - script.execute: light_selector_confirm
-                            - delay: 250ms
-                            - globals.set: {id: button_debounce, value: 'false'}
-                          else:
-                            - if:
-                                condition:
-                                  lambda: 'return id(in_menu) && !id(button_debounce);'
-                                then:
-                                  - globals.set: {id: button_debounce, value: 'true'}
-                                  - script.execute: menu_confirm
-                                  - delay: 250ms
-                                  - globals.set: {id: button_debounce, value: 'false'}
-                                else:
-                                  - if:
-                                      condition:
-                                        lambda: 'return id(in_timer) && !id(button_debounce);'
-                                      then:
-                                        - globals.set: {id: button_debounce, value: 'true'}
-                                        - script.execute: timer_toggle
-                                        - delay: 250ms
-                                        - globals.set: {id: button_debounce, value: 'false'}
   # M5Dial V1.1 uses GPIO46 as HOLD for battery power retention.
   # Keep this old back-button mapping commented; enabling it will conflict with
   # src/main/hardware.yaml:power_hold and battery-only boot will turn off again.
