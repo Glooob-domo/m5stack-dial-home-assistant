@@ -153,6 +153,9 @@ globals:
   - id: air_fan_mode_pending
     type: std::string
     initial_value: '""'
+  - id: air_last_valid_fan_mode
+    type: std::string
+    initial_value: '""'
 
 sensor:
   - platform: homeassistant
@@ -210,6 +213,7 @@ text_sensor:
           for (char &c : lower) c = (char) std::tolower((unsigned char) c);
           if (lower == "unknown" || lower == "unavailable" || lower == "none" || lower == "null") return;
           id(air_fan_mode_pending) = x;
+          id(air_last_valid_fan_mode) = x;
       - script.execute: refresh_air
 
   - platform: homeassistant
@@ -397,12 +401,58 @@ script:
                   lambda: 'return id(ha_air_hvac_mode).state == "off";'
                 then:
                   - lambda: |-
+                      static auto is_invalid = [](const std::string &s) -> bool {
+                        if (s.empty()) return true;
+                        std::string lower = s;
+                        for (char &c : lower) c = (char) std::tolower((unsigned char) c);
+                        return lower == "unknown" || lower == "unavailable" || lower == "none" || lower == "null" || lower == "off";
+                      };
+                      static auto split_csv = [](const std::string &csv, std::vector<std::string> &out) {
+                        out.clear();
+                        size_t start = 0;
+                        while (start <= csv.size()) {
+                          size_t pos = csv.find('|', start);
+                          if (pos == std::string::npos) pos = csv.size();
+                          if (pos > start) out.push_back(csv.substr(start, pos - start));
+                          if (pos == csv.size()) break;
+                          start = pos + 1;
+                        }
+                      };
+                      static auto mode_in_list = [](const std::string &mode, const std::vector<std::string> &modes) -> bool {
+                        for (const auto &m : modes) {
+                          if (m == mode) return true;
+                        }
+                        return false;
+                      };
+
+                      std::vector<std::string> modes;
+                      split_csv(id(air_hvac_modes_csv), modes);
+                      if (modes.empty()) {
+                        ESP_LOGW("air", "air_power_toggle: no valid hvac mode to power on");
+                        return;
+                      }
+
+                      std::string power_on_mode;
+                      if (!is_invalid(id(air_last_hvac_mode)) && mode_in_list(id(air_last_hvac_mode), modes)) {
+                        power_on_mode = id(air_last_hvac_mode);
+                      } else if (!is_invalid(id(air_hvac_mode_pending)) && mode_in_list(id(air_hvac_mode_pending), modes)) {
+                        power_on_mode = id(air_hvac_mode_pending);
+                      } else {
+                        power_on_mode = modes[0];
+                      }
+
                       id(air_btn_power_active) = true;
-                      ESP_LOGI("air", "AIR_HA_ACTION turn_on entity=${climate_entity}");
-                  - homeassistant.service:
-                      service: climate.turn_on
-                      data:
-                        entity_id: ${climate_entity}
+                      id(air_hvac_mode_pending) = power_on_mode;
+                      ESP_LOGI("air", "AIR_HA_ACTION power_on entity=${climate_entity} mode=%s", power_on_mode.c_str());
+                  - if:
+                      condition:
+                        lambda: 'return !id(air_hvac_modes_csv).empty();'
+                      then:
+                        - homeassistant.service:
+                            service: climate.set_hvac_mode
+                            data:
+                              entity_id: ${climate_entity}
+                              hvac_mode: !lambda 'return id(air_hvac_mode_pending);'
                 else:
                   - lambda: |-
                       id(air_btn_power_active) = false;
@@ -476,6 +526,7 @@ script:
           }
 
           id(air_fan_mode_pending) = modes[idx];
+          id(air_last_valid_fan_mode) = modes[idx];
           ESP_LOGI("air", "AIR_HA_ACTION fan_mode entity=${climate_entity} mode=%s", modes[idx].c_str());
       - if:
           condition:
@@ -551,6 +602,7 @@ script:
           }
 
           id(air_hvac_mode_pending) = modes[idx];
+          id(air_last_hvac_mode) = modes[idx];
           ESP_LOGI("air", "AIR_HA_ACTION hvac_mode entity=${climate_entity} mode=%s", modes[idx].c_str());
       - if:
           condition:
@@ -733,10 +785,12 @@ script:
           bool fan_seg_auto = false;
           if (fan_supported) {
             std::string fan_mode_seg;
-            if (cm == 1 && !is_invalid(id(air_fan_mode_pending))) {
+            if (!is_invalid(id(air_fan_mode_pending))) {
               fan_mode_seg = id(air_fan_mode_pending);
             } else if (id(ha_air_fan_mode).has_state() && !is_invalid(id(ha_air_fan_mode).state)) {
               fan_mode_seg = id(ha_air_fan_mode).state;
+            } else if (!is_invalid(id(air_last_valid_fan_mode))) {
+              fan_mode_seg = id(air_last_valid_fan_mode);
             }
             if (!is_invalid(fan_mode_seg)) {
               if (fan_mode_seg == "auto") {
