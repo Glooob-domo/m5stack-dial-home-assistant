@@ -457,7 +457,7 @@ script:
       - globals.set: {id: in_light, value: 'false'}
       - globals.set: {id: in_colorpicker, value: 'false'}
       - globals.set: {id: light_multilight_active, value: 'false'}
-      - script.execute: open_menu
+      - script.execute: open_menu_back
 
   - id: toggle_light_onoff
     then:

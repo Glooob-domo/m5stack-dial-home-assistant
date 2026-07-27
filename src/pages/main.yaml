@@ -206,7 +206,7 @@ script:
           if (id(in_light)) {
             if (id(dial_lights_id).light_count() > 1) {
               id(in_light) = false;
-              id(open_light_selector).execute();
+              id(open_light_selector_back).execute();
             } else {
               id(close_light).execute();
             }
@@ -222,7 +222,7 @@ script:
           }
           if (id(in_music)) {
             id(in_music) = false;
-            id(open_menu).execute();
+            id(open_menu_back).execute();
             return;
           }
           if (id(in_timer)) {
