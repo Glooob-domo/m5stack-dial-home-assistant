@@ -540,10 +540,7 @@ lvgl:
                     - image:
                         id: img_music_cover
                         src: place_holder
-                        x: 5
-                        y: 5
-                        width: 100
-                        height: 100
+                        align: CENTER
               - label:
                   id: lbl_music_title
                   x: 20
