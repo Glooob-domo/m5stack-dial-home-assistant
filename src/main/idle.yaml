@@ -239,10 +239,6 @@ script:
             lambda: 'return id(screen_idle_state) == 2;'
           then:
             - script.execute: dial_idle_restore_brightness
-            - script.execute: dial_idle_reset_page_flags
-            - lvgl.page.show:
-                id: page_clock
-                animation: NONE
             - lambda: |-
                 id(screen_idle_state) = 0;
                 id(last_activity_ms) = millis();
