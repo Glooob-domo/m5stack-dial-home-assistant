@@ -150,116 +150,144 @@ script:
 
   - id: dial_gesture_left
     then:
+      - script.execute:
+          id: dial_register_activity
+          source: "touch"
       - if:
           condition:
-            lambda: |-
-              return !id(in_menu) && !id(in_light_selector) && !id(in_light)
-                  && !id(in_air) && !id(in_music) && !id(in_timer)
-                  && !id(in_colorpicker);
+            lambda: 'return !id(idle_event_consumed);'
           then:
-            - script.execute: open_menu
-          else:
             - if:
                 condition:
-                  lambda: 'return id(in_menu);'
+                  lambda: |-
+                    return !id(in_menu) && !id(in_light_selector) && !id(in_light)
+                        && !id(in_air) && !id(in_music) && !id(in_timer)
+                        && !id(in_colorpicker);
                 then:
-                  - script.execute: dial_enter_selected
+                  - script.execute: open_menu
                 else:
                   - if:
                       condition:
-                        lambda: 'return id(in_light_selector);'
+                        lambda: 'return id(in_menu);'
                       then:
-                        - script.execute: light_selector_confirm
-
-  - id: dial_gesture_right
-    then:
-      - script.execute: dial_back
-
-  - id: dial_simple_click
-    then:
-      - if:
-          condition:
-            lambda: |-
-              return !id(in_menu) && !id(in_light_selector) && !id(in_light)
-                  && !id(in_air) && !id(in_music) && !id(in_timer)
-                  && !id(in_colorpicker);
-          then:
-            - script.execute: open_menu
-          else:
-            - if:
-                condition:
-                  lambda: 'return id(in_timer);'
-                then:
-                  - script.execute: timer_toggle
-                else:
-                  - if:
-                      condition:
-                        lambda: 'return id(in_air) && id(air_control_mode) != 0;'
-                      then:
-                        - script.execute: air_confirm_edit
+                        - script.execute: dial_enter_selected
                       else:
                         - if:
                             condition:
-                              lambda: 'return id(in_colorpicker);'
+                              lambda: 'return id(in_light_selector);'
                             then:
-                              - script.execute: toggle_color_picker_mode
+                              - script.execute: light_selector_confirm
+
+  - id: dial_gesture_right
+    then:
+      - script.execute:
+          id: dial_register_activity
+          source: "touch"
+      - if:
+          condition:
+            lambda: 'return !id(idle_event_consumed);'
+          then:
+            - script.execute: dial_back
+
+  - id: dial_simple_click
+    then:
+      - script.execute:
+          id: dial_register_activity
+          source: "button"
+      - if:
+          condition:
+            lambda: 'return !id(idle_event_consumed);'
+          then:
+            - if:
+                condition:
+                  lambda: |-
+                    return !id(in_menu) && !id(in_light_selector) && !id(in_light)
+                        && !id(in_air) && !id(in_music) && !id(in_timer)
+                        && !id(in_colorpicker);
+                then:
+                  - script.execute: open_menu
+                else:
+                  - if:
+                      condition:
+                        lambda: 'return id(in_timer);'
+                      then:
+                        - script.execute: timer_toggle
+                      else:
+                        - if:
+                            condition:
+                              lambda: 'return id(in_air) && id(air_control_mode) != 0;'
+                            then:
+                              - script.execute: air_confirm_edit
                             else:
                               - if:
                                   condition:
-                                    lambda: 'return id(in_light_selector);'
+                                    lambda: 'return id(in_colorpicker);'
                                   then:
-                                    - script.execute: light_selector_confirm
+                                    - script.execute: toggle_color_picker_mode
                                   else:
                                     - if:
                                         condition:
-                                          lambda: 'return id(in_menu);'
+                                          lambda: 'return id(in_light_selector);'
                                         then:
-                                          - script.execute: dial_enter_selected
+                                          - script.execute: light_selector_confirm
                                         else:
                                           - if:
                                               condition:
-                                                lambda: 'return id(in_air) || id(in_light) || id(in_music);'
+                                                lambda: 'return id(in_menu);'
                                               then:
-                                                - script.execute: dial_back
+                                                - script.execute: dial_enter_selected
+                                              else:
+                                                - if:
+                                                    condition:
+                                                      lambda: 'return id(in_air) || id(in_light) || id(in_music);'
+                                                    then:
+                                                      - script.execute: dial_back
 
   - id: dial_back
     then:
-      - lambda: |-
-          if (id(in_light_selector)) {
-            id(close_light_selector).execute();
-            return;
-          }
-          if (id(in_menu)) {
-            id(close_menu).execute();
-            return;
-          }
-          if (id(in_light)) {
-            if (id(dial_lights_id).light_count() > 1) {
-              id(in_light) = false;
-              id(open_light_selector_back).execute();
-            } else {
-              id(close_light).execute();
-            }
-            return;
-          }
-          if (id(in_colorpicker)) {
-            id(close_light).execute();
-            return;
-          }
-          if (id(in_air)) {
-            id(close_air).execute();
-            return;
-          }
-          if (id(in_music)) {
-            id(in_music) = false;
-            id(open_menu_back).execute();
-            return;
-          }
-          if (id(in_timer)) {
-            id(close_timer).execute();
-            return;
-          }
-          id(open_menu).execute();
+      - script.execute:
+          id: dial_register_activity
+          source: "button"
+      - if:
+          condition:
+            lambda: 'return !id(idle_event_consumed);'
+          then:
+            - lambda: |-
+                if (id(in_light_selector)) {
+                  id(close_light_selector).execute();
+                  return;
+                }
+                if (id(in_menu)) {
+                  id(close_menu).execute();
+                  return;
+                }
+                if (id(in_light)) {
+                  if (id(dial_lights_id).light_count() > 1) {
+                    id(in_light) = false;
+                    id(open_light_selector_back).execute();
+                  } else {
+                    id(close_light).execute();
+                  }
+                  return;
+                }
+                if (id(in_colorpicker)) {
+                  id(close_light).execute();
+                  return;
+                }
+                if (id(in_air)) {
+                  id(close_air).execute();
+                  return;
+                }
+                if (id(in_music)) {
+                  id(in_music) = false;
+                  id(open_menu_back).execute();
+                  return;
+                }
+                if (id(in_timer)) {
+                  id(close_timer).execute();
+                  return;
+                }
+                id(open_menu).execute();
 
 sensor:
   - platform: rotary_encoder
@@ -272,147 +300,161 @@ sensor:
       mode: INPUT_PULLUP
     resolution: 4
     on_clockwise:
+      - script.execute:
+          id: dial_register_activity
+          source: "encoder"
       - if:
           condition:
-            lambda: 'return id(in_light_selector);'
+            lambda: 'return !id(idle_event_consumed);'
           then:
-            - lambda: |-
-                if (id(selector_carousel).is_animating()) {
-                  return;
-                }
-                const int before = id(light_selector_encoder_accum);
-                const int after = before + 1;
-                id(light_selector_encoder_accum) = after;
-                if (after < 4) {
-                  return;
-                }
-                id(light_selector_encoder_accum) = 0;
-                id(light_selector_scroll_down).execute();
-          else:
             - if:
                 condition:
-                  lambda: 'return id(in_colorpicker);'
+                  lambda: 'return id(in_light_selector);'
                 then:
-                  - if:
-                      condition:
-                        lambda: 'return id(light_color_picker_mode) == 1;'
-                      then:
-                        - script.execute: light_kelvin_up
-                      else:
-                        - script.execute: light_hue_up
+                  - lambda: |-
+                      if (id(selector_carousel).is_animating()) {
+                        return;
+                      }
+                      const int before = id(light_selector_encoder_accum);
+                      const int after = before + 1;
+                      id(light_selector_encoder_accum) = after;
+                      if (after < 4) {
+                        return;
+                      }
+                      id(light_selector_encoder_accum) = 0;
+                      id(light_selector_scroll_down).execute();
                 else:
                   - if:
                       condition:
-                        lambda: 'return id(in_light) && !id(in_menu);'
+                        lambda: 'return id(in_colorpicker);'
                       then:
-                        - script.execute: light_brightness_up
+                        - if:
+                            condition:
+                              lambda: 'return id(light_color_picker_mode) == 1;'
+                            then:
+                              - script.execute: light_kelvin_up
+                            else:
+                              - script.execute: light_hue_up
                       else:
                         - if:
                             condition:
-                              lambda: 'return id(in_air) && !id(in_menu);'
+                              lambda: 'return id(in_light) && !id(in_menu);'
                             then:
-                              - lambda: |-
-                                  if (id(air_encoder_step_accum) < 0) id(air_encoder_step_accum) = 0;
-                                  id(air_encoder_step_accum) += 1;
-                                  if (id(air_encoder_step_accum) >= 4) {
-                                    id(air_encoder_step_accum) = 0;
-                                    if (id(air_control_mode) == 0) {
-                                      id(air_temp_up).execute();
-                                    } else if (id(air_control_mode) == 1) {
-                                      id(air_fan_step).execute(1);
-                                    } else {
-                                      id(air_hvac_step).execute(1);
-                                    }
-                                  }
+                              - script.execute: light_brightness_up
                             else:
                               - if:
                                   condition:
-                                    lambda: 'return id(in_music);'
+                                    lambda: 'return id(in_air) && !id(in_menu);'
                                   then:
-                                    - script.execute: music_volume_up
+                                    - lambda: |-
+                                        if (id(air_encoder_step_accum) < 0) id(air_encoder_step_accum) = 0;
+                                        id(air_encoder_step_accum) += 1;
+                                        if (id(air_encoder_step_accum) >= 4) {
+                                          id(air_encoder_step_accum) = 0;
+                                          if (id(air_control_mode) == 0) {
+                                            id(air_temp_up).execute();
+                                          } else if (id(air_control_mode) == 1) {
+                                            id(air_fan_step).execute(1);
+                                          } else {
+                                            id(air_hvac_step).execute(1);
+                                          }
+                                        }
                                   else:
                                     - if:
                                         condition:
-                                          lambda: 'return id(in_menu);'
+                                          lambda: 'return id(in_music);'
                                         then:
-                                          - script.execute: menu_scroll_down
+                                          - script.execute: music_volume_up
                                         else:
                                           - if:
                                               condition:
-                                                lambda: 'return id(in_timer);'
+                                                lambda: 'return id(in_menu);'
                                               then:
-                                                - script.execute: timer_encoder_up
+                                                - script.execute: menu_scroll_down
+                                              else:
+                                                - if:
+                                                    condition:
+                                                      lambda: 'return id(in_timer);'
+                                                    then:
+                                                      - script.execute: timer_encoder_up
     on_anticlockwise:
+      - script.execute:
+          id: dial_register_activity
+          source: "encoder"
       - if:
           condition:
-            lambda: 'return id(in_light_selector);'
+            lambda: 'return !id(idle_event_consumed);'
           then:
-            - lambda: |-
-                if (id(selector_carousel).is_animating()) {
-                  return;
-                }
-                const int before = id(light_selector_encoder_accum);
-                const int after = before - 1;
-                id(light_selector_encoder_accum) = after;
-                if (after > -4) {
-                  return;
-                }
-                id(light_selector_encoder_accum) = 0;
-                id(light_selector_scroll_up).execute();
-          else:
             - if:
                 condition:
-                  lambda: 'return id(in_colorpicker);'
+                  lambda: 'return id(in_light_selector);'
                 then:
-                  - if:
-                      condition:
-                        lambda: 'return id(light_color_picker_mode) == 1;'
-                      then:
-                        - script.execute: light_kelvin_down
-                      else:
-                        - script.execute: light_hue_down
+                  - lambda: |-
+                      if (id(selector_carousel).is_animating()) {
+                        return;
+                      }
+                      const int before = id(light_selector_encoder_accum);
+                      const int after = before - 1;
+                      id(light_selector_encoder_accum) = after;
+                      if (after > -4) {
+                        return;
+                      }
+                      id(light_selector_encoder_accum) = 0;
+                      id(light_selector_scroll_up).execute();
                 else:
                   - if:
                       condition:
-                        lambda: 'return id(in_light) && !id(in_menu);'
+                        lambda: 'return id(in_colorpicker);'
                       then:
-                        - script.execute: light_brightness_down
+                        - if:
+                            condition:
+                              lambda: 'return id(light_color_picker_mode) == 1;'
+                            then:
+                              - script.execute: light_kelvin_down
+                            else:
+                              - script.execute: light_hue_down
                       else:
                         - if:
                             condition:
-                              lambda: 'return id(in_air) && !id(in_menu);'
+                              lambda: 'return id(in_light) && !id(in_menu);'
                             then:
-                              - lambda: |-
-                                  if (id(air_encoder_step_accum) > 0) id(air_encoder_step_accum) = 0;
-                                  id(air_encoder_step_accum) -= 1;
-                                  if (id(air_encoder_step_accum) <= -4) {
-                                    id(air_encoder_step_accum) = 0;
-                                    if (id(air_control_mode) == 0) {
-                                      id(air_temp_down).execute();
-                                    } else if (id(air_control_mode) == 1) {
-                                      id(air_fan_step).execute(-1);
-                                    } else {
-                                      id(air_hvac_step).execute(-1);
-                                    }
-                                  }
+                              - script.execute: light_brightness_down
                             else:
                               - if:
                                   condition:
-                                    lambda: 'return id(in_music);'
+                                    lambda: 'return id(in_air) && !id(in_menu);'
                                   then:
-                                    - script.execute: music_volume_down
+                                    - lambda: |-
+                                        if (id(air_encoder_step_accum) > 0) id(air_encoder_step_accum) = 0;
+                                        id(air_encoder_step_accum) -= 1;
+                                        if (id(air_encoder_step_accum) <= -4) {
+                                          id(air_encoder_step_accum) = 0;
+                                          if (id(air_control_mode) == 0) {
+                                            id(air_temp_down).execute();
+                                          } else if (id(air_control_mode) == 1) {
+                                            id(air_fan_step).execute(-1);
+                                          } else {
+                                            id(air_hvac_step).execute(-1);
+                                          }
+                                        }
                                   else:
                                     - if:
                                         condition:
-                                          lambda: 'return id(in_menu);'
+                                          lambda: 'return id(in_music);'
                                         then:
-                                          - script.execute: menu_scroll_up
+                                          - script.execute: music_volume_down
                                         else:
                                           - if:
                                               condition:
-                                                lambda: 'return id(in_timer);'
+                                                lambda: 'return id(in_menu);'
                                               then:
-                                                - script.execute: timer_encoder_down
+                                                - script.execute: menu_scroll_up
+                                              else:
+                                                - if:
+                                                    condition:
+                                                      lambda: 'return id(in_timer);'
+                                                    then:
+                                                      - script.execute: timer_encoder_down
 
   - platform: homeassistant
     id: ha_temperature

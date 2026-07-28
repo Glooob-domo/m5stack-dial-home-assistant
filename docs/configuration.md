@@ -105,3 +105,35 @@ If the entity is `unavailable`, Home Assistant will disable controls and the Dia
 ## 5. Timezone
 
 The default timezone is `Europe/Madrid`. Change the `timezone` substitution in `dial.yaml` if you use another timezone.
+
+## 6. Screen idle and backlight
+
+Three inactivity stages are configurable via substitutions in `dial.yaml`:
+
+```yaml
+substitutions:
+  screen_return_timeout: 45s
+  screen_dim_timeout: 5min
+  screen_off_timeout: 30min
+  screen_dim_brightness: "20%"
+```
+
+These defaults apply when you omit the keys. You only need to add the lines you want to change.
+
+| Substitution | Default | Effect |
+|---|---|---|
+| `screen_return_timeout` | `45s` | Return to the clock page after inactivity |
+| `screen_dim_timeout` | `5min` | Dim the backlight (clock stays visible) |
+| `screen_off_timeout` | `30min` | Turn the backlight off completely |
+| `screen_dim_brightness` | `"20%"` | Backlight level while dimmed (1–100 %) |
+
+Set a timeout to `0s` to disable that stage. Disabled stages are ignored when validating the order `return <= dim <= off`.
+
+**Wake behaviour:** from `DIMMED` or `OFF`, the first encoder turn, button press, touch, or swipe only wakes the screen (restores the previous brightness and shows the clock). It does not open the menu, change values, or trigger navigation. The next interaction behaves normally.
+
+**Timer behaviour:**
+
+- Timer **ACTIVE** or **PAUSED**: the screen may return to the clock and dim, but will not turn fully off.
+- Timer **FINISHED**: the screen wakes, restores brightness, opens the Timer page, and keeps the existing finish blink and beep. The clock auto-return does not leave a finished timer screen.
+
+Home Assistant sensor updates (weather, AQI, lights, music metadata) do **not** wake the display.
