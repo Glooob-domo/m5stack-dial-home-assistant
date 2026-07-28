@@ -1,0 +1,6 @@
+# Default placeholders for optional menu pages. Override any line in dial.yaml
+# (or your local substitutions) with a real Home Assistant entity ID to enable it.
+substitutions:
+  climate_entity: climate.your_ac
+  music_player_entity: media_player.your_player
+  timer_entity: timer.your_timer

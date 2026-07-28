@@ -36,7 +36,7 @@ LIGHT_SCHEMA = cv.Schema(
 
 
 def _config_schema(value):
-    lights = cv.All(cv.ensure_list(LIGHT_SCHEMA), cv.Length(min=1))(value)
+    lights = cv.All(cv.ensure_list(LIGHT_SCHEMA), cv.Length(min=0))(value)
     return {
         CONF_ID: cv.declare_id(DialLights)("dial_lights_id"),
         "lights": lights,

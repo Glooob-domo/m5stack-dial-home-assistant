@@ -127,14 +127,45 @@ Edit `src/main/entities.yaml`:
 substitutions:
   weather_entity: weather.your_location
   aqi_entity: sensor.jardin_aqi
-  climate_entity: climate.your_ac
-  music_player_entity: media_player.your_player
-  timer_entity: timer.temporizador_dial
 ```
 
-You can find these entity IDs in Home Assistant under **Developer Tools -> States**. `weather_entity` supplies weather conditions, while `aqi_entity` must be a numeric Home Assistant sensor. The legacy `aqi` attribute on `weather_entity` is used only as a temporary fallback when the AQI sensor is unavailable.
+These two are required for the clock page. The menu pages below are **optional** — add a substitution in `dial.yaml` only for the features you want. If you do not write the line, that menu item stays hidden:
 
-For the music page, choose the media player that actually plays audio. It should report useful attributes such as `volume_level`, `media_title`, `media_duration`, and `media_position`. If the entity is `unavailable`, the Dial cannot sync it.
+| Substitution | Menu item | How to enable |
+|---|---|---|
+| `timer_entity` | Timer | Add your Home Assistant timer entity ID |
+| `climate_entity` | AC | Add your climate entity ID |
+| `music_player_entity` | Music | Add your media player entity ID |
+| `dial_lights` (in `dial.yaml`) | Lights | Add at least one light entry |
+
+**Home only** — weather and AQI only; no optional substitutions and no `dial_lights`:
+
+```yaml
+substitutions:
+  weather_entity: weather.estacion_meteorologica
+  aqi_entity: sensor.aqi_jardin_pm2_5
+```
+
+**Music only** — add one line to `dial.yaml`:
+
+```yaml
+substitutions:
+  music_player_entity: media_player.arylic_lp100
+```
+
+**Lights only** — omit `dial_lights` or use an empty list; add entries to enable:
+
+```yaml
+dial_lights:
+  - entity_id: light.sofa
+    name: Sofá
+```
+
+An explicit empty list is also valid: `dial_lights: []`.
+
+You can find entity IDs in Home Assistant under **Developer Tools -> States**. `weather_entity` supplies weather conditions, while `aqi_entity` must be a numeric Home Assistant sensor. The legacy `aqi` attribute on `weather_entity` is used only as a temporary fallback when the AQI sensor is unavailable.
+
+For the music page, choose the media player that actually plays audio. It should report useful attributes such as `volume_level`, `media_title`, `media_duration`, and `media_position`. If the entity is `unavailable`, the Dial cannot sync it — but the menu item still appears when configured.
 
 For the timer page, create a Home Assistant Timer helper and use its entity ID for `timer_entity`. For example, a YAML-defined helper can be configured as:
 

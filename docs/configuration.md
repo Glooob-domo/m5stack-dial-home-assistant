@@ -18,14 +18,59 @@ Edit `src/main/entities.yaml` and replace the placeholders:
 substitutions:
   weather_entity: weather.your_location
   aqi_entity: sensor.jardin_aqi
-  climate_entity: climate.your_ac
-  music_player_entity: media_player.your_player
-  timer_entity: timer.temporizador_dial
 ```
 
-Find these IDs in Home Assistant under Developer Tools -> States.
+These two are required for the clock page.
+
+### Optional menu pages
+
+The following are optional. **Do not write a substitution** unless you want that menu item. Home is always shown. Add real entity IDs in `dial.yaml` (or your local substitutions block):
+
+| Option | Menu item | Enable by adding |
+|---|---|---|
+| `timer_entity` | Timer | Your Home Assistant timer entity ID |
+| `climate_entity` | AC | Your climate entity ID |
+| `music_player_entity` | Music | Your media player entity ID |
+| `dial_lights` in `dial.yaml` | Lights | One or more light entries |
+
+Find entity IDs in Home Assistant under Developer Tools -> States.
 
 `weather_entity` provides weather conditions. Set `aqi_entity` to a numeric Home Assistant sensor for air quality; the legacy `aqi` attribute on the weather entity is used only as a temporary fallback when that sensor is unavailable.
+
+#### Examples
+
+**Home only** — weather and AQI only; no optional substitutions and no `dial_lights`:
+
+```yaml
+substitutions:
+  weather_entity: weather.estacion_meteorologica
+  aqi_entity: sensor.aqi_jardin_pm2_5
+```
+
+Do not declare `dial_lights` in `dial.yaml` (the project default is an empty list).
+
+**Music only** — add to `dial.yaml`:
+
+```yaml
+substitutions:
+  music_player_entity: media_player.arylic_lp100
+```
+
+**Lights only**:
+
+```yaml
+dial_lights:
+  - entity_id: light.sofa
+    name: Sofá
+```
+
+**No lights** — omit `dial_lights` or set an explicit empty list:
+
+```yaml
+dial_lights: []
+```
+
+A configured entity still appears in the menu even when Home Assistant reports it as `unavailable`.
 
 ## 3. Timer Helper
 
@@ -59,4 +104,4 @@ If the entity is `unavailable`, Home Assistant will disable controls and the Dia
 
 ## 5. Timezone
 
-The default timezone is `Asia/Shanghai`. Change it in `src/pages/main.yaml` if you use another timezone.
+The default timezone is `Europe/Madrid`. Change the `timezone` substitution in `dial.yaml` if you use another timezone.

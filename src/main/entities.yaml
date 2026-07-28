@@ -2,6 +2,3 @@ substitutions:
   # Change these to match your Home Assistant instance before flashing.
   weather_entity: weather.your_location
   aqi_entity: sensor.jardin_aqi
-  climate_entity: climate.your_ac
-  music_player_entity: media_player.your_player
-  timer_entity: timer.temporizador_dial
