@@ -165,6 +165,7 @@ sensor:
     on_value:
       - lambda: 'id(air_temp) = (int)(x) * 2;'
       - script.execute: refresh_air
+      - script.execute: menu_on_ha_update
 
   - platform: homeassistant
     id: ha_air_current_temp

@@ -15,7 +15,7 @@ font:
     id: font_menu_sub
     size: 12
     bpp: 4
-    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .-_%/·°"
+    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .-_%/:·°"
 
   - file: "gfonts://DM+Sans"
     id: font_light_selector_near
@@ -351,27 +351,58 @@ script:
               break;
             }
             case 2: {
-              const float ct = id(ha_air_current_temp).state;
-              if (id(ha_air_current_temp).has_state() && !isnan(ct)) {
-                const float rounded = roundf(ct);
-                if (fabsf(ct - rounded) > 0.05f)
-                  snprintf(subbuf, sizeof(subbuf), "%.1f °C", ct);
+              auto format_setpoint = [](float t, char *buf, size_t len) -> bool {
+                if (isnan(t)) return false;
+                const float rounded = roundf(t);
+                if (fabsf(t - rounded) > 0.05f)
+                  snprintf(buf, len, "%.1f °C", t);
                 else
-                  snprintf(subbuf, sizeof(subbuf), "%.0f °C", ct);
-                break;
+                  snprintf(buf, len, "%.0f °C", t);
+                return true;
+              };
+
+              auto hvac_label = [](const std::string &mode, char *buf, size_t len) -> bool {
+                if (mode == "cool") snprintf(buf, len, "Cooling");
+                else if (mode == "heat") snprintf(buf, len, "Heating");
+                else if (mode == "fan_only") snprintf(buf, len, "Fan");
+                else if (mode == "dry") snprintf(buf, len, "Dry");
+                else if (mode == "auto" || mode == "heat_cool") snprintf(buf, len, "Auto");
+                else if (mode == "off") snprintf(buf, len, "Off");
+                else return false;
+                return true;
+              };
+
+              char statebuf[16] = "";
+              bool has_state = false;
+              if (id(ha_air_hvac_mode).has_state() && !is_invalid_state(id(ha_air_hvac_mode).state)) {
+                has_state = hvac_label(id(ha_air_hvac_mode).state, statebuf, sizeof(statebuf));
               }
-              if (!id(ha_air_hvac_mode).has_state() || is_invalid_state(id(ha_air_hvac_mode).state)) {
+
+              float setpoint = NAN;
+              if (id(ha_air_target_temp).has_state()) {
+                const float target = id(ha_air_target_temp).state;
+                if (!isnan(target)) setpoint = target;
+              }
+              if (isnan(setpoint) && id(ha_connected)) {
+                const int t2 = id(air_temp);
+                setpoint = t2 / 2.0f;
+              }
+              if (isnan(setpoint) && id(ha_air_current_temp).has_state()) {
+                const float ct = id(ha_air_current_temp).state;
+                if (!isnan(ct)) setpoint = ct;
+              }
+
+              char tempbuf[16] = "";
+              const bool has_temp = format_setpoint(setpoint, tempbuf, sizeof(tempbuf));
+
+              if (has_state && has_temp)
+                snprintf(subbuf, sizeof(subbuf), "%s · %s", statebuf, tempbuf);
+              else if (has_state)
+                snprintf(subbuf, sizeof(subbuf), "%s", statebuf);
+              else if (has_temp)
+                snprintf(subbuf, sizeof(subbuf), "%s", tempbuf);
+              else
                 snprintf(subbuf, sizeof(subbuf), "Unavailable");
-                break;
-              }
-              const std::string &mode = id(ha_air_hvac_mode).state;
-              if (mode == "cool") snprintf(subbuf, sizeof(subbuf), "Cooling");
-              else if (mode == "heat") snprintf(subbuf, sizeof(subbuf), "Heating");
-              else if (mode == "fan_only") snprintf(subbuf, sizeof(subbuf), "Fan");
-              else if (mode == "dry") snprintf(subbuf, sizeof(subbuf), "Dry");
-              else if (mode == "auto") snprintf(subbuf, sizeof(subbuf), "Auto");
-              else if (mode == "off") snprintf(subbuf, sizeof(subbuf), "Off");
-              else snprintf(subbuf, sizeof(subbuf), "Unavailable");
               break;
             }
             case 3: {
