@@ -174,6 +174,7 @@ script:
                 id(timer_finish_feedback_sent) = true;
             - script.execute: timer_finish_beep
             - script.execute: refresh_timer
+            - script.execute: dial_idle_timer_finished_wake
 
   - id: timer_finish_beep
     then:

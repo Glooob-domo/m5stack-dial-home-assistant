@@ -179,6 +179,28 @@ timer:
 
 Home Assistant is the timer source of truth: the Dial can be closed without stopping the countdown, and the same timer can also be controlled from dashboards, mobile devices, and automations. `restore: true` is recommended so active and paused timers survive Home Assistant restarts.
 
+### Screen idle and backlight
+
+The Dial dims and turns off its display after configurable periods of inactivity. Defaults are built in; override them in `dial.yaml`:
+
+```yaml
+substitutions:
+  screen_dim_timeout: 45s
+  screen_return_timeout: 5min
+  screen_off_timeout: 30min
+  screen_dim_brightness: "20%"
+```
+
+| Stage | Default | What happens |
+|---|---|---|
+| Dim | 45 s | Lowers backlight on the current page |
+| Return to clock | 5 min | Shows the clock at dim brightness (if already dimmed) |
+| Off | 30 min | Turns the backlight off; ESPHome, Wi-Fi, and Home Assistant stay connected |
+
+Set any timeout to `0s` to disable that stage. While the screen is **off**, the first interaction wakes to the clock at normal brightness. While **dimmed**, the first interaction restores normal brightness on the current page without navigating. The next interaction works normally. Weather, AQI, and other Home Assistant updates do not wake the screen.
+
+**Timer exceptions:** an active or paused timer prevents full screen-off (the display stays dimmed at most). A timer started remotely while the screen is off wakes to a dimmed clock. When a timer finishes, the screen wakes at normal brightness, opens the Timer page, and keeps the existing blink and beep alert.
+
 ### 4. Check, build, and flash
 
 ```bash

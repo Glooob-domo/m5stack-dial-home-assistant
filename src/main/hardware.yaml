@@ -91,7 +91,17 @@ touchscreen:
     address: 0x38
     interrupt_pin: GPIO14
     on_touch:
+      - script.execute:
+          id: dial_register_activity
+          source: "touch"
       - lambda: |-
+          if (id(idle_event_consumed)) {
+            id(idle_touch_sequence_consumed) = true;
+            id(swipe_gesture_handled) = true;
+            id(swipe_start_x) = -1;
+            id(dial_idle_block_lvgl_input).execute();
+            return;
+          }
           if (id(swipe_start_x) < 0) {
             id(swipe_start_x) = touch.x;
             id(swipe_start_y) = touch.y;
@@ -102,12 +112,23 @@ touchscreen:
           id(swipe_cur_y) = touch.y;
     on_update:
       - lambda: |-
+          if (id(idle_touch_sequence_consumed)) return;
           if (id(swipe_start_x) < 0 || touches.empty()) return;
           const auto &touch = touches[0];
           id(swipe_cur_x) = touch.x;
           id(swipe_cur_y) = touch.y;
     on_release:
       - lambda: |-
+          if (id(idle_touch_sequence_consumed)) {
+            id(swipe_start_x) = -1;
+            id(swipe_cur_x) = 0;
+            id(swipe_cur_y) = 0;
+            id(swipe_gesture_handled) = true;
+            id(idle_touch_sequence_consumed) = false;
+            id(idle_event_consumed) = false;
+            id(dial_idle_unblock_lvgl_input).execute();
+            return;
+          }
           if (id(swipe_start_x) < 0) {
             ESP_LOGI("swipe", "SWIPE ignored reason=no_start");
             return;

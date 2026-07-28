@@ -12,6 +12,7 @@ packages:
   air_page:    !include src/pages/air.yaml
   music_page:  !include src/pages/music.yaml
   timer_page:  !include src/pages/timer.yaml
+  idle:        !include src/main/idle.yaml
 
 external_components:
   - source: github://hectorzin/smart-home-button@main
@@ -64,6 +65,10 @@ substitutions:
   # Public dummy key for validation only. Always override before flashing.
   api_encryption_key: MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDA=
   ota_password: change-me-ota-password
+  screen_dim_timeout: 45s
+  screen_return_timeout: 5min
+  screen_off_timeout: 30min
+  screen_dim_brightness: "20%"
 
 esphome:
   name: ${device_name}
