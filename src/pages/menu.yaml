@@ -66,6 +66,9 @@ image:
 globals:
   - id: menu_sel
     type: int
+    initial_value: '0'
+  - id: menu_func
+    type: int
     initial_value: '4'
   - id: in_menu
     type: bool
@@ -99,12 +102,44 @@ dial_carousel:
     center_sub: slot_center_sub
 
 script:
-  - id: open_menu
+  - id: menu_sync_selection
     then:
       - lambda: |-
-          if (id(menu_sel) < 0 || id(menu_sel) >= 5) {
-            id(menu_sel) = 4;
+          static constexpr int MENU_TIMER = 0;
+          static constexpr int MENU_LIGHTS = 1;
+          static constexpr int MENU_CLIMATE = 2;
+          static constexpr int MENU_MUSIC = 3;
+          static constexpr int MENU_HOME = 4;
+
+          int items[5];
+          int n = 0;
+          if (strcmp("${timer_entity}", "timer.your_timer") != 0)
+            items[n++] = MENU_TIMER;
+          if (id(dial_lights_id).light_count() > 0)
+            items[n++] = MENU_LIGHTS;
+          if (strcmp("${climate_entity}", "climate.your_ac") != 0)
+            items[n++] = MENU_CLIMATE;
+          if (strcmp("${music_player_entity}", "media_player.your_player") != 0)
+            items[n++] = MENU_MUSIC;
+          items[n++] = MENU_HOME;
+
+          const int home_idx = n - 1;
+          bool found = false;
+          for (int i = 0; i < n; i++) {
+            if (items[i] == id(menu_func)) {
+              id(menu_sel) = i;
+              found = true;
+              break;
+            }
           }
+          if (!found) {
+            id(menu_func) = MENU_HOME;
+            id(menu_sel) = home_idx;
+          }
+
+  - id: open_menu
+    then:
+      - script.execute: menu_sync_selection
       - globals.set: {id: in_menu, value: 'true'}
       - script.execute: refresh_menu
       - lvgl.page.show:
@@ -113,10 +148,7 @@ script:
 
   - id: open_menu_back
     then:
-      - lambda: |-
-          if (id(menu_sel) < 0 || id(menu_sel) >= 5) {
-            id(menu_sel) = 4;
-          }
+      - script.execute: menu_sync_selection
       - globals.set: {id: in_menu, value: 'true'}
       - script.execute: refresh_menu
       - lvgl.page.show:
@@ -139,9 +171,22 @@ script:
             - globals.set: {id: menu_animating, value: 'true'}
             - lambda: |-
                 lv_obj_add_flag(id(menu_arrow), LV_OBJ_FLAG_HIDDEN);
+
                 auto on_ready = +[](void *ctx) {
-                  const int n = 5;
-                  id(menu_sel) = ((id(menu_sel) - 1) % n + n) % n;
+                  int local_items[5];
+                  int local_n = 0;
+                  if (strcmp("${timer_entity}", "timer.your_timer") != 0)
+                    local_items[local_n++] = MENU_TIMER;
+                  if (id(dial_lights_id).light_count() > 0)
+                    local_items[local_n++] = MENU_LIGHTS;
+                  if (strcmp("${climate_entity}", "climate.your_ac") != 0)
+                    local_items[local_n++] = MENU_CLIMATE;
+                  if (strcmp("${music_player_entity}", "media_player.your_player") != 0)
+                    local_items[local_n++] = MENU_MUSIC;
+                  local_items[local_n++] = MENU_HOME;
+
+                  id(menu_sel) = ((id(menu_sel) - 1) % local_n + local_n) % local_n;
+                  id(menu_func) = local_items[id(menu_sel)];
                   id(refresh_menu).execute();
                   id(menu_animating) = false;
                 };
@@ -159,8 +204,22 @@ script:
             - globals.set: {id: menu_animating, value: 'true'}
             - lambda: |-
                 lv_obj_add_flag(id(menu_arrow), LV_OBJ_FLAG_HIDDEN);
+
                 auto on_ready = +[](void *ctx) {
-                  id(menu_sel) = (id(menu_sel) + 1) % 5;
+                  int local_items[5];
+                  int local_n = 0;
+                  if (strcmp("${timer_entity}", "timer.your_timer") != 0)
+                    local_items[local_n++] = MENU_TIMER;
+                  if (id(dial_lights_id).light_count() > 0)
+                    local_items[local_n++] = MENU_LIGHTS;
+                  if (strcmp("${climate_entity}", "climate.your_ac") != 0)
+                    local_items[local_n++] = MENU_CLIMATE;
+                  if (strcmp("${music_player_entity}", "media_player.your_player") != 0)
+                    local_items[local_n++] = MENU_MUSIC;
+                  local_items[local_n++] = MENU_HOME;
+
+                  id(menu_sel) = (id(menu_sel) + 1) % local_n;
+                  id(menu_func) = local_items[id(menu_sel)];
                   id(refresh_menu).execute();
                   id(menu_animating) = false;
                 };
@@ -172,34 +231,121 @@ script:
   - id: menu_confirm
     then:
       - lambda: |-
-          ESP_LOGI("menu", "selected item %d", id(menu_sel));
-          int sel = id(menu_sel);
-          if      (sel == 0) { id(open_timer).execute(); }
-          else if (sel == 1) {
-            if (id(dial_lights_id).light_count() == 0) {
-              ESP_LOGW("menu", "Lights selected but dial_lights is empty");
-            } else {
-              id(open_light_selector).execute();
+          static constexpr int MENU_TIMER = 0;
+          static constexpr int MENU_LIGHTS = 1;
+          static constexpr int MENU_CLIMATE = 2;
+          static constexpr int MENU_MUSIC = 3;
+          static constexpr int MENU_HOME = 4;
+
+          ESP_LOGI("menu", "selected func %d visual %d", id(menu_func), id(menu_sel));
+          switch (id(menu_func)) {
+            case MENU_TIMER:
+              id(open_timer).execute();
+              break;
+            case MENU_LIGHTS:
+              if (id(dial_lights_id).light_count() == 1) {
+                id(dial_lights_id).select_light(0);
+                id(open_selected_light).execute();
+              } else if (id(dial_lights_id).light_count() > 1) {
+                id(open_light_selector).execute();
+              } else {
+                ESP_LOGW("menu", "Lights selected but dial_lights is empty");
+              }
+              break;
+            case MENU_CLIMATE:
+              id(open_air).execute();
+              break;
+            case MENU_MUSIC:
+              id(open_music).execute();
+              break;
+            case MENU_HOME:
+            default:
+              id(close_menu).execute();
+              break;
+          }
+
+  - id: menu_touch_slot
+    parameters:
+      slot_offset: int
+    then:
+      - lambda: |-
+          static constexpr int MENU_TIMER = 0;
+          static constexpr int MENU_LIGHTS = 1;
+          static constexpr int MENU_CLIMATE = 2;
+          static constexpr int MENU_MUSIC = 3;
+          static constexpr int MENU_HOME = 4;
+          static constexpr int OFFSETS[5] = {-2, -1, 0, 1, 2};
+
+          int items[5];
+          int n = 0;
+          if (strcmp("${timer_entity}", "timer.your_timer") != 0)
+            items[n++] = MENU_TIMER;
+          if (id(dial_lights_id).light_count() > 0)
+            items[n++] = MENU_LIGHTS;
+          if (strcmp("${climate_entity}", "climate.your_ac") != 0)
+            items[n++] = MENU_CLIMATE;
+          if (strcmp("${music_player_entity}", "media_player.your_player") != 0)
+            items[n++] = MENU_MUSIC;
+          items[n++] = MENU_HOME;
+
+          int slot = -1;
+          for (int s = 0; s < 5; s++) {
+            if (OFFSETS[s] == slot_offset) {
+              slot = s;
+              break;
             }
           }
-          else if (sel == 2) { id(open_air).execute(); }
-          else if (sel == 3) { id(open_music).execute(); }
-          else if (sel == 4) { id(close_menu).execute(); }
-          else               { id(close_menu).execute(); }
+          if (slot < 0)
+            return;
 
-  - id: menu_touch_confirm
-    parameters:
-      selected: int
-    then:
-      - lambda: 'id(menu_sel) = ((selected % 5) + 5) % 5;'
-      - script.execute: menu_confirm
+          const int sel = id(menu_sel);
+          const int idx = ((sel + slot_offset) % n + n) % n;
+
+          int best_slot_for_index[5];
+          for (int i = 0; i < n; i++)
+            best_slot_for_index[i] = -1;
+          for (int s = 0; s < 5; s++) {
+            const int off = OFFSETS[s];
+            const int item_idx = ((sel + off) % n + n) % n;
+            const int dist = off >= 0 ? off : -off;
+            if (best_slot_for_index[item_idx] == -1) {
+              best_slot_for_index[item_idx] = s;
+            } else {
+              const int existing_off = OFFSETS[best_slot_for_index[item_idx]];
+              const int existing_dist = existing_off >= 0 ? existing_off : -existing_off;
+              if (dist < existing_dist || (dist == existing_dist && off == 0))
+                best_slot_for_index[item_idx] = s;
+            }
+          }
+          if (best_slot_for_index[idx] != slot)
+            return;
+
+          id(menu_sel) = idx;
+          id(menu_func) = items[idx];
+          id(menu_confirm).execute();
 
   - id: refresh_menu
     then:
       - lambda: |-
-          const int ITEM_N = 5;
-          const int SLOT_N = 5;
-          const int OFFSETS[5] = {-2, -1, 0, 1, 2};
+          static constexpr int MENU_TIMER = 0;
+          static constexpr int MENU_LIGHTS = 1;
+          static constexpr int MENU_CLIMATE = 2;
+          static constexpr int MENU_MUSIC = 3;
+          static constexpr int MENU_HOME = 4;
+          static constexpr int SLOT_N = 5;
+          static constexpr int OFFSETS[5] = {-2, -1, 0, 1, 2};
+
+          int items[5];
+          int n = 0;
+          if (strcmp("${timer_entity}", "timer.your_timer") != 0)
+            items[n++] = MENU_TIMER;
+          if (id(dial_lights_id).light_count() > 0)
+            items[n++] = MENU_LIGHTS;
+          if (strcmp("${climate_entity}", "climate.your_ac") != 0)
+            items[n++] = MENU_CLIMATE;
+          if (strcmp("${music_player_entity}", "media_player.your_player") != 0)
+            items[n++] = MENU_MUSIC;
+          items[n++] = MENU_HOME;
 
           lv_obj_t* icons[5] = {
             id(slot_far_up_img),  id(slot_near_up_img),
@@ -210,6 +356,10 @@ script:
             id(slot_far_up_lbl),  id(slot_near_up_lbl),
             id(slot_center_lbl),
             id(slot_near_dn_lbl), id(slot_far_dn_lbl)
+          };
+          lv_obj_t* slots[5] = {
+            id(slot_far_up), id(slot_near_up), id(slot_center),
+            id(slot_near_dn), id(slot_far_dn)
           };
 
           const char* TITLES[5]    = {"Timer", "Lights", "AC", "Music", "Home"};
@@ -237,22 +387,49 @@ script:
             0x150A2A,
             0x0D1537
           };
-          int sel = id(menu_sel);
 
-          lv_obj_t* slots[5] = {
-            id(slot_far_up), id(slot_near_up), id(slot_center),
-            id(slot_near_dn), id(slot_far_dn)
-          };
+          const int sel = id(menu_sel);
+          id(menu_func) = items[sel];
+
+          int best_slot_for_index[5];
+          for (int i = 0; i < n; i++)
+            best_slot_for_index[i] = -1;
+          for (int s = 0; s < SLOT_N; s++) {
+            const int off = OFFSETS[s];
+            const int idx = ((sel + off) % n + n) % n;
+            const int dist = off >= 0 ? off : -off;
+            if (best_slot_for_index[idx] == -1) {
+              best_slot_for_index[idx] = s;
+            } else {
+              const int existing_off = OFFSETS[best_slot_for_index[idx]];
+              const int existing_dist = existing_off >= 0 ? existing_off : -existing_off;
+              if (dist < existing_dist || (dist == existing_dist && off == 0))
+                best_slot_for_index[idx] = s;
+            }
+          }
 
           for (int slot = 0; slot < SLOT_N; slot++) {
-            int di = ((sel + OFFSETS[slot]) % ITEM_N + ITEM_N) % ITEM_N;
+            const int off = OFFSETS[slot];
+            const int idx = ((sel + off) % n + n) % n;
+            const int func = items[idx];
+            const bool show = (best_slot_for_index[idx] == slot);
+
+            if (!show) {
+              lv_obj_add_flag(slots[slot], LV_OBJ_FLAG_HIDDEN);
+              lv_obj_clear_flag(slots[slot], LV_OBJ_FLAG_CLICKABLE);
+              continue;
+            }
+
+            lv_obj_clear_flag(slots[slot], LV_OBJ_FLAG_HIDDEN);
+            lv_obj_add_flag(slots[slot], LV_OBJ_FLAG_CLICKABLE);
+
             const auto layout = id(menu_carousel).compute_static_layout(slot, 54);
             id(menu_carousel).apply_container_geometry(slot, layout);
 
             if (slot == 2) {
-              lv_obj_set_style_bg_color(slots[slot], lv_color_hex(PILL_COLORS[di]), LV_PART_MAIN);
+              lv_obj_set_style_bg_color(slots[slot], lv_color_hex(PILL_COLORS[func]), LV_PART_MAIN);
               lv_obj_set_style_bg_opa(slots[slot], 128, LV_PART_MAIN);
-              lv_obj_set_style_border_color(slots[slot], lv_color_hex(ACCENT_COLORS[di]), LV_PART_MAIN);
+              lv_obj_set_style_border_color(slots[slot], lv_color_hex(ACCENT_COLORS[func]), LV_PART_MAIN);
               lv_obj_set_style_border_width(slots[slot], 2, LV_PART_MAIN);
               lv_obj_set_style_border_opa(slots[slot], 255, LV_PART_MAIN);
             } else {
@@ -262,52 +439,53 @@ script:
             }
 
             if (slot == 2) {
-              int bx = layout.x - 10;
-              int by = layout.y + 12;
+              const int bx = layout.x - 10;
+              const int by = layout.y + 12;
               lv_obj_set_pos(id(slot_center_bar), bx, by);
-              lv_obj_set_style_bg_color(id(slot_center_bar), lv_color_hex(ACCENT_COLORS[di]), LV_PART_MAIN);
+              lv_obj_set_style_bg_color(id(slot_center_bar), lv_color_hex(ACCENT_COLORS[func]), LV_PART_MAIN);
               lv_obj_set_style_opa(id(slot_center_bar), 0, LV_PART_MAIN);
             }
 
-            lv_label_set_text(title_lbls[slot], TITLES[di]);
+            lv_label_set_text(title_lbls[slot], TITLES[func]);
             if (slot == 2) {
-              lv_obj_set_style_text_color(title_lbls[slot], lv_color_hex(ACCENT_COLORS[di]), LV_PART_MAIN);
+              lv_obj_set_style_text_color(title_lbls[slot], lv_color_hex(ACCENT_COLORS[func]), LV_PART_MAIN);
             } else {
               lv_obj_set_style_text_color(title_lbls[slot], lv_color_hex(0x232A38), LV_PART_MAIN);
             }
             lv_obj_set_style_opa(title_lbls[slot], slot == 2 ? 255 : layout.opa_text, LV_PART_MAIN);
-            lv_img_set_src(icons[slot], IMGS[di]);
+            lv_img_set_src(icons[slot], IMGS[func]);
             lv_obj_set_style_opa(icons[slot], slot == 2 ? 255 : layout.opa_icon, LV_PART_MAIN);
           }
 
           {
-            int ci = ((sel) % ITEM_N + ITEM_N) % ITEM_N;
-            lv_label_set_text(id(slot_center_sub), SUBTITLES[ci]);
+            const int func = items[sel];
+            lv_label_set_text(id(slot_center_sub), SUBTITLES[func]);
             lv_obj_set_style_opa(id(slot_center_sub), 255, LV_PART_MAIN);
-            // Sub label color matches accent
-            lv_obj_set_style_text_color(id(slot_center_sub), lv_color_hex(ACCENT_COLORS[ci]), LV_PART_MAIN);
+            lv_obj_set_style_text_color(id(slot_center_sub), lv_color_hex(ACCENT_COLORS[func]), LV_PART_MAIN);
           }
 
-          // Left accent bar: update color and reposition to match center slot
           {
-            int ci = ((sel) % ITEM_N + ITEM_N) % ITEM_N;
-            lv_obj_set_style_bg_color(id(slot_center_bar), lv_color_hex(ACCENT_COLORS[ci]), LV_PART_MAIN);
-            // Remove border from pill itself
+            const int func = items[sel];
+            lv_obj_set_style_bg_color(id(slot_center_bar), lv_color_hex(ACCENT_COLORS[func]), LV_PART_MAIN);
             lv_obj_set_style_border_width(id(slot_center), 0, LV_PART_MAIN);
           }
 
-          // Indicator dots: selected = triangle shape (wide-bottom trapezoid via radius=0)
-          // Use width to simulate triangle: selected wider at bottom
           lv_obj_t* sdots[5] = {
             id(sdot_0), id(sdot_1), id(sdot_2), id(sdot_3), id(sdot_4)
           };
-          for (int d = 0; d < ITEM_N; d++) {
+          for (int d = 0; d < SLOT_N; d++) {
+            if (d >= n) {
+              lv_obj_add_flag(sdots[d], LV_OBJ_FLAG_HIDDEN);
+              continue;
+            }
+            lv_obj_clear_flag(sdots[d], LV_OBJ_FLAG_HIDDEN);
+            const int func = items[d];
             if (d == sel) {
-              lv_obj_set_style_bg_color(sdots[d], lv_color_hex(ACCENT_COLORS[d]), LV_PART_MAIN);
+              lv_obj_set_style_bg_color(sdots[d], lv_color_hex(ACCENT_COLORS[func]), LV_PART_MAIN);
               lv_obj_set_style_opa(sdots[d], 255, LV_PART_MAIN);
               lv_obj_set_size(sdots[d], 8, 8);
               lv_obj_set_style_radius(sdots[d], 0, LV_PART_MAIN);
-              lv_obj_set_style_transform_angle(sdots[d], 450, LV_PART_MAIN); // 45deg = triangle look
+              lv_obj_set_style_transform_angle(sdots[d], 450, LV_PART_MAIN);
             } else {
               lv_obj_set_style_bg_color(sdots[d], lv_color_hex(0x2A3348), LV_PART_MAIN);
               lv_obj_set_style_opa(sdots[d], 180, LV_PART_MAIN);
@@ -317,7 +495,6 @@ script:
             }
           }
 
-          // Hide the old arrow indicator (no longer needed with triangle dots)
           lv_obj_add_flag(id(menu_arrow), LV_OBJ_FLAG_HIDDEN);
 
 lvgl:
@@ -366,7 +543,7 @@ lvgl:
                         pad_all: 0
                         clickable: true
                         on_click:
-                          - lambda: 'id(menu_touch_confirm).execute((id(menu_sel) + 3) % 5);'
+                          - lambda: 'id(menu_touch_slot).execute(-2);'
                         widgets:
                           - image:
                               id: slot_far_up_img
@@ -394,7 +571,7 @@ lvgl:
                         pad_all: 0
                         clickable: true
                         on_click:
-                          - lambda: 'id(menu_touch_confirm).execute((id(menu_sel) + 4) % 5);'
+                          - lambda: 'id(menu_touch_slot).execute(-1);'
                         widgets:
                           - image:
                               id: slot_near_up_img
@@ -438,7 +615,7 @@ lvgl:
                         pad_all: 0
                         clickable: true
                         on_click:
-                          - lambda: 'id(menu_touch_confirm).execute(id(menu_sel));'
+                          - lambda: 'id(menu_touch_slot).execute(0);'
                         widgets:
                           - image:
                               id: slot_center_img
@@ -476,7 +653,7 @@ lvgl:
                         pad_all: 0
                         clickable: true
                         on_click:
-                          - lambda: 'id(menu_touch_confirm).execute((id(menu_sel) + 1) % 5);'
+                          - lambda: 'id(menu_touch_slot).execute(1);'
                         widgets:
                           - image:
                               id: slot_near_dn_img
@@ -504,7 +681,7 @@ lvgl:
                         pad_all: 0
                         clickable: true
                         on_click:
-                          - lambda: 'id(menu_touch_confirm).execute((id(menu_sel) + 2) % 5);'
+                          - lambda: 'id(menu_touch_slot).execute(2);'
                         widgets:
                           - image:
                               id: slot_far_dn_img

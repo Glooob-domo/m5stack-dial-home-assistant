@@ -446,11 +446,15 @@ script:
 
   - id: open_light
     then:
-      - globals.set: {id: in_light, value: 'true'}
-      - globals.set: {id: in_menu, value: 'false'}
-      - lvgl.page.show:
-          id: page_light
-          animation: MOVE_LEFT
+      - if:
+          condition:
+            lambda: 'return id(dial_lights_id).light_count() > 0;'
+          then:
+            - globals.set: {id: in_light, value: 'true'}
+            - globals.set: {id: in_menu, value: 'false'}
+            - lvgl.page.show:
+                id: page_light
+                animation: MOVE_LEFT
 
   - id: close_light
     then:

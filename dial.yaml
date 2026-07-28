@@ -1,6 +1,8 @@
 packages:
+  defaults:    !include src/main/defaults.yaml
   hardware:    !include src/main/hardware.yaml
-  entities:    !include src/main/entities.yaml
+  entities:      !include src/main/entities.yaml
+  entities_demo: !include src/main/entities_demo.yaml
   dial_lights_sensors: !include src/main/dial_lights_sensors.yaml
   load_page:   !include src/pages/load.yaml
   clock_page:  !include src/pages/main.yaml
@@ -12,9 +14,10 @@ packages:
   timer_page:  !include src/pages/timer.yaml
 
 external_components:
-  - source: github://hectorzin/smart-home-button@848a7df8a8bc663110a7c63e440913ea30b0b7f0
+  - source:
+      type: local
+      path: components
     components: [dial_lights, dial_carousel]
-    refresh: 0s
 
 dial_lights:
   - entity_id: light.sofa
