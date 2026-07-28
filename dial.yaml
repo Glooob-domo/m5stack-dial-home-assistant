@@ -65,8 +65,8 @@ substitutions:
   # Public dummy key for validation only. Always override before flashing.
   api_encryption_key: MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDA=
   ota_password: change-me-ota-password
-  screen_return_timeout: 45s
-  screen_dim_timeout: 5min
+  screen_dim_timeout: 45s
+  screen_return_timeout: 5min
   screen_off_timeout: 30min
   screen_dim_brightness: "20%"
 

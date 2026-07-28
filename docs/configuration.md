@@ -112,8 +112,8 @@ Three inactivity stages are configurable via substitutions in `dial.yaml`:
 
 ```yaml
 substitutions:
-  screen_return_timeout: 45s
-  screen_dim_timeout: 5min
+  screen_dim_timeout: 45s
+  screen_return_timeout: 5min
   screen_off_timeout: 30min
   screen_dim_brightness: "20%"
 ```
@@ -122,18 +122,23 @@ These defaults apply when you omit the keys. You only need to add the lines you 
 
 | Substitution | Default | Effect |
 |---|---|---|
-| `screen_return_timeout` | `45s` | Return to the clock page after inactivity |
-| `screen_dim_timeout` | `5min` | Dim the backlight (clock stays visible) |
+| `screen_dim_timeout` | `45s` | Dim the backlight on the current page |
+| `screen_return_timeout` | `5min` | Return to the clock page (keeps dim brightness) |
 | `screen_off_timeout` | `30min` | Turn the backlight off completely |
 | `screen_dim_brightness` | `"20%"` | Backlight level while dimmed (1–100 %) |
 
-Set a timeout to `0s` to disable that stage. Disabled stages are ignored when validating the order `return <= dim <= off`.
+Set a timeout to `0s` to disable that stage. `dim` and `return` are independent. When `off` is enabled, it must be greater than or equal to any other enabled stage; if not, only `off` is raised to the largest enabled timeout.
 
-**Wake behaviour:** from `DIMMED` or `OFF`, the first encoder turn, button press, touch, or swipe only wakes the screen (restores the previous brightness and shows the clock). It does not open the menu, change values, or trigger navigation. The next interaction behaves normally.
+**Wake behaviour:**
+
+- From **DIMMED**: the first interaction restores normal brightness on the current page and consumes that event. It does not navigate or change values.
+- From **OFF**: the first interaction restores normal brightness, shows the clock, and consumes that event.
+
+The next interaction behaves normally.
 
 **Timer behaviour:**
 
-- Timer **ACTIVE** or **PAUSED**: the screen may return to the clock and dim, but will not turn fully off.
-- Timer **FINISHED**: the screen wakes, restores brightness, opens the Timer page, and keeps the existing finish blink and beep. The clock auto-return does not leave a finished timer screen.
+- Timer **ACTIVE** or **PAUSED**: the screen may dim and return to the clock, but will not turn fully off. Starting a timer remotely while the screen is off wakes to a dimmed clock.
+- Timer **FINISHED**: the screen wakes at normal brightness, opens the Timer page, and keeps the existing finish blink and beep. Auto-return to the clock does not leave a finished timer screen.
 
 Home Assistant sensor updates (weather, AQI, lights, music metadata) do **not** wake the display.

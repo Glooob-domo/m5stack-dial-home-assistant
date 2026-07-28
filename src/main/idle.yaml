@@ -1,5 +1,6 @@
-# Screen idle management: return-to-clock, dim, and backlight off.
+# Screen idle management: dim, return-to-clock, and backlight off.
 # States: 0=ACTIVE, 1=DIMMED, 2=OFF
+# Stages are independent; off_ms must be >= dim_ms and return_ms when enabled.
 
 globals:
   # 0=ACTIVE, 1=DIMMED, 2=OFF
@@ -27,15 +28,30 @@ globals:
   - id: idle_event_consumed
     type: bool
     initial_value: 'false'
-  # True for the full touch down-up cycle that only wakes the screen.
   - id: idle_touch_sequence_consumed
     type: bool
     initial_value: 'false'
   - id: idle_config_ready
     type: bool
     initial_value: 'false'
+  - id: idle_return_applied
+    type: bool
+    initial_value: 'false'
+  - id: idle_dim_applied
+    type: bool
+    initial_value: 'false'
+  - id: idle_off_blocked_logged
+    type: bool
+    initial_value: 'false'
 
 script:
+  - id: dial_idle_reset_stage_flags
+    then:
+      - lambda: |-
+          id(idle_return_applied) = false;
+          id(idle_dim_applied) = false;
+          id(idle_off_blocked_logged) = false;
+
   - id: dial_idle_init
     then:
       - lambda: |-
@@ -70,24 +86,23 @@ script:
             return pct / 100.0f;
           };
 
-          uint32_t return_ms = parse_time_ms("${screen_return_timeout}");
           uint32_t dim_ms = parse_time_ms("${screen_dim_timeout}");
+          uint32_t return_ms = parse_time_ms("${screen_return_timeout}");
           uint32_t off_ms = parse_time_ms("${screen_off_timeout}");
 
-          auto normalize = [](uint32_t *a, uint32_t *b, const char *label) {
-            if (*a > 0 && *b > 0 && *a > *b) {
-              ESP_LOGW("idle", "Invalid config: %s; clamping %us to %us", label, (unsigned) (*a / 1000),
-                       (unsigned) (*b / 1000));
-              *a = *b;
+          if (off_ms > 0) {
+            uint32_t min_off = 0;
+            if (dim_ms > 0) min_off = dim_ms;
+            if (return_ms > 0 && return_ms > min_off) min_off = return_ms;
+            if (min_off > 0 && off_ms < min_off) {
+              ESP_LOGW("idle", "Invalid config: screen_off_timeout below enabled stage; raising off to %us",
+                       (unsigned) (min_off / 1000));
+              off_ms = min_off;
             }
-          };
+          }
 
-          normalize(&return_ms, &dim_ms, "screen_return_timeout > screen_dim_timeout");
-          normalize(&dim_ms, &off_ms, "screen_dim_timeout > screen_off_timeout");
-          normalize(&return_ms, &off_ms, "screen_return_timeout > screen_off_timeout");
-
-          id(screen_return_timeout_ms) = return_ms;
           id(screen_dim_timeout_ms) = dim_ms;
+          id(screen_return_timeout_ms) = return_ms;
           id(screen_off_timeout_ms) = off_ms;
           id(screen_dim_brightness_value) = parse_brightness("${screen_dim_brightness}");
 
@@ -100,11 +115,17 @@ script:
           id(screen_idle_state) = 0;
           id(last_activity_ms) = millis();
           id(idle_config_ready) = true;
+          id(idle_return_applied) = false;
+          id(idle_dim_applied) = false;
+          id(idle_off_blocked_logged) = false;
+
+          const int dim_pct = (int) (id(screen_dim_brightness_value) * 100.0f + 0.5f);
+          ESP_LOGI("idle", "[IDLE] config dim_ms=%u return_ms=%u off_ms=%u dim=%d%%",
+                   (unsigned) dim_ms, (unsigned) return_ms, (unsigned) off_ms, dim_pct);
 
   - id: dial_idle_save_brightness
     then:
       - lambda: |-
-          // Only capture the normal brightness when leaving ACTIVE.
           if (id(screen_idle_state) != 0) return;
 
           float b = id(display_backlight).current_values.get_brightness();
@@ -142,7 +163,7 @@ script:
           id(in_music) = false;
           id(in_timer) = false;
 
-  - id: dial_idle_show_clock_if_needed
+  - id: dial_idle_return_to_clock
     then:
       - if:
           condition:
@@ -159,22 +180,6 @@ script:
                 id: page_clock
                 animation: NONE
 
-  - id: dial_idle_return_to_clock
-    then:
-      - if:
-          condition:
-            lambda: |-
-              if (id(timer_ui_state) == 3) return false;
-              if (id(in_menu) || id(in_light_selector) || id(in_light) || id(in_colorpicker) ||
-                  id(in_air) || id(in_music))
-                return true;
-              if (id(in_timer)) return true;
-              return false;
-          then:
-            - lambda: |-
-                ESP_LOGI("idle", "[IDLE] return_to_clock");
-            - script.execute: dial_idle_show_clock_if_needed
-
   - id: dial_idle_dim
     then:
       - if:
@@ -182,13 +187,11 @@ script:
             lambda: 'return id(screen_idle_state) == 0;'
           then:
             - script.execute: dial_idle_save_brightness
-            - script.execute: dial_idle_show_clock_if_needed
             - lambda: |-
                 auto call = id(display_backlight).turn_on();
                 call.set_brightness(id(screen_dim_brightness_value));
                 call.perform();
                 id(screen_idle_state) = 1;
-                ESP_LOGI("idle", "[IDLE] dim");
 
   - id: dial_idle_off
     then:
@@ -213,7 +216,7 @@ script:
     then:
       - if:
           condition:
-            lambda: 'return id(screen_idle_state) != 0;'
+            lambda: 'return id(screen_idle_state) == 2;'
           then:
             - script.execute: dial_idle_restore_brightness
             - script.execute: dial_idle_reset_page_flags
@@ -223,6 +226,17 @@ script:
             - lambda: |-
                 id(screen_idle_state) = 0;
                 id(last_activity_ms) = millis();
+            - script.execute: dial_idle_reset_stage_flags
+          else:
+            - if:
+                condition:
+                  lambda: 'return id(screen_idle_state) == 1;'
+                then:
+                  - script.execute: dial_idle_restore_brightness
+                  - lambda: |-
+                      id(screen_idle_state) = 0;
+                      id(last_activity_ms) = millis();
+                  - script.execute: dial_idle_reset_stage_flags
 
   - id: dial_idle_timer_remote_dim_wake
     then:
@@ -232,9 +246,13 @@ script:
               const int ts = id(timer_ui_state);
               return (ts == 1 || ts == 2) && id(screen_idle_state) == 2;
           then:
-            - script.execute: dial_idle_show_clock_if_needed
+            - script.execute: dial_idle_reset_page_flags
+            - lvgl.page.show:
+                id: page_clock
+                animation: NONE
             - script.execute: dial_idle_apply_dim_level
             - lambda: |-
+                id(idle_dim_applied) = true;
                 ESP_LOGI("idle", "[IDLE] dim");
 
   - id: dial_idle_block_lvgl_input
@@ -271,6 +289,9 @@ script:
             - lambda: |-
                 id(idle_event_consumed) = false;
                 id(last_activity_ms) = millis();
+                id(idle_return_applied) = false;
+                id(idle_dim_applied) = false;
+                id(idle_off_blocked_logged) = false;
 
   - id: dial_idle_timer_finished_wake
     then:
@@ -281,6 +302,9 @@ script:
           }
           id(screen_idle_state) = 0;
           id(last_activity_ms) = millis();
+          id(idle_return_applied) = false;
+          id(idle_dim_applied) = false;
+          id(idle_off_blocked_logged) = false;
       - script.execute: open_timer
 
   - id: dial_idle_tick
@@ -289,46 +313,64 @@ script:
           if (!id(idle_config_ready)) return;
 
           const uint32_t elapsed = millis() - id(last_activity_ms);
-          const uint32_t return_ms = id(screen_return_timeout_ms);
           const uint32_t dim_ms = id(screen_dim_timeout_ms);
+          const uint32_t return_ms = id(screen_return_timeout_ms);
           const uint32_t off_ms = id(screen_off_timeout_ms);
           const int timer_state = id(timer_ui_state);
           const int idle_state = id(screen_idle_state);
 
-          // Remote timer start/resume while fully off: wake to dimmed clock only.
           if ((timer_state == 1 || timer_state == 2) && idle_state == 2) {
             id(dial_idle_timer_remote_dim_wake).execute();
             return;
           }
 
+          // 1) OFF — highest priority once its timeout is reached.
           if (off_ms > 0 && elapsed >= off_ms && idle_state != 2) {
             if (timer_state == 1 || timer_state == 2) {
-              if (idle_state == 0) {
-                id(dial_idle_show_clock_if_needed).execute();
-                id(dial_idle_dim).execute();
+              if (!id(idle_off_blocked_logged)) {
+                ESP_LOGI("idle", "[IDLE] off blocked timer_state=%d", timer_state);
+                id(idle_off_blocked_logged) = true;
+              }
+              if (idle_state == 0 && !id(idle_dim_applied)) {
+                if (dim_ms > 0 && elapsed >= dim_ms) {
+                  ESP_LOGI("idle", "[IDLE] dim elapsed_ms=%u", (unsigned) elapsed);
+                  id(dial_idle_dim).execute();
+                  id(idle_dim_applied) = true;
+                } else if (dim_ms == 0) {
+                  id(dial_idle_save_brightness).execute();
+                }
               }
               return;
             }
-            if (idle_state == 0) {
-              id(dial_idle_show_clock_if_needed).execute();
-              if (dim_ms > 0) {
+
+            if (idle_state == 0 && !id(idle_dim_applied)) {
+              if (dim_ms > 0 && elapsed >= dim_ms) {
+                ESP_LOGI("idle", "[IDLE] dim elapsed_ms=%u", (unsigned) elapsed);
                 id(dial_idle_dim).execute();
-              } else {
+                id(idle_dim_applied) = true;
+              } else if (dim_ms == 0) {
                 id(dial_idle_save_brightness).execute();
               }
             }
+
+            ESP_LOGI("idle", "[IDLE] off elapsed_ms=%u", (unsigned) elapsed);
             id(dial_idle_off).execute();
             return;
           }
 
-          if (dim_ms > 0 && elapsed >= dim_ms && idle_state == 0) {
-            id(dial_idle_show_clock_if_needed).execute();
-            id(dial_idle_dim).execute();
-            return;
+          // 2) Return to clock — independent stage flag.
+          if (return_ms > 0 && elapsed >= return_ms && !id(idle_return_applied) && timer_state != 3 &&
+              idle_state != 2) {
+            ESP_LOGI("idle", "[IDLE] return_to_clock elapsed_ms=%u", (unsigned) elapsed);
+            id(dial_idle_return_to_clock).execute();
+            id(idle_return_applied) = true;
           }
 
-          if (return_ms > 0 && elapsed >= return_ms && timer_state != 3 && idle_state == 0) {
-            id(dial_idle_return_to_clock).execute();
+          // 3) Dim in place — independent stage flag.
+          if (dim_ms > 0 && elapsed >= dim_ms && !id(idle_dim_applied) && idle_state == 0) {
+            ESP_LOGI("idle", "[IDLE] dim elapsed_ms=%u", (unsigned) elapsed);
+            id(dial_idle_dim).execute();
+            id(idle_dim_applied) = true;
           }
 
 interval:

@@ -185,21 +185,21 @@ The Dial dims and turns off its display after configurable periods of inactivity
 
 ```yaml
 substitutions:
-  screen_return_timeout: 45s
-  screen_dim_timeout: 5min
+  screen_dim_timeout: 45s
+  screen_return_timeout: 5min
   screen_off_timeout: 30min
   screen_dim_brightness: "20%"
 ```
 
 | Stage | Default | What happens |
 |---|---|---|
-| Return to clock | 45 s | Leaves the current page and shows the clock without changing menu selection |
-| Dim | 5 min | Shows the clock and lowers backlight to `screen_dim_brightness` |
+| Dim | 45 s | Lowers backlight on the current page |
+| Return to clock | 5 min | Shows the clock at dim brightness (if already dimmed) |
 | Off | 30 min | Turns the backlight off; ESPHome, Wi-Fi, and Home Assistant stay connected |
 
-Set any timeout to `0s` to disable that stage. While the screen is dimmed or off, the **first** interaction only wakes the device (restores brightness and returns to the clock); the next interaction works normally. Weather, AQI, and other Home Assistant updates do not wake the screen.
+Set any timeout to `0s` to disable that stage. While the screen is **off**, the first interaction wakes to the clock at normal brightness. While **dimmed**, the first interaction restores normal brightness on the current page without navigating. The next interaction works normally. Weather, AQI, and other Home Assistant updates do not wake the screen.
 
-**Timer exceptions:** an active or paused timer prevents full screen-off (the display stays dimmed). When a timer finishes, the screen wakes, opens the Timer page, and keeps the existing blink and beep alert.
+**Timer exceptions:** an active or paused timer prevents full screen-off (the display stays dimmed at most). A timer started remotely while the screen is off wakes to a dimmed clock. When a timer finishes, the screen wakes at normal brightness, opens the Timer page, and keeps the existing blink and beep alert.
 
 ### 4. Check, build, and flash
 
