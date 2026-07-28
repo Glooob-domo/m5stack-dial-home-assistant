@@ -105,23 +105,17 @@ script:
   - id: menu_sync_selection
     then:
       - lambda: |-
-          static constexpr int MENU_TIMER = 0;
-          static constexpr int MENU_LIGHTS = 1;
-          static constexpr int MENU_CLIMATE = 2;
-          static constexpr int MENU_MUSIC = 3;
-          static constexpr int MENU_HOME = 4;
-
           int items[5];
           int n = 0;
           if (strcmp("${timer_entity}", "timer.your_timer") != 0)
-            items[n++] = MENU_TIMER;
+            items[n++] = 0;
           if (id(dial_lights_id).light_count() > 0)
-            items[n++] = MENU_LIGHTS;
+            items[n++] = 1;
           if (strcmp("${climate_entity}", "climate.your_ac") != 0)
-            items[n++] = MENU_CLIMATE;
+            items[n++] = 2;
           if (strcmp("${music_player_entity}", "media_player.your_player") != 0)
-            items[n++] = MENU_MUSIC;
-          items[n++] = MENU_HOME;
+            items[n++] = 3;
+          items[n++] = 4;
 
           const int home_idx = n - 1;
           bool found = false;
@@ -133,7 +127,7 @@ script:
             }
           }
           if (!found) {
-            id(menu_func) = MENU_HOME;
+            id(menu_func) = 4;
             id(menu_sel) = home_idx;
           }
 
@@ -176,14 +170,14 @@ script:
                   int local_items[5];
                   int local_n = 0;
                   if (strcmp("${timer_entity}", "timer.your_timer") != 0)
-                    local_items[local_n++] = MENU_TIMER;
+                    local_items[local_n++] = 0;
                   if (id(dial_lights_id).light_count() > 0)
-                    local_items[local_n++] = MENU_LIGHTS;
+                    local_items[local_n++] = 1;
                   if (strcmp("${climate_entity}", "climate.your_ac") != 0)
-                    local_items[local_n++] = MENU_CLIMATE;
+                    local_items[local_n++] = 2;
                   if (strcmp("${music_player_entity}", "media_player.your_player") != 0)
-                    local_items[local_n++] = MENU_MUSIC;
-                  local_items[local_n++] = MENU_HOME;
+                    local_items[local_n++] = 3;
+                  local_items[local_n++] = 4;
 
                   id(menu_sel) = ((id(menu_sel) - 1) % local_n + local_n) % local_n;
                   id(menu_func) = local_items[id(menu_sel)];
@@ -209,14 +203,14 @@ script:
                   int local_items[5];
                   int local_n = 0;
                   if (strcmp("${timer_entity}", "timer.your_timer") != 0)
-                    local_items[local_n++] = MENU_TIMER;
+                    local_items[local_n++] = 0;
                   if (id(dial_lights_id).light_count() > 0)
-                    local_items[local_n++] = MENU_LIGHTS;
+                    local_items[local_n++] = 1;
                   if (strcmp("${climate_entity}", "climate.your_ac") != 0)
-                    local_items[local_n++] = MENU_CLIMATE;
+                    local_items[local_n++] = 2;
                   if (strcmp("${music_player_entity}", "media_player.your_player") != 0)
-                    local_items[local_n++] = MENU_MUSIC;
-                  local_items[local_n++] = MENU_HOME;
+                    local_items[local_n++] = 3;
+                  local_items[local_n++] = 4;
 
                   id(menu_sel) = (id(menu_sel) + 1) % local_n;
                   id(menu_func) = local_items[id(menu_sel)];
@@ -231,18 +225,12 @@ script:
   - id: menu_confirm
     then:
       - lambda: |-
-          static constexpr int MENU_TIMER = 0;
-          static constexpr int MENU_LIGHTS = 1;
-          static constexpr int MENU_CLIMATE = 2;
-          static constexpr int MENU_MUSIC = 3;
-          static constexpr int MENU_HOME = 4;
-
           ESP_LOGI("menu", "selected func %d visual %d", id(menu_func), id(menu_sel));
           switch (id(menu_func)) {
-            case MENU_TIMER:
+            case 0:
               id(open_timer).execute();
               break;
-            case MENU_LIGHTS:
+            case 1:
               if (id(dial_lights_id).light_count() == 1) {
                 id(dial_lights_id).select_light(0);
                 id(open_selected_light).execute();
@@ -252,13 +240,13 @@ script:
                 ESP_LOGW("menu", "Lights selected but dial_lights is empty");
               }
               break;
-            case MENU_CLIMATE:
+            case 2:
               id(open_air).execute();
               break;
-            case MENU_MUSIC:
+            case 3:
               id(open_music).execute();
               break;
-            case MENU_HOME:
+            case 4:
             default:
               id(close_menu).execute();
               break;
@@ -269,24 +257,19 @@ script:
       slot_offset: int
     then:
       - lambda: |-
-          static constexpr int MENU_TIMER = 0;
-          static constexpr int MENU_LIGHTS = 1;
-          static constexpr int MENU_CLIMATE = 2;
-          static constexpr int MENU_MUSIC = 3;
-          static constexpr int MENU_HOME = 4;
           static constexpr int OFFSETS[5] = {-2, -1, 0, 1, 2};
 
           int items[5];
           int n = 0;
           if (strcmp("${timer_entity}", "timer.your_timer") != 0)
-            items[n++] = MENU_TIMER;
+            items[n++] = 0;
           if (id(dial_lights_id).light_count() > 0)
-            items[n++] = MENU_LIGHTS;
+            items[n++] = 1;
           if (strcmp("${climate_entity}", "climate.your_ac") != 0)
-            items[n++] = MENU_CLIMATE;
+            items[n++] = 2;
           if (strcmp("${music_player_entity}", "media_player.your_player") != 0)
-            items[n++] = MENU_MUSIC;
-          items[n++] = MENU_HOME;
+            items[n++] = 3;
+          items[n++] = 4;
 
           int slot = -1;
           for (int s = 0; s < 5; s++) {
@@ -327,25 +310,20 @@ script:
   - id: refresh_menu
     then:
       - lambda: |-
-          static constexpr int MENU_TIMER = 0;
-          static constexpr int MENU_LIGHTS = 1;
-          static constexpr int MENU_CLIMATE = 2;
-          static constexpr int MENU_MUSIC = 3;
-          static constexpr int MENU_HOME = 4;
           static constexpr int SLOT_N = 5;
           static constexpr int OFFSETS[5] = {-2, -1, 0, 1, 2};
 
           int items[5];
           int n = 0;
           if (strcmp("${timer_entity}", "timer.your_timer") != 0)
-            items[n++] = MENU_TIMER;
+            items[n++] = 0;
           if (id(dial_lights_id).light_count() > 0)
-            items[n++] = MENU_LIGHTS;
+            items[n++] = 1;
           if (strcmp("${climate_entity}", "climate.your_ac") != 0)
-            items[n++] = MENU_CLIMATE;
+            items[n++] = 2;
           if (strcmp("${music_player_entity}", "media_player.your_player") != 0)
-            items[n++] = MENU_MUSIC;
-          items[n++] = MENU_HOME;
+            items[n++] = 3;
+          items[n++] = 4;
 
           lv_obj_t* icons[5] = {
             id(slot_far_up_img),  id(slot_near_up_img),
