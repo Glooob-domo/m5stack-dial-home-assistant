@@ -110,6 +110,7 @@ text_sensor:
     internal: true
     on_value:
       - script.execute: refresh_music_metadata
+      - script.execute: menu_on_ha_update
 
   - platform: homeassistant
     id: ha_media_artist
@@ -124,6 +125,7 @@ text_sensor:
     type: title
     on_value:
       - script.execute: refresh_music_metadata
+      - script.execute: menu_on_ha_update
 
   - platform: sendspin
     id: track_artist
@@ -148,6 +150,7 @@ text_sensor:
             id(local_progress_sync_ms) = millis();
           }
       - script.execute: refresh_music_progress
+      - script.execute: menu_on_ha_update
 
   - platform: homeassistant
     id: media_player_status
@@ -175,6 +178,7 @@ text_sensor:
             id(local_progress_sync_ms) = millis();
           }
       - script.execute: refresh_music_progress
+      - script.execute: menu_on_ha_update
 
 sensor:
   - platform: homeassistant

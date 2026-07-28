@@ -384,6 +384,7 @@ script:
           id(timer_ui_state) = UNAVAILABLE;
           id(timer_sync_ready) = false;
           id(refresh_timer).execute();
+      - script.execute: menu_on_ha_update
 
   - id: timer_action_timeout
     mode: restart

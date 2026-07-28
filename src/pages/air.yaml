@@ -172,6 +172,7 @@ sensor:
     attribute: current_temperature
     on_value:
       - script.execute: refresh_air
+      - script.execute: menu_on_ha_update
 
   - platform: homeassistant
     id: ha_air_humidity
@@ -192,6 +193,7 @@ text_sensor:
             id(air_hvac_mode_pending) = x;
           }
       - script.execute: refresh_air
+      - script.execute: menu_on_ha_update
 
   - platform: homeassistant
     id: ha_air_hvac_modes

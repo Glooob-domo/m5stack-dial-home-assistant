@@ -15,7 +15,7 @@ font:
     id: font_menu_sub
     size: 12
     bpp: 4
-    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzáí0123456789 .-_%/"
+    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .-_%/·°"
 
   - file: "gfonts://DM+Sans"
     id: font_light_selector_near
@@ -252,6 +252,162 @@ script:
               break;
           }
 
+  - id: menu_on_ha_update
+    then:
+      - if:
+          condition:
+            lambda: 'return id(in_menu);'
+          then:
+            - script.execute: refresh_menu_subtitle
+
+  - id: refresh_menu_subtitle
+    then:
+      - lambda: |-
+          static char subbuf[64];
+          const uint32_t ACCENT_COLORS[5] = {
+            0xFB923C, 0xFDC003, 0x5ABBFD, 0xA792E8, 0x576BFE
+          };
+
+          auto format_time_short = [](int seconds, char *buf, size_t len) {
+            if (seconds < 0) seconds = 0;
+            const int h = seconds / 3600;
+            const int m = (seconds % 3600) / 60;
+            const int s = seconds % 60;
+            if (h > 0)
+              snprintf(buf, len, "%d:%02d:%02d", h, m, s);
+            else
+              snprintf(buf, len, "%d:%02d", m, s);
+          };
+
+          auto is_invalid_state = [](const std::string &value) -> bool {
+            if (value.empty()) return true;
+            std::string lower = value;
+            for (char &c : lower) c = (char) std::tolower((unsigned char) c);
+            return lower == "unknown" || lower == "unavailable" || lower == "none" || lower == "null";
+          };
+
+          const int func = id(menu_func);
+          switch (func) {
+            case 0: {
+              const int IDLE = 0;
+              const int ACTIVE = 1;
+              const int PAUSED = 2;
+              const int FINISHED = 3;
+              const int UNAVAILABLE = 4;
+              const int state = id(timer_ui_state);
+              if (state == UNAVAILABLE || !id(ha_connected)) {
+                snprintf(subbuf, sizeof(subbuf), "Unavailable");
+              } else if (state == IDLE) {
+                snprintf(subbuf, sizeof(subbuf), "No timer");
+              } else if (state == FINISHED) {
+                snprintf(subbuf, sizeof(subbuf), "Finished");
+              } else {
+                char timebuf[16];
+                format_time_short(id(timer_remaining_seconds), timebuf, sizeof(timebuf));
+                if (state == ACTIVE)
+                  snprintf(subbuf, sizeof(subbuf), "%s left", timebuf);
+                else
+                  snprintf(subbuf, sizeof(subbuf), "Paused · %s", timebuf);
+              }
+              break;
+            }
+            case 1: {
+              const size_t count = id(dial_lights_id).light_count();
+              if (count == 0) {
+                snprintf(subbuf, sizeof(subbuf), "Unavailable");
+                break;
+              }
+              if (count == 1) {
+                const auto snap = id(dial_lights_id).card_snapshot_at(0);
+                if (!snap.state_valid) {
+                  snprintf(subbuf, sizeof(subbuf), "Unavailable");
+                } else if (!snap.is_on) {
+                  snprintf(subbuf, sizeof(subbuf), "Off");
+                } else if (snap.brightness_valid) {
+                  snprintf(subbuf, sizeof(subbuf), "On · %d%%", snap.brightness_percent);
+                } else {
+                  snprintf(subbuf, sizeof(subbuf), "On");
+                }
+                break;
+              }
+              size_t on_count = 0;
+              bool any_valid = false;
+              for (size_t i = 0; i < count; i++) {
+                const auto snap = id(dial_lights_id).card_snapshot_at(i);
+                if (snap.state_valid) {
+                  any_valid = true;
+                  if (snap.is_on) on_count++;
+                }
+              }
+              if (!any_valid) {
+                snprintf(subbuf, sizeof(subbuf), "Unavailable");
+              } else if (on_count == 0) {
+                snprintf(subbuf, sizeof(subbuf), "All off");
+              } else if (on_count == count) {
+                snprintf(subbuf, sizeof(subbuf), "All on");
+              } else {
+                snprintf(subbuf, sizeof(subbuf), "%d of %d on", (int) on_count, (int) count);
+              }
+              break;
+            }
+            case 2: {
+              const float ct = id(ha_air_current_temp).state;
+              if (id(ha_air_current_temp).has_state() && !isnan(ct)) {
+                const float rounded = roundf(ct);
+                if (fabsf(ct - rounded) > 0.05f)
+                  snprintf(subbuf, sizeof(subbuf), "%.1f °C", ct);
+                else
+                  snprintf(subbuf, sizeof(subbuf), "%.0f °C", ct);
+                break;
+              }
+              if (!id(ha_air_hvac_mode).has_state() || is_invalid_state(id(ha_air_hvac_mode).state)) {
+                snprintf(subbuf, sizeof(subbuf), "Unavailable");
+                break;
+              }
+              const std::string &mode = id(ha_air_hvac_mode).state;
+              if (mode == "cool") snprintf(subbuf, sizeof(subbuf), "Cooling");
+              else if (mode == "heat") snprintf(subbuf, sizeof(subbuf), "Heating");
+              else if (mode == "fan_only") snprintf(subbuf, sizeof(subbuf), "Fan");
+              else if (mode == "dry") snprintf(subbuf, sizeof(subbuf), "Dry");
+              else if (mode == "auto") snprintf(subbuf, sizeof(subbuf), "Auto");
+              else if (mode == "off") snprintf(subbuf, sizeof(subbuf), "Off");
+              else snprintf(subbuf, sizeof(subbuf), "Unavailable");
+              break;
+            }
+            case 3: {
+              if (!id(media_player_status).has_state() || is_invalid_state(id(media_player_status).state)) {
+                snprintf(subbuf, sizeof(subbuf), "Unavailable");
+                break;
+              }
+              const std::string &status = id(media_player_status).state;
+              if (status == "off") {
+                snprintf(subbuf, sizeof(subbuf), "Off");
+              } else if (status == "idle") {
+                snprintf(subbuf, sizeof(subbuf), "No playback");
+              } else if (status == "paused") {
+                snprintf(subbuf, sizeof(subbuf), "Paused");
+              } else if (status == "playing" || status == "buffering") {
+                std::string title = id(ha_media_title).state;
+                if (title.empty()) title = id(track_title).state;
+                if (!title.empty())
+                  snprintf(subbuf, sizeof(subbuf), "%s", title.c_str());
+                else
+                  snprintf(subbuf, sizeof(subbuf), "Playing");
+              } else {
+                snprintf(subbuf, sizeof(subbuf), "Unavailable");
+              }
+              break;
+            }
+            case 4:
+            default:
+              snprintf(subbuf, sizeof(subbuf), "Clock");
+              break;
+          }
+
+          lv_label_set_text(id(slot_center_sub), subbuf);
+          lv_obj_set_style_opa(id(slot_center_sub), 255, LV_PART_MAIN);
+          lv_obj_set_style_text_color(id(slot_center_sub), lv_color_hex(ACCENT_COLORS[func]), LV_PART_MAIN);
+
   - id: menu_touch_slot
     parameters:
       slot_offset: int
@@ -340,10 +496,7 @@ script:
             id(slot_near_dn), id(slot_far_dn)
           };
 
-          const char* TITLES[5]    = {"Timer", "Lights", "AC", "Music", "Home"};
-          const char* SUBTITLES[5] = {"Living Rm - Auto", "Living Rm - 75%",
-                                      "Living Rm - 24C",  "Living Rm - Off",
-                                      "Back to Main"};
+          const char* TITLES[5] = {"Timer", "Lights", "AC", "Music", "Home"};
           const lv_img_dsc_t* IMGS[5] = {
             id(menu_img_timer)->get_lv_image_dsc(),
             id(menu_img_light)->get_lv_image_dsc(),
@@ -435,12 +588,7 @@ script:
             lv_obj_set_style_opa(icons[slot], slot == 2 ? 255 : layout.opa_icon, LV_PART_MAIN);
           }
 
-          {
-            const int func = items[sel];
-            lv_label_set_text(id(slot_center_sub), SUBTITLES[func]);
-            lv_obj_set_style_opa(id(slot_center_sub), 255, LV_PART_MAIN);
-            lv_obj_set_style_text_color(id(slot_center_sub), lv_color_hex(ACCENT_COLORS[func]), LV_PART_MAIN);
-          }
+          id(refresh_menu_subtitle).execute();
 
           {
             const int func = items[sel];
@@ -474,6 +622,15 @@ script:
           }
 
           lv_obj_add_flag(id(menu_arrow), LV_OBJ_FLAG_HIDDEN);
+
+interval:
+  - interval: 1s
+    then:
+      - if:
+          condition:
+            lambda: 'return id(in_menu);'
+          then:
+            - script.execute: refresh_menu_subtitle
 
 lvgl:
   pages:
@@ -608,7 +765,7 @@ lvgl:
                               text_color: col_text_pri
                               width: 106
                               long_mode: DOT
-                              text: "Scene"
+                              text: "Home"
                           - label:
                               id: slot_center_sub
                               x: 54
@@ -617,7 +774,7 @@ lvgl:
                               text_color: col_menu_val
                               width: 106
                               long_mode: DOT
-                              text: "Model Sleep"
+                              text: "Clock"
 
                     - obj:
                         id: slot_near_dn
