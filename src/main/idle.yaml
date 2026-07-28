@@ -222,16 +222,6 @@ script:
                 id(screen_idle_state) = 2;
                 ESP_LOGI("idle", "[IDLE] off state set OFF");
 
-  - id: dial_idle_force_off
-    then:
-      - lambda: |-
-          ESP_LOGI("idle", "[IDLE] force_off");
-      - script.execute: dial_idle_backlight_off
-      - lambda: |-
-          id(screen_idle_state) = 2;
-          ESP_LOGI("idle", "[IDLE] off backlight command sent");
-          ESP_LOGI("idle", "[IDLE] off state set OFF");
-
   - id: dial_idle_wake
     then:
       - if:
@@ -374,15 +364,6 @@ interval:
   - interval: 1s
     then:
       - script.execute: dial_idle_tick
-
-# Diagnostic only — remove before merging to main.
-button:
-  - platform: template
-    name: "Dial Force Screen Off"
-    id: dial_force_screen_off
-    entity_category: diagnostic
-    on_press:
-      - script.execute: dial_idle_force_off
 
 esphome:
   on_boot:
