@@ -122,8 +122,121 @@ wifi_ssid: "your-wifi-network"
 wifi_password: "your-wifi-password"
 ```
 
-For configuration details, optional features, entity requirements, timers and display behaviour, see [the configuration guide](docs/configuration.md).
+The package already contains the device hardware, pages and components. A normal installation only needs this local configuration; do not edit `src/main/entities.yaml`, `src/pages/main.yaml` or other package files. To disable Lights explicitly, use an empty list:
+
+```yaml
+dial_lights: []
+```
+
+For all fields, defaults and advanced cases, see [the configuration reference](docs/configuration.md).
+
+## Navigation
+
+The Dial supports the rotary encoder, the front button and horizontal touch gestures. A long press is not currently mapped. The front button's back action is a rapid double press; touch widgets retain their page-specific actions.
+
+| Context | Rotate | Short press | Long press / Touch |
+| --- | --- | --- | --- |
+| Clock (Home) | No action | Opens Menu | Swipe left opens Menu; swipe right performs Back (which opens Menu from Home). |
+| Menu | Moves the circular selection | Opens the selected page; Home returns to Clock | Tap a visible menu item to open it. Swipe left confirms; swipe right returns to Clock. |
+| Lights | Changes brightness; in the colour picker changes hue or colour temperature | From the light page, goes back; in the selector, opens the selected light | Swipe right goes back. Touch controls power, colour picker and colour confirmation. |
+| AC | Changes target temperature, fan mode or HVAC mode according to the selected control | Confirms fan/HVAC edits; otherwise goes back | Swipe right goes back. Touch selects controls and toggles power, fan mode or HVAC mode. |
+| Music | Changes volume | Goes back | Swipe right goes back. Touch controls playback and transport. |
+| Timer | Adjusts the selected duration unit while the timer is idle | Starts, pauses, resumes or clears the finished state | Swipe right goes back. Touch selects hours/minutes/seconds and accesses reset/cancel. |
+
+The first encoder turn, button press or touch gesture after the screen has dimmed or turned off only wakes the display; repeat the action to control the interface.
+
+## Screen management
+
+The package offers four substitutions for idle behaviour:
+
+```yaml
+substitutions:
+  screen_dim_timeout: 45s
+  screen_return_timeout: 5min
+  screen_off_timeout: 30min
+  screen_dim_brightness: "20%"
+```
+
+`DIM` lowers the backlight in place, `RETURN` shows the clock, and `OFF` turns off only the backlight. They are independent stages, and the active page is preserved when the display wakes. Set any timeout to `0s` to disable that stage. When `OFF` is enabled, its effective timeout is raised if necessary so it is not earlier than either enabled DIM or RETURN timeout.
+
+An active Home Assistant timer blocks only automatic return to the clock; a paused timer does not. DIM and OFF continue to work for either state. When the timer finishes, the Dial wakes, opens Timer and runs its blink-and-beep feedback.
+
+## Live menu status
+
+The Menu is more than a launcher: its current selection shows a live subtitle. Timer shows remaining time or its state; Lights shows a single light's brightness or how many configured lights are on; AC shows HVAC mode and target temperature; Music shows title or playback state; and Home shows `Clock`.
+
+## Feature notes
+
+### Music
+
+The Music page combines the configured Home Assistant media player with the active local SendSpin components. Home Assistant provides player state, volume and metadata; SendSpin supplies playback synchronisation and the 100 × 100 album-art image when a SendSpin source is available. Album art is intentionally kept small for the Dial's memory budget.
+
+### Climate
+
+Available climate controls depend on `climate_entity`. The page reads and changes target temperature, and uses the entity's advertised HVAC and fan modes when available. Do not expect a control that the selected Home Assistant climate integration does not expose.
+
+### Timer
+
+`timer_entity` is the source of truth. The same timer can be controlled from Home Assistant dashboards and automations as well as the Dial. A YAML-defined Home Assistant timer may use `restore: true`, but it is optional.
+
+### Battery
+
+The package enables GPIO46 at boot for M5Dial V1.1 battery power hold. This keeps that revision powered after wake when running on battery.
+
+## Troubleshooting
+
+- **Device does not appear in Home Assistant:** confirm Wi-Fi, API connectivity and a valid `api_encryption_key`.
+- **A menu item is hidden:** configure its matching entity, or add at least one entry to `dial_lights`; `dial_lights: []` intentionally hides Lights.
+- **AQI shows `--`:** use an existing numeric sensor for `aqi_entity`.
+- **A feature is unavailable:** check that its configured entity exists and is available in Home Assistant.
+- **Music is unavailable:** use the entity that actually plays audio and exposes its media state.
+- **Timer is unavailable:** create or enable the referenced Home Assistant Timer helper.
+- **Package changes are missing:** use `refresh: 0s` while testing, then reload or recompile the ESPHome configuration.
+- **Fonts, glyphs or compilation fail:** ensure the first build can download its dependencies and use the ESPHome version in `requirements.txt`.
+- **First installation fails over the network:** flash over USB first, then use ESPHome OTA updates.
+
+## Project structure
+
+```text
+smart-home-button/
+├── dial.yaml                 # Remote ESPHome package entry point
+├── secrets.example.yaml      # Example credentials for local development
+├── requirements.txt          # ESPHome version used by this project
+├── src/
+│   ├── main/                 # Hardware, entities, idle logic and light sensors
+│   ├── pages/                # LVGL pages for clock, menu and features
+│   └── assets/               # Fonts and embedded images
+├── components/               # Local ESPHome components, including SendSpin
+├── docs/                     # Configuration and maintenance documentation
+├── hardware/                 # Hardware-related assets
+├── LICENSE
+└── THIRD_PARTY_NOTICES.md
+```
+
+## Development and customisation
+
+This section is for people cloning the repository, not for normal package users. Create a local `secrets.yaml` from `secrets.example.yaml`, install the pinned dependencies, then validate and compile locally:
+
+```bash
+python -m venv .venv
+# Activate .venv (Scripts\Activate.ps1 on Windows, bin/activate on macOS/Linux)
+python -m pip install -r requirements.txt
+esphome config dial.yaml
+esphome compile dial.yaml
+```
+
+Page customisation lives under `src/pages/`; hardware and idle behaviour are under `src/main/`. Keep local secrets out of Git.
+
+## Demo video
+
+The [Smart Home Button demo video](https://www.youtube.com/watch?v=51bXRBuSLpM) shows the project interface in use.
+
+## Documentation
+
+- [Configuration reference](docs/configuration.md)
+- [License](LICENSE)
+- [Third-party notices](THIRD_PARTY_NOTICES.md)
 
 ## License
 
-The project files are available under the MIT License. Third-party components, fonts and icons retain their own licenses; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+The project files are available under the MIT License. The repository retains the required copyright and third-party notices for code and assets from which it derives; see [LICENSE](LICENSE) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

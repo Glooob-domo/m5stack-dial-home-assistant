@@ -1,36 +1,35 @@
-# Configuration guide
+# Configuration reference
 
-This guide describes the configuration supplied to the `dial.yaml` remote package. Keep credentials in ESPHome secrets rather than committing them to a configuration file.
+This is the detailed reference for the `dial.yaml` remote package. For an overview and a ready-to-use installation example, return to the [README](../README.md). A normal package installation is configured entirely in your local ESPHome YAML; it does not require editing files inside this repository.
 
-## Required main-screen entities
-
-Set these substitutions to Home Assistant entities that exist in your installation:
+## Required substitutions
 
 ```yaml
 substitutions:
   timezone: Europe/Madrid
+  api_encryption_key: !secret api_encryption_key
+  wifi_ssid: !secret wifi_ssid
+  wifi_password: !secret wifi_password
   weather_entity: weather.your_location
   aqi_entity: sensor.your_aqi
 ```
 
-`weather_entity` provides the weather condition. `aqi_entity` must be a numeric sensor. The project can temporarily use the legacy `aqi` attribute from the weather entity when the AQI sensor is unavailable, but a separate sensor is recommended.
+`weather_entity` supplies the main weather information. `aqi_entity` must be a numeric Home Assistant sensor; the weather entity's legacy `aqi` attribute is only a fallback. Find entity IDs under **Developer Tools → States**.
 
-Find entity IDs in Home Assistant under **Developer Tools → States**.
+The package defaults `device_name`, `device_friendly_name`, fallback hotspot values and OTA password for validation. Override those values, especially the OTA password, for a real installation. Keep credentials in `secrets.yaml` and never commit them.
 
-## Optional menu sections
+## Optional menu features
 
-The menu is assembled from the configuration. Do not set an option for a feature you do not need: its menu entry will not be shown.
+Unconfigured optional features are hidden from the menu. The package uses placeholder defaults for climate, music and timer, so add only the substitutions you want.
 
-| Configuration | Section | Notes |
+| Field | Enables | Example |
 | --- | --- | --- |
-| `dial_lights` | Lights | Add one or more Home Assistant light entities. |
-| `climate_entity` | Climate | Set a Home Assistant climate entity. |
-| `music_player_entity` | Music | Set the media player that actually plays audio. |
-| `timer_entity` | Timer | Set a Home Assistant `timer` entity. |
+| `dial_lights` | Lights | A list of Home Assistant light entities. |
+| `climate_entity` | AC | `climate.living_room` |
+| `music_player_entity` | Music | `media_player.living_room` |
+| `timer_entity` | Timer | `timer.dial_timer` |
 
 ### Lights
-
-Each light needs an entity ID and a label:
 
 ```yaml
 dial_lights:
@@ -40,7 +39,7 @@ dial_lights:
     name: Escritorio
 ```
 
-Omit `dial_lights`, or use `dial_lights: []`, to hide Lights.
+Each entry needs an `entity_id` and a display `name`. Omit the key, or set `dial_lights: []`, to disable Lights and hide its menu entry.
 
 ### Climate
 
@@ -49,27 +48,25 @@ substitutions:
   climate_entity: climate.living_room
 ```
 
-Climate integrations expose different capabilities. The project controls target temperature and power; adapt the configuration or services if your integration requires different fan-mode or swing-mode handling.
+The page supports target temperature and uses modes advertised by the entity. HVAC mode, fan mode and swing-related capabilities vary between Home Assistant integrations, so only controls supported by the entity should be expected.
 
-### Media player
+### Music
 
 ```yaml
 substitutions:
   music_player_entity: media_player.living_room
 ```
 
-Choose the actual audio player rather than the Dial entity. The most useful integrations expose `volume_level`, `media_title`, `media_artist`, `media_duration`, `media_position`, and `entity_picture`. An unavailable configured player remains configured, but cannot synchronise with the Dial.
+Select the entity that actually plays the audio. Useful attributes include `volume_level`, `media_title`, `media_artist`, `media_duration` and `media_position`. The package also includes active SendSpin components for synchronised playback data and 100 × 100 album art when a SendSpin source is present.
 
 ### Timer
-
-Create a Timer helper in **Settings → Devices & services → Helpers**, then configure its entity ID:
 
 ```yaml
 substitutions:
   timer_entity: timer.dial_timer
 ```
 
-Home Assistant is the source of truth for the timer, so it can also be controlled from automations, dashboards and the mobile app. For YAML-defined timers, `restore: true` is recommended:
+Create the referenced Home Assistant Timer helper. Home Assistant remains the source of truth, so dashboards and automations can control it too. For YAML-defined timers, `restore: true` is optional but can be useful after a Home Assistant restart.
 
 ```yaml
 timer:
@@ -79,9 +76,7 @@ timer:
     restore: true
 ```
 
-## Display inactivity
-
-These substitutions control the display after inactivity:
+## Screen-management reference
 
 ```yaml
 substitutions:
@@ -91,33 +86,39 @@ substitutions:
   screen_dim_brightness: "20%"
 ```
 
-| Setting | Default | Effect |
+| Setting | Default | Behaviour |
 | --- | --- | --- |
-| `screen_dim_timeout` | `45s` | Reduces the backlight on the current page. |
-| `screen_return_timeout` | `5min` | Returns to the clock, retaining dim brightness. |
-| `screen_off_timeout` | `30min` | Turns the display backlight off. |
-| `screen_dim_brightness` | `"20%"` | Backlight level while dimmed. |
+| `screen_dim_timeout` | `45s` | Dims the current page's backlight. |
+| `screen_return_timeout` | `5min` | Returns to Clock. |
+| `screen_off_timeout` | `30min` | Turns off only the display backlight. |
+| `screen_dim_brightness` | `"20%"` | Backlight level during DIM. |
 
-Set a timeout to `0s` to disable that stage. The first interaction from a dimmed screen restores normal brightness; the first interaction from an off screen wakes the clock. In both cases, the next interaction performs the normal action.
+Set a timeout to `0s` to disable it. DIM and RETURN are independent. With OFF enabled, the package raises an OFF timeout that is shorter than an enabled DIM or RETURN timeout to the later timeout. The active page is retained through DIM and OFF; the first interaction wakes the display and is consumed.
 
-An active or paused timer prevents the screen from fully switching off. When a timer finishes, the Dial wakes, opens the Timer page and keeps its finish alert.
+Only an **active** Home Assistant timer blocks RETURN. A paused timer does not. Timer state does not block DIM or OFF. A finished timer wakes the display, opens Timer and triggers its visual blink and buzzer feedback. Remote timer starts do not wake the display.
 
-## Credentials and device identity
+## Package refresh and validation
 
-The remote package provides defaults for the device name, fallback hotspot and OTA password, but override them for a real installation. At minimum, provide Wi-Fi credentials and an ESPHome API encryption key through secrets:
+`refresh: 0s` makes ESPHome check the remote package on each build, which is useful while following project changes. Recompile after package updates. For production, choose a refresh period appropriate to your update policy.
 
-```yaml
-substitutions:
-  api_encryption_key: !secret api_encryption_key
-  wifi_ssid: !secret wifi_ssid
-  wifi_password: !secret wifi_password
-  device_name: m5stack-dial
-  device_friendly_name: M5Stack Dial
-  ota_password: !secret ota_password
+Validate before flashing:
+
+```bash
+esphome config your-dial.yaml
+esphome compile your-dial.yaml
 ```
 
-Never publish `secrets.yaml` or a configuration containing real passwords, API keys, or entity names you consider private.
+Use USB for the initial installation if the device is not on Wi-Fi; later updates can use ESPHome OTA.
 
-## Build and update
+## Technical troubleshooting
 
-Validate the complete configuration in ESPHome before installing it. Use USB for an initial flash if the device is not yet connected to Wi-Fi; subsequent updates can use ESPHome OTA.
+- **Invalid API encryption key:** generate a valid ESPHome API key and put it in `secrets.yaml`.
+- **Entity not found or unavailable:** check its exact ID and availability in Home Assistant; a configured unavailable feature stays in the menu but cannot synchronise.
+- **Lights missing:** ensure `dial_lights` has at least one entry and is not `[]`.
+- **AQI empty:** use a numeric sensor, not a textual state.
+- **Fonts or glyphs fail during build:** allow the initial build to download Google Fonts and dependencies; use the version pinned in `requirements.txt`.
+- **Compilation error after an update:** validate the complete local YAML and refresh the package before retrying.
+
+## Development-only customisation
+
+Clone the repository when you need to change the firmware itself. `src/pages/` contains the LVGL pages, while `src/main/` contains hardware, default entities, idle logic and light sensors. Install `requirements.txt`, copy `secrets.example.yaml` to a local `secrets.yaml`, and run `esphome config dial.yaml` before compiling. These internal files are not part of the normal remote-package workflow.
