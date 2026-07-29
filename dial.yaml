@@ -15,7 +15,7 @@ packages:
   idle:        !include src/main/idle.yaml
 
 external_components:
-  - source: github://hectorzin/smart-home-button@main
+  - source: github://hectorzin/m5stack-dial-home-assistant@main
     components: [dial_lights, dial_carousel]
     refresh: 0s
 
