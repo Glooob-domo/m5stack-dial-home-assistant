@@ -1,114 +1,87 @@
-# Configuration Guide
+# Configuration guide
 
-## 1. Secrets
+This guide describes the configuration supplied to the `dial.yaml` remote package. Keep credentials in ESPHome secrets rather than committing them to a configuration file.
 
-Copy the example secrets file:
+## Required main-screen entities
 
-```bash
-cp secrets.example.yaml secrets.yaml
-```
-
-Fill in your Wi-Fi and ESPHome credentials. `secrets.yaml` is intentionally ignored by Git. The example API key is a public dummy value for config checks only; generate your own before flashing.
-
-## 2. Home Assistant Entities
-
-Edit `src/main/entities.yaml` and replace the placeholders:
+Set these substitutions to Home Assistant entities that exist in your installation:
 
 ```yaml
 substitutions:
+  timezone: Europe/Madrid
   weather_entity: weather.your_location
-  aqi_entity: sensor.jardin_aqi
+  aqi_entity: sensor.your_aqi
 ```
 
-These two are required for the clock page.
+`weather_entity` provides the weather condition. `aqi_entity` must be a numeric sensor. The project can temporarily use the legacy `aqi` attribute from the weather entity when the AQI sensor is unavailable, but a separate sensor is recommended.
 
-### Optional menu pages
+Find entity IDs in Home Assistant under **Developer Tools → States**.
 
-The following are optional. **Do not write a substitution** unless you want that menu item. Home is always shown. Add real entity IDs in `dial.yaml` (or your local substitutions block):
+## Optional menu sections
 
-| Option | Menu item | Enable by adding |
-|---|---|---|
-| `timer_entity` | Timer | Your Home Assistant timer entity ID |
-| `climate_entity` | AC | Your climate entity ID |
-| `music_player_entity` | Music | Your media player entity ID |
-| `dial_lights` in `dial.yaml` | Lights | One or more light entries |
+The menu is assembled from the configuration. Do not set an option for a feature you do not need: its menu entry will not be shown.
 
-Find entity IDs in Home Assistant under Developer Tools -> States.
+| Configuration | Section | Notes |
+| --- | --- | --- |
+| `dial_lights` | Lights | Add one or more Home Assistant light entities. |
+| `climate_entity` | Climate | Set a Home Assistant climate entity. |
+| `music_player_entity` | Music | Set the media player that actually plays audio. |
+| `timer_entity` | Timer | Set a Home Assistant `timer` entity. |
 
-`weather_entity` provides weather conditions. Set `aqi_entity` to a numeric Home Assistant sensor for air quality; the legacy `aqi` attribute on the weather entity is used only as a temporary fallback when that sensor is unavailable.
+### Lights
 
-#### Examples
-
-**Home only** — weather and AQI only; no optional substitutions and no `dial_lights`:
-
-```yaml
-substitutions:
-  weather_entity: weather.estacion_meteorologica
-  aqi_entity: sensor.aqi_jardin_pm2_5
-```
-
-Do not declare `dial_lights` in `dial.yaml` (the project default is an empty list).
-
-**Music only** — add to `dial.yaml`:
-
-```yaml
-substitutions:
-  music_player_entity: media_player.arylic_lp100
-```
-
-**Lights only**:
+Each light needs an entity ID and a label:
 
 ```yaml
 dial_lights:
   - entity_id: light.sofa
     name: Sofá
+  - entity_id: light.desk
+    name: Escritorio
 ```
 
-**No lights** — omit `dial_lights` or set an explicit empty list:
+Omit `dial_lights`, or use `dial_lights: []`, to hide Lights.
+
+### Climate
 
 ```yaml
-dial_lights: []
+substitutions:
+  climate_entity: climate.living_room
 ```
 
-A configured entity still appears in the menu even when Home Assistant reports it as `unavailable`.
+Climate integrations expose different capabilities. The project controls target temperature and power; adapt the configuration or services if your integration requires different fan-mode or swing-mode handling.
 
-## 3. Timer Helper
+### Media player
 
-The Timer page controls a Home Assistant `timer` entity; Home Assistant remains the source of truth for its state and remaining time. Create a Timer helper in **Settings > Devices & services > Helpers**, then set its entity ID as `timer_entity`.
+```yaml
+substitutions:
+  music_player_entity: media_player.living_room
+```
 
-For a YAML-defined helper, use for example:
+Choose the actual audio player rather than the Dial entity. The most useful integrations expose `volume_level`, `media_title`, `media_artist`, `media_duration`, `media_position`, and `entity_picture`. An unavailable configured player remains configured, but cannot synchronise with the Dial.
+
+### Timer
+
+Create a Timer helper in **Settings → Devices & services → Helpers**, then configure its entity ID:
+
+```yaml
+substitutions:
+  timer_entity: timer.dial_timer
+```
+
+Home Assistant is the source of truth for the timer, so it can also be controlled from automations, dashboards and the mobile app. For YAML-defined timers, `restore: true` is recommended:
 
 ```yaml
 timer:
-  temporizador_dial:
-    name: Temporizador Dial
+  dial_timer:
+    name: Dial timer
     duration: "00:05:00"
     restore: true
 ```
 
-`restore: true` is recommended so active and paused timers are restored after Home Assistant restarts. Closing the Timer page on the Dial does not pause or cancel the timer; it can also be controlled from the mobile app, dashboards, and automations.
+## Display inactivity
 
-## 4. Music Player Selection
-
-Choose the entity that actually plays audio, not the Dial entity itself. A good target usually exposes:
-
-- `state`: `playing` or `paused`
-- `volume_level`
-- `media_title`
-- `media_artist`
-- `media_duration`
-- `media_position`
-- `entity_picture`
-
-If the entity is `unavailable`, Home Assistant will disable controls and the Dial cannot sync it.
-
-## 5. Timezone
-
-The default timezone is `Europe/Madrid`. Change the `timezone` substitution in `dial.yaml` if you use another timezone.
-
-## 6. Screen idle and backlight
-
-Three inactivity stages are configurable via substitutions in `dial.yaml`:
+These substitutions control the display after inactivity:
 
 ```yaml
 substitutions:
@@ -118,27 +91,33 @@ substitutions:
   screen_dim_brightness: "20%"
 ```
 
-These defaults apply when you omit the keys. You only need to add the lines you want to change.
+| Setting | Default | Effect |
+| --- | --- | --- |
+| `screen_dim_timeout` | `45s` | Reduces the backlight on the current page. |
+| `screen_return_timeout` | `5min` | Returns to the clock, retaining dim brightness. |
+| `screen_off_timeout` | `30min` | Turns the display backlight off. |
+| `screen_dim_brightness` | `"20%"` | Backlight level while dimmed. |
 
-| Substitution | Default | Effect |
-|---|---|---|
-| `screen_dim_timeout` | `45s` | Dim the backlight on the current page |
-| `screen_return_timeout` | `5min` | Return to the clock page (keeps dim brightness) |
-| `screen_off_timeout` | `30min` | Turn the backlight off completely |
-| `screen_dim_brightness` | `"20%"` | Backlight level while dimmed (1–100 %) |
+Set a timeout to `0s` to disable that stage. The first interaction from a dimmed screen restores normal brightness; the first interaction from an off screen wakes the clock. In both cases, the next interaction performs the normal action.
 
-Set a timeout to `0s` to disable that stage. `dim` and `return` are independent. When `off` is enabled, it must be greater than or equal to any other enabled stage; if not, only `off` is raised to the largest enabled timeout.
+An active or paused timer prevents the screen from fully switching off. When a timer finishes, the Dial wakes, opens the Timer page and keeps its finish alert.
 
-**Wake behaviour:**
+## Credentials and device identity
 
-- From **DIMMED**: the first interaction restores normal brightness on the current page and consumes that event. It does not navigate or change values.
-- From **OFF**: the first interaction restores normal brightness, shows the clock, and consumes that event.
+The remote package provides defaults for the device name, fallback hotspot and OTA password, but override them for a real installation. At minimum, provide Wi-Fi credentials and an ESPHome API encryption key through secrets:
 
-The next interaction behaves normally.
+```yaml
+substitutions:
+  api_encryption_key: !secret api_encryption_key
+  wifi_ssid: !secret wifi_ssid
+  wifi_password: !secret wifi_password
+  device_name: m5stack-dial
+  device_friendly_name: M5Stack Dial
+  ota_password: !secret ota_password
+```
 
-**Timer behaviour:**
+Never publish `secrets.yaml` or a configuration containing real passwords, API keys, or entity names you consider private.
 
-- Timer **ACTIVE** or **PAUSED**: the screen may dim and return to the clock, but will not turn fully off. Starting a timer remotely while the screen is off wakes to a dimmed clock.
-- Timer **FINISHED**: the screen wakes at normal brightness, opens the Timer page, and keeps the existing finish blink and beep. Auto-return to the clock does not leave a finished timer screen.
+## Build and update
 
-Home Assistant sensor updates (weather, AQI, lights, music metadata) do **not** wake the display.
+Validate the complete configuration in ESPHome before installing it. Use USB for an initial flash if the device is not yet connected to Wi-Fi; subsequent updates can use ESPHome OTA.
