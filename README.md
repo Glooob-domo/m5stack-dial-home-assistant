@@ -1,187 +1,167 @@
 <div align="center">
 
-<img src="src/assets/images/logo.png" width="96" alt="M5Stack Dial Smart Button logo" />
+<img src="src/assets/images/logo.png" width="96" alt="Home Assistant Controller for M5Stack Dial logo" />
 
-# Smart Home Button
+# Home Assistant Controller for M5Stack Dial
 
-### A Circular HMI for Home Assistant, built with M5Stack Dial, ESPHome, and LVGL.
+### A circular Home Assistant controller for M5Stack Dial, built with ESPHome and LVGL.
 
-[![ESPHome](https://img.shields.io/badge/ESPHome-tested%202026.3.3-blue?style=flat-square&logo=esphome)](https://esphome.io/)
+[![ESPHome](https://img.shields.io/badge/ESPHome-2026.7.2-blue?style=flat-square&logo=esphome)](https://esphome.io/)
 [![Platform](https://img.shields.io/badge/Platform-ESP32--S3-red?style=flat-square&logo=espressif)](https://www.espressif.com/)
 [![Display](https://img.shields.io/badge/Display-GC9A01A%20240x240-purple?style=flat-square)](#hardware)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](#license)
 
 </div>
 
+Home Assistant Controller for M5Stack Dial is an independent community project maintained and personalised by [hectorzin](https://github.com/hectorzin). It is not an official project of M5Stack, ESPHome, or Home Assistant.
+
 ## What is this?
 
-This is my M5Stack Dial firmware for controlling a Home Assistant setup from a small round desktop device.
+This firmware turns an M5Stack Dial into a physical Home Assistant controller. The rotary wheel, touch screen and front button make everyday actions—such as checking the room, changing a light, adjusting the climate or controlling music—available without repeatedly opening a phone dashboard.
 
-I built it because some smart home actions feel better with a real knob and a small screen. Turning a dial to change brightness, tapping a button for playback, or checking the room status at a glance is faster than opening a phone dashboard every time.
+The interface is built with ESPHome and LVGL, and is organised into pages and reusable components so individual features can be configured or adapted without having to rewrite the entire firmware. This repository is actively maintained as a tailored M5Stack Dial experience, with its own Home Assistant integrations and UI behaviour.
 
-The project is based on ESPHome and LVGL. Most of the UI is split into separate page files, so it is easier to change one feature without touching the rest of the firmware.
+## Origins and credits
 
-## What it can do
+This project is based on the original [**Smart Home Button** project](https://github.com/Jasionf/smart-home-button) created by [Jason Wen](https://github.com/Jasionf).
 
-- Show time, date, and weather data from Home Assistant.
-- Navigate with the rotary encoder, touch gestures, and the front button.
-- Control the built-in LED ring with brightness, color, and preset color flows.
-- Adjust an air conditioner entity from Home Assistant.
-- Show a music page with playback buttons, volume, progress, and album art.
-- Control a Home Assistant countdown timer from the Dial.
-- Keep the device alive on battery power on M5Dial V1.1 by enabling the power-hold pin.
+The original project provided the M5Stack Dial hardware configuration, ESPHome and LVGL foundation, and the initial Clock, Light, Climate, Music and Timer interfaces.
+
+This derivative follows a different direction. The original local light connected to the M5Stack Dial hardware has been replaced with configurable Home Assistant light entities through `dial_lights`. It also adds optional menu pages, live menu status, AQI support, improved navigation, configurable screen-idle management and other Home Assistant-focused improvements.
+
+Because this version no longer preserves the original local-light implementation, it is maintained as a separate derivative project rather than a directly mergeable continuation.
+
+Many thanks to Jason Wen for creating and sharing the foundation of this project.
+
+## Features
+
+- Clock, date and weather from Home Assistant.
+- Air-quality index (AQI) from a Home Assistant sensor.
+- Circular menu navigation with the encoder, touch gestures and front button.
+- Configurable Home Assistant lights through `dial_lights`.
+- Climate control through a `climate_entity`.
+- Media playback, volume and metadata through a `music_player_entity`.
+- Home Assistant timer control through a `timer_entity`.
+- Menu subtitles based on live Home Assistant states.
+- Automatic return to the clock after inactivity.
+- Configurable backlight dimming and screen-off behaviour.
+- Wake from dimmed or screen-off state without leaving the current page.
+- Visual and audible notification when a timer finishes.
 
 ## Gallery
 
 | | | | |
 | --- | --- | --- | --- |
-| <img src="docs/images/gallery/music-page.jpg" alt="Music page" width="240"> | <img src="docs/images/gallery/clock-weather-page.jpg" alt="Clock and weather page" width="240"> | <img src="docs/images/gallery/ac-page.jpg" alt="AC page" width="240"> | <img src="docs/images/gallery/timer-page.jpg" alt="Timer page" width="240"> |
-| <img src="docs/images/gallery/ac-power-page.jpg" alt="AC power control page" width="240"> | <img src="docs/images/gallery/light-page.jpg" alt="Light page" width="240"> | <img src="docs/images/gallery/menu-page.jpg" alt="Menu page" width="240"> | |
+| <img src="docs/images/gallery/clock-weather-page.jpg" alt="Clock and weather screen" width="240"> | <img src="docs/images/gallery/menu-page.jpg" alt="Circular menu" width="240"> | <img src="docs/images/gallery/light-page.jpg" alt="Light control" width="240"> | <img src="docs/images/gallery/ac-page.jpg" alt="Climate control" width="240"> |
+| <img src="docs/images/gallery/music-page.jpg" alt="Media-player screen" width="240"> | <img src="docs/images/gallery/timer-page.jpg" alt="Timer screen" width="240"> | | |
 
 ## Pages
 
-| Page | What it does |
+| Page | Description |
 | --- | --- |
-| Clock | Time, date, weather, humidity, AQI, pressure, and wind speed |
-| Menu | Circular page navigation for the small round screen |
-| Light | LED ring brightness, color, and effects |
-| AC | Target temperature and power control; fan/swing UI can be mapped to your own climate services |
-| Music | SendSpin media state, cover art, progress, volume, and transport controls |
-| Timer | Home Assistant countdown timer with rotary adjustment |
+| Clock | Shows the time, date, weather and AQI information from Home Assistant. |
+| Menu | Circular navigation with live subtitles for configured Home Assistant features. |
+| Lights | Controls the Home Assistant light entities declared in `dial_lights`. |
+| AC | Shows the state of `climate_entity` and changes its target temperature and power. |
+| Music | Controls `music_player_entity`, including playback, volume and available metadata. |
+| Timer | Uses `timer_entity` as the source of truth for a Home Assistant countdown timer. |
 
 ## Hardware
 
-The firmware is written for M5Stack Dial V1.1.
+The firmware targets the M5Stack Dial platform and its ESP32-S3 controller. The configuration uses the Dial's 240 × 240 GC9A01A round display, FT5x06 capacitive touch controller, rotary encoder, front button, PCF8563 RTC, buzzer and display backlight.
 
-Main parts used by the project:
+M5Stack Dial V1.1 is the tested target. GPIO46 power hold is configured for V1.1 so the device remains powered when running on battery. Other revisions may work, but are not currently verified by this maintained project.
 
-- ESP32-S3 controller
-- 240 x 240 GC9A01A round display
-- FT5x06 capacitive touch
-- PCF8563 RTC
-- RC522 NFC module on I2C
-- Rotary encoder and front button
-- SK6812 RGB LED ring
-- Buzzer and display backlight
-- USB-C for flashing and power
+## Requirements
 
-## Project structure
+- A compatible M5Stack Dial.
+- Home Assistant.
+- ESPHome.
+- Wi-Fi access for the Dial.
+- Home Assistant entities only for the features and information you want to enable.
 
-```text
-m5dial-smart-button/
-|-- dial.yaml                    # ESPHome entry point
-|-- secrets.example.yaml         # Copy this to secrets.yaml
-|-- requirements.txt             # ESPHome version used for this project
-|-- THIRD_PARTY_NOTICES.md        # Third-party code/font/icon notes
-|-- src/
-|   |-- main/
-|   |   |-- hardware.yaml        # M5Dial pins, display, touch, RTC, power hold
-|   |   `-- entities.yaml        # Home Assistant entity IDs
-|   |-- pages/                   # One LVGL page per feature
-|   `-- assets/                  # Fonts and small image assets
-|-- components/                  # Local ESPHome components, including SendSpin
-|-- hardware/                    # 3D-printable enclosure files
-`-- docs/                        # Setup notes and release checklist
-```
+Weather and AQI are optional: unavailable or omitted entities leave incomplete data or `--` on the Clock page. Timer, AC, Music and Lights are also optional; those menu entries disappear when left at their package placeholders or, for Lights, when `dial_lights` is empty.
 
-## Setup
+## Quick installation
 
-### 1. Install ESPHome
-
-I tested this project with ESPHome `2026.3.3`. The first build may need internet access because ESPHome downloads Google Fonts and build libraries.
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-```
-
-### 2. Create your secrets file
-
-```bash
-cp secrets.example.yaml secrets.yaml
-```
-
-Then edit `secrets.yaml`:
-
-```yaml
-wifi_ssid: "YOUR_WIFI_SSID"
-wifi_password: "YOUR_WIFI_PASSWORD"
-
-ap_ssid: "Dial Fallback Hotspot"
-ap_password: "YOUR_FALLBACK_AP_PASSWORD"
-
-api_encryption_key: "YOUR_API_ENCRYPTION_KEY"
-ota_password: "YOUR_OTA_PASSWORD"
-```
-
-`secrets.yaml` is ignored by Git. Do not publish it.
-
-The API key in `secrets.example.yaml` is only a public dummy value so `esphome config` can run after copying the file. Generate your own key before flashing a real device.
-
-### 3. Set your Home Assistant entities
-
-Edit `src/main/entities.yaml`:
+1. In ESPHome, create a new device configuration and add your credentials as secrets.
+2. Use the following configuration, replacing the entity IDs with your own Home Assistant entities.
+3. Install it on the Dial over USB for the first flash, then use OTA updates as usual.
 
 ```yaml
 substitutions:
-  weather_entity: weather.your_location
-  aqi_entity: sensor.jardin_aqi
-```
+  timezone: Europe/Madrid
 
-These two are required for the clock page. The menu pages below are **optional** — add a substitution in `dial.yaml` only for the features you want. If you do not write the line, that menu item stays hidden:
+  api_encryption_key: !secret api_encryption_key
+  wifi_ssid: !secret wifi_ssid
+  wifi_password: !secret wifi_password
 
-| Substitution | Menu item | How to enable |
-|---|---|---|
-| `timer_entity` | Timer | Add your Home Assistant timer entity ID |
-| `climate_entity` | AC | Add your climate entity ID |
-| `music_player_entity` | Music | Add your media player entity ID |
-| `dial_lights` (in `dial.yaml`) | Lights | Add at least one light entry |
-
-**Home only** — weather and AQI only; no optional substitutions and no `dial_lights`:
-
-```yaml
-substitutions:
   weather_entity: weather.estacion_meteorologica
   aqi_entity: sensor.aqi_jardin_pm2_5
-```
-
-**Music only** — add one line to `dial.yaml`:
-
-```yaml
-substitutions:
+  climate_entity: climate.ac_buhardilla
   music_player_entity: media_player.arylic_lp100
-```
+  timer_entity: timer.temporizador_dial
 
-**Lights only** — omit `dial_lights` or use an empty list; add entries to enable:
+  screen_return_timeout: 30s
+  screen_dim_timeout: 15s
+  screen_off_timeout: 60s
+  screen_dim_brightness: "20%"
 
-```yaml
 dial_lights:
   - entity_id: light.sofa
     name: Sofá
+
+  - entity_id: light.mesa
+    name: Mesa
+
+  - entity_id: light.luces_jardin
+    name: Jardín
+
+packages:
+  smart_home_button:
+    url: https://github.com/hectorzin/smart-home-button
+    ref: main
+    files:
+      - dial.yaml
+    refresh: 0s
 ```
 
-An explicit empty list is also valid: `dial_lights: []`.
-
-You can find entity IDs in Home Assistant under **Developer Tools -> States**. `weather_entity` supplies weather conditions, while `aqi_entity` must be a numeric Home Assistant sensor. The legacy `aqi` attribute on `weather_entity` is used only as a temporary fallback when the AQI sensor is unavailable.
-
-For the music page, choose the media player that actually plays audio. It should report useful attributes such as `volume_level`, `media_title`, `media_duration`, and `media_position`. If the entity is `unavailable`, the Dial cannot sync it — but the menu item still appears when configured.
-
-For the timer page, create a Home Assistant Timer helper and use its entity ID for `timer_entity`. For example, a YAML-defined helper can be configured as:
+Create the referenced secrets in ESPHome, for example:
 
 ```yaml
-timer:
-  temporizador_dial:
-    name: Temporizador Dial
-    duration: "00:05:00"
-    restore: true
+api_encryption_key: "replace-with-an-ESPHome-api-key"
+wifi_ssid: "your-wifi-network"
+wifi_password: "your-wifi-password"
 ```
 
-Home Assistant is the timer source of truth: the Dial can be closed without stopping the countdown, and the same timer can also be controlled from dashboards, mobile devices, and automations. `restore: true` is recommended so active and paused timers survive Home Assistant restarts.
+The package already contains the device hardware, pages and components. A normal installation only needs this local configuration; do not edit `src/main/entities.yaml`, `src/pages/main.yaml` or other package files. To disable Lights explicitly, use an empty list:
 
-### Screen idle and backlight
+```yaml
+dial_lights: []
+```
 
-The Dial dims and turns off its display after configurable periods of inactivity. Defaults are built in; override them in `dial.yaml`:
+`ref: main` follows the version currently published on `main`. `refresh: 0s` makes ESPHome check the remote package on every configuration or build, which is useful while tracking that branch but depends on GitHub being reachable and can add download time. It is optional; pin a tag or commit in `ref` when reproducible builds matter.
+
+For all fields, defaults and advanced cases, see [the configuration reference](docs/configuration.md).
+
+## Navigation
+
+The Dial supports the rotary encoder, the front button and horizontal touch gestures. In general, a short press opens or accepts, a rapid double press performs Back, and a long press has no action. Touch widgets retain their page-specific actions.
+
+| Context | Rotate | Short press | Double press / Touch |
+| --- | --- | --- | --- |
+| Clock (Home) | No action | Opens Menu | Long press: no action. Swipe left or right opens Menu. |
+| Menu | Moves the circular selection | Opens the selected page; Home returns to Clock | Tap a visible menu item to open it. Swipe left confirms; swipe right returns to Clock. |
+| Lights | Changes brightness or the active selector value | Opens/accepts the selected light, according to context | Double press or swipe right goes back. Touch controls power, colour picker and colour confirmation. |
+| AC | Changes the selected value | Accepts or confirms the current edit | Double press or swipe right goes back. Touch selects controls and toggles power, fan mode or HVAC mode. |
+| Music | Changes volume | Accepts the current action where applicable | Double press or swipe right goes back. Touch controls playback and transport. |
+| Timer | Adjusts the selected duration unit while the timer is idle | Starts, pauses, resumes or clears the finished state | Double press or swipe right goes back. Touch selects hours/minutes/seconds and accesses reset/cancel. |
+
+The first encoder turn, button press or touch gesture after the screen has dimmed or turned off only wakes the display; repeat the action to control the interface.
+
+## Screen management
+
+The package offers four substitutions for idle behaviour:
 
 ```yaml
 substitutions:
@@ -191,73 +171,88 @@ substitutions:
   screen_dim_brightness: "20%"
 ```
 
-| Stage | Default | What happens |
-|---|---|---|
-| Dim | 45 s | Lowers backlight on the current page |
-| Return to clock | 5 min | Shows the clock at dim brightness (if already dimmed) |
-| Off | 30 min | Turns the backlight off; ESPHome, Wi-Fi, and Home Assistant stay connected |
+`DIM` lowers the backlight and preserves the current page. `RETURN` intentionally navigates to Clock. `OFF` turns off only the backlight and preserves the current page. They are independent stages. Set any timeout to `0s` to disable that stage. When `OFF` is enabled, its effective timeout is raised if necessary so it is not earlier than either enabled DIM or RETURN timeout.
 
-Set any timeout to `0s` to disable that stage. While the screen is **off**, the first interaction wakes to the clock at normal brightness. While **dimmed**, the first interaction restores normal brightness on the current page without navigating. The next interaction works normally. Weather, AQI, and other Home Assistant updates do not wake the screen.
+An active Home Assistant timer blocks only automatic return to the clock; a paused timer does not. DIM and OFF continue to work for either state. When the timer finishes, the Dial wakes, opens Timer and runs its blink-and-beep feedback.
 
-**Timer exceptions:** an active or paused timer prevents full screen-off (the display stays dimmed at most). A timer started remotely while the screen is off wakes to a dimmed clock. When a timer finishes, the screen wakes at normal brightness, opens the Timer page, and keeps the existing blink and beep alert.
+## Live menu status
 
-### 4. Check, build, and flash
+The Menu is more than a launcher: its current selection shows a live subtitle. Timer shows remaining time or its state; Lights shows a single light's brightness or how many configured lights are on; AC shows HVAC mode and target temperature; Music shows title or playback state; and Home shows `Clock`.
+
+## Feature notes
+
+### Music
+
+The Music page is controlled through `music_player_entity`. Home Assistant provides playback state, play/pause and transport actions, volume, title and metadata, plus duration and position when available. SendSpin is optional and is currently used only to provide 100 × 100 album artwork when a compatible SendSpin source is available. Album art is intentionally kept small for the Dial's memory budget.
+
+### Climate
+
+Available climate controls depend on `climate_entity`. The page reads and changes target temperature, and uses the entity's advertised HVAC and fan modes when available. Do not expect a control that the selected Home Assistant climate integration does not expose.
+
+### Timer
+
+`timer_entity` is the source of truth. The same timer can be controlled from Home Assistant dashboards and automations as well as the Dial. A YAML-defined Home Assistant timer may use `restore: true`, but it is optional.
+
+### Battery
+
+The package enables GPIO46 at boot for M5Dial V1.1 battery power hold. This keeps that revision powered after wake when running on battery.
+
+## Troubleshooting
+
+- **Device does not appear in Home Assistant:** confirm Wi-Fi, API connectivity and a valid `api_encryption_key`.
+- **A menu item is hidden:** configure its matching entity, or add at least one entry to `dial_lights`; `dial_lights: []` intentionally hides Lights.
+- **AQI shows `--`:** use an existing numeric sensor for `aqi_entity`.
+- **A feature is unavailable:** check that its configured entity exists and is available in Home Assistant.
+- **Music is unavailable:** use the entity that actually plays audio and exposes its media state.
+- **Timer is unavailable:** create or enable the referenced Home Assistant Timer helper.
+- **Package changes are missing:** use `refresh: 0s` while testing, then reload or recompile the ESPHome configuration.
+- **Fonts, glyphs or compilation fail:** ensure the first build can download its dependencies and use the ESPHome version in `requirements.txt`.
+- **First installation fails over the network:** flash over USB first, then use ESPHome OTA updates.
+
+## Project structure
+
+```text
+smart-home-button/
+├── dial.yaml                 # Remote ESPHome package entry point
+├── secrets.example.yaml      # Example credentials for local development
+├── requirements.txt          # ESPHome version used by this project
+├── src/
+│   ├── main/                 # Hardware, entities, idle logic and light sensors
+│   ├── pages/                # LVGL pages for clock, menu and features
+│   └── assets/               # Fonts and embedded images
+├── components/               # Local ESPHome components, including SendSpin
+├── docs/                     # Configuration and maintenance documentation
+├── hardware/                 # Hardware-related assets
+├── LICENSE
+└── THIRD_PARTY_NOTICES.md
+```
+
+## Development and customisation
+
+This section is for people cloning the repository, not for normal package users. Create a local `secrets.yaml` from `secrets.example.yaml`, install the pinned dependencies, then validate and compile locally:
 
 ```bash
+python -m venv .venv
+# Activate .venv (Scripts\Activate.ps1 on Windows, bin/activate on macOS/Linux)
+python -m pip install -r requirements.txt
 esphome config dial.yaml
 esphome compile dial.yaml
-esphome upload dial.yaml --device /dev/cu.usbmodemXXXX
 ```
 
-For later OTA updates:
+Page customisation lives under `src/pages/`; hardware and idle behaviour are under `src/main/`. Keep local secrets out of Git.
 
-```bash
-esphome upload dial.yaml
-```
+## Demo video
 
-## Notes about the music page
+The [Home Assistant Controller for M5Stack Dial demo video](https://www.youtube.com/watch?v=51bXRBuSLpM) shows the project interface in use.
 
-The music page uses the local `sendspin` component for media state, transport commands, and album art. The Home Assistant media player entity is also read for status, volume, duration, and progress when those attributes are available.
+## Documentation
 
-Album art is intentionally kept small because the M5Dial does not have PSRAM. If you increase the image size or LVGL buffer too much, the device may reboot when artwork is received.
+- [Configuration reference](docs/configuration.md)
+- [License](LICENSE)
+- [Third-party notices](THIRD_PARTY_NOTICES.md)
 
-If volume control does not work, first check the Home Assistant media player entity. Some players expose playback state but do not expose writable volume control. If you want a HA-only music page, replace the SendSpin command scripts with standard `media_player` services.
+## Credits and license
 
-## Notes about AC controls
+Home Assistant Controller for M5Stack Dial is based on the original [**Smart Home Button** project](https://github.com/Jasionf/smart-home-button) by [Jason Wen](https://github.com/Jasionf).
 
-Climate entities are not all the same. Temperature and power are wired to Home Assistant services in this project. Fan speed and swing are shown as UI controls, but you may need to map them to `climate.set_fan_mode`, `climate.set_swing_mode`, or your own scripts depending on your air conditioner integration.
-
-## Notes about battery power
-
-M5Dial V1.1 needs the hold pin to stay enabled when running from battery. This project turns on GPIO46 during boot in `dial.yaml` and defines the `power_hold` switch in `src/main/hardware.yaml`.
-
-## Common issues
-
-- **Device is unavailable in Home Assistant**: make sure the `api` section is enabled and port `6053` is reachable.
-- **Wrong weather values**: change `weather_entity` in `src/main/entities.yaml`.
-- **AQI shows `--`**: set `aqi_entity` in `src/main/entities.yaml` to a numeric Home Assistant sensor.
-- **Wrong AC entity**: change `climate_entity` in `src/main/entities.yaml`.
-- **Music page shows unavailable**: choose the real player entity, not the Dial entity itself.
-- **Timer page shows unavailable**: create the Timer helper in Home Assistant and check `timer_entity` in `src/main/entities.yaml`.
-- **Album art causes reboot**: keep the artwork small and do not increase LVGL memory use too much.
-- **First build cannot download fonts**: connect to the internet once so ESPHome can fetch Google Fonts, or replace `gfonts://` fonts with local font files.
-- **Battery does not keep the device on**: check the V1.1 power-hold configuration.
-
-## What you may want to change
-
-Most people will need to edit only these files:
-
-- `secrets.yaml` for Wi-Fi and ESPHome credentials.
-- `src/main/entities.yaml` for Home Assistant entity IDs.
-- `src/pages/main.yaml` if you want a different timezone or weather layout.
-- `src/pages/music.yaml` if you want to customize the music UI.
-
-## License
-
-MIT License for the original project files. See `LICENSE`.
-
-Third-party code, fonts, icons, and build dependencies keep their own licenses. See `THIRD_PARTY_NOTICES.md`.
-
-## Demo Video
-
-Watch the demo on YouTube: [Smart Home Button demo](https://www.youtube.com/watch?v=51bXRBuSLpM)
+This derivative version is maintained by [hectorzin](https://github.com/hectorzin). Original copyright notices and third-party licenses are preserved in [LICENSE](LICENSE) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
