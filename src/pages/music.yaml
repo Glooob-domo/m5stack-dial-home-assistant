@@ -8,7 +8,7 @@ substitutions:
   icon_volume: "\uF005"
 
 external_components:
-  - source: github://hectorzin/smart-home-button@c0d6a0bd8401486ca1fa7ad3ae3bfbcaff036b94
+  - source: github://hectorzin/m5stack-dial-home-assistant@c0d6a0bd8401486ca1fa7ad3ae3bfbcaff036b94
     components:
       - generic_image
       - media_source

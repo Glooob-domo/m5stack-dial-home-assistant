@@ -119,7 +119,7 @@ dial_lights:
 
 packages:
   smart_home_button:
-    url: https://github.com/hectorzin/smart-home-button
+    url: https://github.com/hectorzin/m5stack-dial-home-assistant
     ref: main
     files:
       - dial.yaml
@@ -212,7 +212,7 @@ The package enables GPIO46 at boot for M5Dial V1.1 battery power hold. This keep
 ## Project structure
 
 ```text
-smart-home-button/
+m5stack-dial-home-assistant/
 ├── dial.yaml                 # Remote ESPHome package entry point
 ├── secrets.example.yaml      # Example credentials for local development
 ├── requirements.txt          # ESPHome version used by this project
