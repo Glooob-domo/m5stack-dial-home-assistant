@@ -1,6 +1,6 @@
 # 3D Models
 
-These STL files are the 3D-printed parts used for the Smart Home Button enclosure.
+These STL files are the 3D-printed parts used for the Home Assistant Controller for M5Stack Dial enclosure.
 
 | File | Part |
 | --- | --- |

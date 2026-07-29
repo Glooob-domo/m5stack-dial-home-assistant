@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for improving Smart Home Button.
+Thanks for improving Home Assistant Controller for M5Stack Dial.
 
 ## Before opening a pull request
 

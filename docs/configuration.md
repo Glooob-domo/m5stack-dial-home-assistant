@@ -1,6 +1,6 @@
-# Configuration reference
+# Home Assistant Controller for M5Stack Dial configuration reference
 
-This is the detailed reference for the `dial.yaml` remote package. For an overview and a ready-to-use installation example, return to the [README](../README.md). A normal package installation is configured entirely in your local ESPHome YAML; it does not require editing files inside this repository.
+This is the detailed reference for the Home Assistant Controller for M5Stack Dial `dial.yaml` remote package. For an overview and a ready-to-use installation example, return to the [README](../README.md). A normal package installation is configured entirely in your local ESPHome YAML; it does not require editing files inside this repository.
 
 ## Device credentials
 

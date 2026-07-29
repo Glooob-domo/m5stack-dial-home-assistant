@@ -1,8 +1,8 @@
 <div align="center">
 
-<img src="src/assets/images/logo.png" width="96" alt="Smart Home Button logo" />
+<img src="src/assets/images/logo.png" width="96" alt="Home Assistant Controller for M5Stack Dial logo" />
 
-# Smart Home Button
+# Home Assistant Controller for M5Stack Dial
 
 ### A circular Home Assistant controller for M5Stack Dial, built with ESPHome and LVGL.
 
@@ -13,13 +13,25 @@
 
 </div>
 
-Smart Home Button is an independent community project maintained and personalised by [hectorzin](https://github.com/hectorzin). It is not an official project of M5Stack, ESPHome, or Home Assistant.
+Home Assistant Controller for M5Stack Dial is an independent community project maintained and personalised by [hectorzin](https://github.com/hectorzin). It is not an official project of M5Stack, ESPHome, or Home Assistant.
 
 ## What is this?
 
 This firmware turns an M5Stack Dial into a physical Home Assistant controller. The rotary wheel, touch screen and front button make everyday actions—such as checking the room, changing a light, adjusting the climate or controlling music—available without repeatedly opening a phone dashboard.
 
 The interface is built with ESPHome and LVGL, and is organised into pages and reusable components so individual features can be configured or adapted without having to rewrite the entire firmware. This repository is actively maintained as a tailored M5Stack Dial experience, with its own Home Assistant integrations and UI behaviour.
+
+## Origins and credits
+
+This project is based on the original [**Smart Home Button** project](https://github.com/Jasionf/smart-home-button) created by [Jason Wen](https://github.com/Jasionf).
+
+The original project provided the M5Stack Dial hardware configuration, ESPHome and LVGL foundation, and the initial Clock, Light, Climate, Music and Timer interfaces.
+
+This derivative follows a different direction. The original local light connected to the M5Stack Dial hardware has been replaced with configurable Home Assistant light entities through `dial_lights`. It also adds optional menu pages, live menu status, AQI support, improved navigation, configurable screen-idle management and other Home Assistant-focused improvements.
+
+Because this version no longer preserves the original local-light implementation, it is maintained as a separate derivative project rather than a directly mergeable continuation.
+
+Many thanks to Jason Wen for creating and sharing the foundation of this project.
 
 ## Features
 
@@ -200,7 +212,7 @@ The package enables GPIO46 at boot for M5Dial V1.1 battery power hold. This keep
 ## Project structure
 
 ```text
-smart-home-button/
+home-assistant-controller-m5stack-dial/
 ├── dial.yaml                 # Remote ESPHome package entry point
 ├── secrets.example.yaml      # Example credentials for local development
 ├── requirements.txt          # ESPHome version used by this project
@@ -231,7 +243,7 @@ Page customisation lives under `src/pages/`; hardware and idle behaviour are und
 
 ## Demo video
 
-The [Smart Home Button demo video](https://www.youtube.com/watch?v=51bXRBuSLpM) shows the project interface in use.
+The [Home Assistant Controller for M5Stack Dial demo video](https://www.youtube.com/watch?v=51bXRBuSLpM) shows the project interface in use.
 
 ## Documentation
 
@@ -239,6 +251,8 @@ The [Smart Home Button demo video](https://www.youtube.com/watch?v=51bXRBuSLpM) 
 - [License](LICENSE)
 - [Third-party notices](THIRD_PARTY_NOTICES.md)
 
-## License
+## Credits and license
 
-The project files are available under the MIT License. The repository retains the required copyright and third-party notices for code and assets from which it derives; see [LICENSE](LICENSE) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+Home Assistant Controller for M5Stack Dial is based on the original [**Smart Home Button** project](https://github.com/Jasionf/smart-home-button) by [Jason Wen](https://github.com/Jasionf).
+
+This derivative version is maintained by [hectorzin](https://github.com/hectorzin). Original copyright notices and third-party licenses are preserved in [LICENSE](LICENSE) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
