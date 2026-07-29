@@ -2,7 +2,7 @@
 
 This is the detailed reference for the `dial.yaml` remote package. For an overview and a ready-to-use installation example, return to the [README](../README.md). A normal package installation is configured entirely in your local ESPHome YAML; it does not require editing files inside this repository.
 
-## Required substitutions
+## Device credentials
 
 ```yaml
 substitutions:
@@ -10,17 +10,25 @@ substitutions:
   api_encryption_key: !secret api_encryption_key
   wifi_ssid: !secret wifi_ssid
   wifi_password: !secret wifi_password
+```
+
+The package defaults `device_name`, `device_friendly_name`, fallback hotspot values and OTA password for validation. Override those values, especially the OTA password, for a real installation. Keep credentials in `secrets.yaml` and never commit them.
+
+## Optional Clock data
+
+```yaml
+substitutions:
+  timezone: Europe/Madrid
   weather_entity: weather.your_location
   aqi_entity: sensor.your_aqi
 ```
 
-`weather_entity` supplies the main weather information. `aqi_entity` must be a numeric Home Assistant sensor; the weather entity's legacy `aqi` attribute is only a fallback. Find entity IDs under **Developer Tools → States**.
+`weather_entity` and `aqi_entity` are optional: the package defaults them to placeholder entity IDs, so they are not required to compile. If either entity is missing or unavailable, Clock shows incomplete data or `--`. `weather_entity` supplies weather information; `aqi_entity` should be numeric, with the weather entity's legacy `aqi` attribute used only as a fallback. Find entity IDs under **Developer Tools → States**.
 
-The package defaults `device_name`, `device_friendly_name`, fallback hotspot values and OTA password for validation. Override those values, especially the OTA password, for a real installation. Keep credentials in `secrets.yaml` and never commit them.
 
 ## Optional menu features
 
-Unconfigured optional features are hidden from the menu. The package uses placeholder defaults for climate, music and timer, so add only the substitutions you want.
+Unconfigured optional features are hidden from the menu. Timer is hidden while `timer_entity` remains `timer.your_timer`; AC while `climate_entity` remains `climate.your_ac`; and Music while `music_player_entity` remains `media_player.your_player`. Lights is hidden when `dial_lights` has no entries.
 
 | Field | Enables | Example |
 | --- | --- | --- |
@@ -57,7 +65,7 @@ substitutions:
   music_player_entity: media_player.living_room
 ```
 
-Select the entity that actually plays the audio. Useful attributes include `volume_level`, `media_title`, `media_artist`, `media_duration` and `media_position`. The package also includes active SendSpin components for synchronised playback data and 100 × 100 album art when a SendSpin source is present.
+Select the entity that actually plays the audio. Home Assistant supplies player state, transport actions, volume and available metadata, including `media_title`, `media_artist`, `media_duration` and `media_position`. SendSpin is optional and currently supplies only 100 × 100 album artwork when a compatible SendSpin source is available.
 
 ### Timer
 
@@ -93,13 +101,13 @@ substitutions:
 | `screen_off_timeout` | `30min` | Turns off only the display backlight. |
 | `screen_dim_brightness` | `"20%"` | Backlight level during DIM. |
 
-Set a timeout to `0s` to disable it. DIM and RETURN are independent. With OFF enabled, the package raises an OFF timeout that is shorter than an enabled DIM or RETURN timeout to the later timeout. The active page is retained through DIM and OFF; the first interaction wakes the display and is consumed.
+Set a timeout to `0s` to disable it. DIM and RETURN are independent. With OFF enabled, the package raises an OFF timeout that is shorter than an enabled DIM or RETURN timeout to the later timeout. DIM and OFF retain the active page; RETURN intentionally navigates to Clock. The first encoder turn, front-button press or touch gesture from DIM or OFF wakes the display and is consumed.
 
 Only an **active** Home Assistant timer blocks RETURN. A paused timer does not. Timer state does not block DIM or OFF. A finished timer wakes the display, opens Timer and triggers its visual blink and buzzer feedback. Remote timer starts do not wake the display.
 
 ## Package refresh and validation
 
-`refresh: 0s` makes ESPHome check the remote package on each build, which is useful while following project changes. Recompile after package updates. For production, choose a refresh period appropriate to your update policy.
+`ref: main` follows the version currently published on the repository's `main` branch. `refresh: 0s` makes ESPHome check the remote package on every configuration or build, which is useful while tracking it, but depends on GitHub being reachable and can add download time. It is optional; pin a tag or commit in `ref` for reproducible builds. Recompile after package updates.
 
 Validate before flashing:
 

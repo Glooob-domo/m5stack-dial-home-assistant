@@ -6,7 +6,7 @@
 
 ### A circular Home Assistant controller for M5Stack Dial, built with ESPHome and LVGL.
 
-[![ESPHome](https://img.shields.io/badge/ESPHome-2026.7.0-blue?style=flat-square&logo=esphome)](https://esphome.io/)
+[![ESPHome](https://img.shields.io/badge/ESPHome-2026.7.2-blue?style=flat-square&logo=esphome)](https://esphome.io/)
 [![Platform](https://img.shields.io/badge/Platform-ESP32--S3-red?style=flat-square&logo=espressif)](https://www.espressif.com/)
 [![Display](https://img.shields.io/badge/Display-GC9A01A%20240x240-purple?style=flat-square)](#hardware)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](#license)
@@ -33,7 +33,7 @@ The interface is built with ESPHome and LVGL, and is organised into pages and re
 - Menu subtitles based on live Home Assistant states.
 - Automatic return to the clock after inactivity.
 - Configurable backlight dimming and screen-off behaviour.
-- Wake from dimming without leaving the current page.
+- Wake from dimmed or screen-off state without leaving the current page.
 - Visual and audible notification when a timer finishes.
 
 ## Gallery
@@ -58,7 +58,7 @@ The interface is built with ESPHome and LVGL, and is organised into pages and re
 
 The firmware targets the M5Stack Dial platform and its ESP32-S3 controller. The configuration uses the Dial's 240 × 240 GC9A01A round display, FT5x06 capacitive touch controller, rotary encoder, front button, PCF8563 RTC, buzzer and display backlight.
 
-M5Dial V1.1 is supported with its battery power-hold configuration: GPIO46 is enabled at boot so the device remains powered when running on battery. Other Dial revisions are not excluded by the configuration, but this battery-specific behaviour is only documented and configured for V1.1.
+M5Stack Dial V1.1 is the tested target. GPIO46 power hold is configured for V1.1 so the device remains powered when running on battery. Other revisions may work, but are not currently verified by this maintained project.
 
 ## Requirements
 
@@ -66,9 +66,9 @@ M5Dial V1.1 is supported with its battery power-hold configuration: GPIO46 is en
 - Home Assistant.
 - ESPHome.
 - Wi-Fi access for the Dial.
-- Home Assistant entities for each feature you want to enable.
+- Home Assistant entities only for the features and information you want to enable.
 
-Weather and air quality are used by the main screen. Lights, climate, media player and timer are optional: sections without their configuration disappear from the menu.
+Weather and AQI are optional: unavailable or omitted entities leave incomplete data or `--` on the Clock page. Timer, AC, Music and Lights are also optional; those menu entries disappear when left at their package placeholders or, for Lights, when `dial_lights` is empty.
 
 ## Quick installation
 
@@ -128,19 +128,21 @@ The package already contains the device hardware, pages and components. A normal
 dial_lights: []
 ```
 
+`ref: main` follows the version currently published on `main`. `refresh: 0s` makes ESPHome check the remote package on every configuration or build, which is useful while tracking that branch but depends on GitHub being reachable and can add download time. It is optional; pin a tag or commit in `ref` when reproducible builds matter.
+
 For all fields, defaults and advanced cases, see [the configuration reference](docs/configuration.md).
 
 ## Navigation
 
-The Dial supports the rotary encoder, the front button and horizontal touch gestures. A long press is not currently mapped. The front button's back action is a rapid double press; touch widgets retain their page-specific actions.
+The Dial supports the rotary encoder, the front button and horizontal touch gestures. In general, a short press opens or accepts, a rapid double press performs Back, and a long press has no action. Touch widgets retain their page-specific actions.
 
 | Context | Rotate | Short press | Long press / Touch |
 | --- | --- | --- | --- |
-| Clock (Home) | No action | Opens Menu | Swipe left opens Menu; swipe right performs Back (which opens Menu from Home). |
+| Clock (Home) | No action | Opens Menu | Long press: no action. Swipe left or right opens Menu. |
 | Menu | Moves the circular selection | Opens the selected page; Home returns to Clock | Tap a visible menu item to open it. Swipe left confirms; swipe right returns to Clock. |
-| Lights | Changes brightness; in the colour picker changes hue or colour temperature | From the light page, goes back; in the selector, opens the selected light | Swipe right goes back. Touch controls power, colour picker and colour confirmation. |
-| AC | Changes target temperature, fan mode or HVAC mode according to the selected control | Confirms fan/HVAC edits; otherwise goes back | Swipe right goes back. Touch selects controls and toggles power, fan mode or HVAC mode. |
-| Music | Changes volume | Goes back | Swipe right goes back. Touch controls playback and transport. |
+| Lights | Changes brightness or the active selector value | Opens/accepts the selected light, according to context | Double press or swipe right goes back. Touch controls power, colour picker and colour confirmation. |
+| AC | Changes the selected value | Accepts or confirms the current edit | Double press or swipe right goes back. Touch selects controls and toggles power, fan mode or HVAC mode. |
+| Music | Changes volume | Accepts the current action where applicable | Double press or swipe right goes back. Touch controls playback and transport. |
 | Timer | Adjusts the selected duration unit while the timer is idle | Starts, pauses, resumes or clears the finished state | Swipe right goes back. Touch selects hours/minutes/seconds and accesses reset/cancel. |
 
 The first encoder turn, button press or touch gesture after the screen has dimmed or turned off only wakes the display; repeat the action to control the interface.
@@ -157,7 +159,7 @@ substitutions:
   screen_dim_brightness: "20%"
 ```
 
-`DIM` lowers the backlight in place, `RETURN` shows the clock, and `OFF` turns off only the backlight. They are independent stages, and the active page is preserved when the display wakes. Set any timeout to `0s` to disable that stage. When `OFF` is enabled, its effective timeout is raised if necessary so it is not earlier than either enabled DIM or RETURN timeout.
+`DIM` lowers the backlight and preserves the current page. `RETURN` intentionally navigates to Clock. `OFF` turns off only the backlight and preserves the current page. They are independent stages. Set any timeout to `0s` to disable that stage. When `OFF` is enabled, its effective timeout is raised if necessary so it is not earlier than either enabled DIM or RETURN timeout.
 
 An active Home Assistant timer blocks only automatic return to the clock; a paused timer does not. DIM and OFF continue to work for either state. When the timer finishes, the Dial wakes, opens Timer and runs its blink-and-beep feedback.
 
@@ -169,7 +171,7 @@ The Menu is more than a launcher: its current selection shows a live subtitle. T
 
 ### Music
 
-The Music page combines the configured Home Assistant media player with the active local SendSpin components. Home Assistant provides player state, volume and metadata; SendSpin supplies playback synchronisation and the 100 × 100 album-art image when a SendSpin source is available. Album art is intentionally kept small for the Dial's memory budget.
+The Music page is controlled through `music_player_entity`. Home Assistant provides playback state, play/pause and transport actions, volume, title and metadata, plus duration and position when available. SendSpin is optional and is currently used only to provide 100 × 100 album artwork when a compatible SendSpin source is available. Album art is intentionally kept small for the Dial's memory budget.
 
 ### Climate
 
