@@ -27,9 +27,7 @@ This project is based on the original [**Smart Home Button** project](https://gi
 
 The original project provided the M5Stack Dial hardware configuration, ESPHome and LVGL foundation, and the initial Clock, Light, Climate, Music and Timer interfaces.
 
-This derivative follows a different direction. The original local light connected to the M5Stack Dial hardware has been replaced with configurable Home Assistant light entities through `dial_lights`. It also adds optional menu pages, live menu status, AQI support, improved navigation, configurable screen-idle management and other Home Assistant-focused improvements.
-
-Because this version no longer preserves the original local-light implementation, it is maintained as a separate derivative project rather than a directly mergeable continuation.
+This derivative adds configurable Home Assistant light entities through `dial_lights`, optional menu pages, live menu status, AQI support, improved navigation, configurable screen-idle management and other Home Assistant-focused improvements.
 
 Many thanks to Jason Wen for creating and sharing the foundation of this project.
 
