@@ -241,9 +241,7 @@ Page customisation lives under `src/pages/`; hardware and idle behaviour are und
 
 ## Article and video
 
-[![Read the M5Stack Dial Home Assistant article](docs/images/m5stack-dial-home-assistant.webp)](https://hectorzin.com/en/posts/m5stack-dial-home-assistant-esphome-controller)
-
-[![Watch the Home Assistant Controller for M5Stack Dial video](https://img.youtube.com/vi/EskhrfUTLOM/maxresdefault.jpg)](https://www.youtube.com/watch?v=EskhrfUTLOM)
+[![Watch the Home Assistant Controller for M5Stack Dial video](docs/images/m5stack-dial-home-assistant.webp)](https://www.youtube.com/watch?v=EskhrfUTLOM)
 
 [Watch the video on YouTube](https://www.youtube.com/watch?v=EskhrfUTLOM)
 
