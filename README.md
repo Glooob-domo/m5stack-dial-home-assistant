@@ -239,13 +239,13 @@ esphome compile dial.yaml
 
 Page customisation lives under `src/pages/`; hardware and idle behaviour are under `src/main/`. Keep local secrets out of Git.
 
-## Guide and video
+## Article and video
 
-For a complete walkthrough, background on the project, installation notes and
-practical examples, see the accompanying article and video:
+- [Read the full article on the blog](https://hectorzin.com/en/posts/m5stack-dial-home-assistant-esphome-controller)
 
-- [Read the complete English guide](https://hectorzin.com/en/posts/m5stack-dial-home-assistant-esphome-controller)
-- [Watch the project video on YouTube](https://www.youtube.com/watch?v=EskhrfUTLOM&list=PLpOhJ1XFMWn-pbRhD7-PEgWdlZ5FHq5_U)
+[![Watch the Home Assistant Controller for M5Stack Dial video](https://img.youtube.com/vi/EskhrfUTLOM/maxresdefault.jpg)](https://www.youtube.com/watch?v=EskhrfUTLOM)
+
+[Watch the video on YouTube](https://www.youtube.com/watch?v=EskhrfUTLOM)
 
 ## Documentation
 
