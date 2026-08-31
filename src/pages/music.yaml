@@ -542,7 +542,7 @@ lvgl:
                   x: 20
                   y: 118
                   width: 200
-                  text: !lambda "return dial_i18n::ready_to_play();"
+                  text: !lambda "return std::string(dial_i18n::ready_to_play());"
                   text_font: font_music_title
                   text_color: 0xFFFFFF
                   text_align: CENTER

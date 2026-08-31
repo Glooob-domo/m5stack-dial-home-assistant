@@ -724,7 +724,7 @@ lvgl:
                   widgets:
                     - label:
                         align: CENTER
-                        text: !lambda "return dial_i18n::unit_hr();"
+                        text: !lambda "return std::string(dial_i18n::unit_hr());"
                         text_font: font_timer_btn
                         text_color: col_timer_dim_text
               - obj:
@@ -751,7 +751,7 @@ lvgl:
                   widgets:
                     - label:
                         align: CENTER
-                        text: !lambda "return dial_i18n::unit_min();"
+                        text: !lambda "return std::string(dial_i18n::unit_min());"
                         text_font: font_timer_btn
                         text_color: col_timer_dim_text
               - obj:
@@ -778,7 +778,7 @@ lvgl:
                   widgets:
                     - label:
                         align: CENTER
-                        text: !lambda "return dial_i18n::unit_sec();"
+                        text: !lambda "return std::string(dial_i18n::unit_sec());"
                         text_font: font_timer_btn
                         text_color: col_timer_dim_text
               - obj:
@@ -803,6 +803,6 @@ lvgl:
                     - label:
                         id: lbl_timer_reset
                         align: CENTER
-                        text: !lambda "return dial_i18n::rst();"
+                        text: !lambda "return std::string(dial_i18n::rst());"
                         text_font: font_timer_btn
                         text_color: col_timer_dim_text

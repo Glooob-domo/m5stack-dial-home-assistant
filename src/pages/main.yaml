@@ -685,14 +685,14 @@ lvgl:
             y: 13
             text_font: font_lbl
             text_color: col_text_temp
-            text: !lambda "return dial_i18n::temp();"
+            text: !lambda "return std::string(dial_i18n::temp());"
         - label:
             align: CENTER
             x: 0
             y: 13
             text_font: font_lbl
             text_color: col_text_hum
-            text: !lambda "return dial_i18n::hum();"
+            text: !lambda "return std::string(dial_i18n::hum());"
         - label:
             id: lbl_aqi
             align: CENTER
@@ -700,7 +700,7 @@ lvgl:
             y: 13
             text_font: font_lbl
             text_color: col_text_lbl
-            text: !lambda "return dial_i18n::aqi();"
+            text: !lambda "return std::string(dial_i18n::aqi());"
 
         - label:
             id: lbl_temp
@@ -743,14 +743,14 @@ lvgl:
             y: 60
             text_font: font_lbl
             text_color: col_text_pres
-            text: !lambda "return dial_i18n::pressure();"
+            text: !lambda "return std::string(dial_i18n::pressure());"
         - label:
             align: CENTER
             x: 40
             y: 60
             text_font: font_lbl
             text_color: col_text_wind
-            text: !lambda "return dial_i18n::wind();"
+            text: !lambda "return std::string(dial_i18n::wind());"
 
         - label:
             id: lbl_pressure

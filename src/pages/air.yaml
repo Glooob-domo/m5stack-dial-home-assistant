@@ -1070,7 +1070,7 @@ lvgl:
                   id: lbl_air_mode
                   align: CENTER
                   y: 20
-                  text: !lambda "return dial_i18n::mode_auto();"
+                  text: !lambda "return std::string(dial_i18n::mode_auto());"
                   text_font: font_air_mode
                   text_color: col_hvac_auto
                   text_align: CENTER
@@ -1079,7 +1079,7 @@ lvgl:
                   id: lbl_air_mode_hvac
                   align: CENTER
                   y: 20
-                  text: !lambda "return dial_i18n::mode_auto();"
+                  text: !lambda "return std::string(dial_i18n::mode_auto());"
                   text_font: font_air_mode_lg
                   text_color: col_hvac_auto
                   text_align: CENTER
@@ -1089,7 +1089,7 @@ lvgl:
                   id: lbl_air_fan
                   align: CENTER
                   y: -45
-                  text: !lambda "return dial_i18n::fan_unknown();"
+                  text: !lambda "return std::string(dial_i18n::fan_unknown());"
                   text_font: font_air_fan
                   text_color: 0xFFFFFF
                   text_align: CENTER

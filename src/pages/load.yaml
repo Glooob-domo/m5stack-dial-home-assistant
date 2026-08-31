@@ -48,7 +48,7 @@ script:
     then:
       - lvgl.label.update:
           id: lbl_status
-          text: !lambda "return dial_i18n::connecting();"
+          text: !lambda "return std::string(dial_i18n::connecting());"
       - lvgl.label.update:
           id: lbl_sub
           text: "Home Assistant"
@@ -67,7 +67,7 @@ script:
     then:
       - lvgl.label.update:
           id: lbl_sub
-          text: !lambda "return dial_i18n::syncing();"
+          text: !lambda "return std::string(dial_i18n::syncing());"
       - lambda: |-
           static lv_anim_t a;
           lv_anim_init(&a);
@@ -146,7 +146,7 @@ lvgl:
                 y: 30
                 text_font: font_main
                 text_color: col_text_pri
-                text: !lambda "return dial_i18n::connecting();"
+                text: !lambda "return std::string(dial_i18n::connecting());"
                 text_align: CENTER
 
             - label:

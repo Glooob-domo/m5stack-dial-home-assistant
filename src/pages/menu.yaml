@@ -723,7 +723,7 @@ lvgl:
                               x: 38
                               text_font: font_menu_item
                               text_color: col_menu_dim
-                              text: !lambda "return dial_i18n::menu_timer();"
+                              text: !lambda "return std::string(dial_i18n::menu_timer());"
                               text_opa: 25%
 
                     - obj:
@@ -751,7 +751,7 @@ lvgl:
                               x: 38
                               text_font: font_menu_item
                               text_color: col_menu_dim
-                              text: !lambda "return dial_i18n::menu_lights();"
+                              text: !lambda "return std::string(dial_i18n::menu_lights());"
                               text_opa: 50%
 
                     - obj:
@@ -797,7 +797,7 @@ lvgl:
                               text_color: col_text_pri
                               width: 106
                               long_mode: DOT
-                              text: !lambda "return dial_i18n::menu_home();"
+                              text: !lambda "return std::string(dial_i18n::menu_home());"
                           - label:
                               id: slot_center_sub
                               x: 54
@@ -806,7 +806,7 @@ lvgl:
                               text_color: col_menu_val
                               width: 106
                               long_mode: DOT
-                              text: !lambda "return dial_i18n::menu_clock();"
+                              text: !lambda "return std::string(dial_i18n::menu_clock());"
 
                     - obj:
                         id: slot_near_dn
@@ -833,7 +833,7 @@ lvgl:
                               x: 38
                               text_font: font_menu_item
                               text_color: col_menu_dim
-                              text: !lambda "return dial_i18n::menu_ac();"
+                              text: !lambda "return std::string(dial_i18n::menu_ac());"
                               text_opa: 50%
 
                     - obj:
@@ -861,7 +861,7 @@ lvgl:
                               x: 38
                               text_font: font_menu_item
                               text_color: col_menu_dim
-                              text: !lambda "return dial_i18n::menu_music();"
+                              text: !lambda "return std::string(dial_i18n::menu_music());"
                               text_opa: 25%
 
               - obj:

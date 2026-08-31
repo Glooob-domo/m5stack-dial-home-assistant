@@ -969,7 +969,7 @@ lvgl:
                     - label:
                         id: lbl_light_title
                         align: CENTER
-                        text: !lambda "return dial_i18n::light_title();"
+                        text: !lambda "return std::string(dial_i18n::light_title());"
                         text_font: font_menu_item
                         text_color: col_light_label_text
 
@@ -1065,7 +1065,7 @@ lvgl:
                         id: lbl_onoff_state
                         align: CENTER
                         y: 18
-                        text: !lambda "return dial_i18n::off();"
+                        text: !lambda "return std::string(dial_i18n::off());"
                         text_font: font_light_label
                         text_color: col_light_track
 
@@ -1143,7 +1143,7 @@ lvgl:
                         id: lbl_cp_mode
                         align: TOP_MID
                         y: 18
-                        text: !lambda "return dial_i18n::color();"
+                        text: !lambda "return std::string(dial_i18n::color());"
                         text_font: font_cp_mode
                         text_color: 0xAAAAAA
                     - label:
