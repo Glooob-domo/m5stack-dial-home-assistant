@@ -423,6 +423,46 @@ script:
                          id(dial_lights_id).active_entity_id().c_str());
             - script.execute: open_selected_light
 
+  - id: light_selector_touch_slot
+    parameters:
+      slot_offset: int
+    then:
+      - if:
+          condition:
+            lambda: 'return id(dial_lights_id).light_count() > 0 && !id(selector_carousel).is_animating();'
+          then:
+            - lambda: |-
+                const size_t count = id(dial_lights_id).light_count();
+                const size_t active = id(dial_lights_id).active_index();
+                size_t idx = 0;
+                bool ok = false;
+                if (count == 1) {
+                  ok = (slot_offset == 0);
+                  idx = 0;
+                } else if (count == 2) {
+                  if (slot_offset == 0) {
+                    idx = active;
+                    ok = true;
+                  } else {
+                    const size_t other = (active + 1) % 2;
+                    if (slot_offset == -1 && active == 1) {
+                      idx = other;
+                      ok = true;
+                    } else if (slot_offset == 1 && active == 0) {
+                      idx = other;
+                      ok = true;
+                    }
+                  }
+                } else {
+                  idx = (static_cast<int>(active) + slot_offset + static_cast<int>(count)) %
+                        static_cast<int>(count);
+                  ok = true;
+                }
+                if (!ok)
+                  return;
+                id(dial_lights_id).select_light(idx);
+            - script.execute: light_selector_confirm
+
   - id: open_selected_light
     then:
       - globals.set: {id: in_light_selector, value: 'false'}
@@ -553,7 +593,9 @@ lvgl:
                         border_width: 0
                         scrollbar_mode: "OFF"
                         pad_all: 0
-                        clickable: false
+                        clickable: true
+                        on_click:
+                          - lambda: 'id(light_selector_touch_slot).execute(-2);'
                         widgets:
                           - image:
                               id: ls_slot_far_up_img
@@ -570,7 +612,9 @@ lvgl:
                         border_width: 0
                         scrollbar_mode: "OFF"
                         pad_all: 0
-                        clickable: false
+                        clickable: true
+                        on_click:
+                          - lambda: 'id(light_selector_touch_slot).execute(-1);'
                         widgets:
                           - image:
                               id: ls_slot_near_up_img
@@ -603,7 +647,9 @@ lvgl:
                         border_width: 0
                         scrollbar_mode: "OFF"
                         pad_all: 0
-                        clickable: false
+                        clickable: true
+                        on_click:
+                          - lambda: 'id(light_selector_touch_slot).execute(0);'
                         widgets:
                           - image:
                               id: ls_slot_center_img
@@ -638,7 +684,9 @@ lvgl:
                         border_width: 0
                         scrollbar_mode: "OFF"
                         pad_all: 0
-                        clickable: false
+                        clickable: true
+                        on_click:
+                          - lambda: 'id(light_selector_touch_slot).execute(1);'
                         widgets:
                           - image:
                               id: ls_slot_near_dn_img
@@ -655,7 +703,9 @@ lvgl:
                         border_width: 0
                         scrollbar_mode: "OFF"
                         pad_all: 0
-                        clickable: false
+                        clickable: true
+                        on_click:
+                          - lambda: 'id(light_selector_touch_slot).execute(2);'
                         widgets:
                           - image:
                               id: ls_slot_far_dn_img
@@ -675,6 +725,9 @@ lvgl:
                   long_mode: DOT
                   bg_opa: TRANSP
                   opa: TRANSP
+                  clickable: true
+                  on_click:
+                    - lambda: 'id(light_selector_touch_slot).execute(-2);'
                   text: ""
               - label:
                   id: ls_overlay_near_up_lbl
@@ -689,6 +742,9 @@ lvgl:
                   long_mode: DOT
                   bg_opa: TRANSP
                   opa: TRANSP
+                  clickable: true
+                  on_click:
+                    - lambda: 'id(light_selector_touch_slot).execute(-1);'
                   text: ""
               - label:
                   id: ls_overlay_near_dn_lbl
@@ -703,6 +759,9 @@ lvgl:
                   long_mode: DOT
                   bg_opa: TRANSP
                   opa: TRANSP
+                  clickable: true
+                  on_click:
+                    - lambda: 'id(light_selector_touch_slot).execute(1);'
                   text: ""
               - label:
                   id: ls_overlay_far_dn_lbl
@@ -717,6 +776,9 @@ lvgl:
                   long_mode: DOT
                   bg_opa: TRANSP
                   opa: TRANSP
+                  clickable: true
+                  on_click:
+                    - lambda: 'id(light_selector_touch_slot).execute(2);'
                   text: ""
               - obj:
                   id: ls_dot_0
