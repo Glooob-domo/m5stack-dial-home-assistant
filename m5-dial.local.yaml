@@ -19,5 +19,12 @@ substitutions:
 
 dial_lights: []
 
+# Local components while iterating; m5-dial.yaml (GitHub package) uses github:// instead.
+external_components:
+  - source:
+      type: local
+      path: components
+    components: [dial_lights, dial_carousel, generic_image, media_source, sendspin]
+
 packages:
   firmware: !include dial.yaml

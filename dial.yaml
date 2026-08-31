@@ -14,10 +14,11 @@ packages:
   idle:        !include src/main/idle.yaml
 
 external_components:
-  - source:
-      type: local
-      path: components
+  # GitHub, not type: local — ESPHome resolves local paths against the
+  # user's /config/esphome folder, not this package.
+  - source: github://Glooob-domo/m5stack-dial-home-assistant@main
     components: [dial_lights, dial_carousel, generic_image, media_source, sendspin]
+    refresh: 0s
 
 substitutions:
   light_entity: light.disabled
