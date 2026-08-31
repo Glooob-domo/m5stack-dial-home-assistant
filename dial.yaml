@@ -169,7 +169,10 @@ lvgl:
     - touch
   encoders:
     - sensor: encoder
-      enter_button: front_button
+      # Dummy: the physical button is handled in GPIO on_multi_click.
+      # Binding front_button here also sends LVGL ENTER to hidden widgets
+      # (e.g. music play), which beeps and steals the press.
+      enter_button: lvgl_encoder_enter
   buffer_size: "12%"
   color_depth: 16
   bg_color: col_bg

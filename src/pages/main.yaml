@@ -527,6 +527,11 @@ sensor:
               return buf;
 
 binary_sensor:
+  - platform: template
+    id: lvgl_encoder_enter
+    name: LVGL encoder enter
+    internal: true
+    disabled_by_default: true
   - platform: gpio
     name: Button
     id: front_button

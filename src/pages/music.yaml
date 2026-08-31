@@ -340,53 +340,65 @@ script:
 
   - id: play_next
     then:
-      - lambda: 'id(music_feedback_btn) = 2;'
-      - script.execute:
-          id: music_transport_feedback
-          wait_for_finish: false
-      - lambda: |-
-          ESP_LOGI("music", "MUSIC_HA_ACTION next entity=%s", "${music_player_entity}");
-      - homeassistant.action:
-          action: media_player.media_next_track
-          data:
-            entity_id: ${music_player_entity}
+      - if:
+          condition:
+            lambda: 'return id(in_music) && dial_ha_entity_enabled("${music_player_entity}");'
+          then:
+            - lambda: 'id(music_feedback_btn) = 2;'
+            - script.execute:
+                id: music_transport_feedback
+                wait_for_finish: false
+            - lambda: |-
+                ESP_LOGI("music", "MUSIC_HA_ACTION next entity=%s", "${music_player_entity}");
+            - homeassistant.action:
+                action: media_player.media_next_track
+                data:
+                  entity_id: ${music_player_entity}
 
   - id: play_prev
     then:
-      - lambda: 'id(music_feedback_btn) = 0;'
-      - script.execute:
-          id: music_transport_feedback
-          wait_for_finish: false
-      - lambda: |-
-          ESP_LOGI("music", "MUSIC_HA_ACTION previous entity=%s", "${music_player_entity}");
-      - homeassistant.action:
-          action: media_player.media_previous_track
-          data:
-            entity_id: ${music_player_entity}
+      - if:
+          condition:
+            lambda: 'return id(in_music) && dial_ha_entity_enabled("${music_player_entity}");'
+          then:
+            - lambda: 'id(music_feedback_btn) = 0;'
+            - script.execute:
+                id: music_transport_feedback
+                wait_for_finish: false
+            - lambda: |-
+                ESP_LOGI("music", "MUSIC_HA_ACTION previous entity=%s", "${music_player_entity}");
+            - homeassistant.action:
+                action: media_player.media_previous_track
+                data:
+                  entity_id: ${music_player_entity}
 
   - id: play_toggle
     then:
-      - lambda: 'id(music_feedback_btn) = 1;'
-      - script.execute:
-          id: music_transport_feedback
-          wait_for_finish: false
-      - lambda: |-
-          bool current_playing = id(sendspin_playback_state).state == "playing" ||
-                                 id(media_player_status).state == "playing" ||
-                                 id(media_player_status).state == "buffering";
-          bool will_play = !current_playing;
-          id(music_playing) = will_play;
-          id(music_state_override_until_ms) = millis() + 2500;
-          if (will_play && id(local_progress_sync_ms) == 0) {
-            id(local_progress_sync_ms) = millis();
-          }
-          lv_label_set_text(id(play_label), will_play ? "${icon_pause}" : "${icon_play}");
-      - lambda: |-
-          ESP_LOGI("music", "MUSIC_HA_ACTION play_pause entity=%s", "${music_player_entity}");
-      - homeassistant.action:
-          action: media_player.media_play_pause
-          data:
-            entity_id: ${music_player_entity}
+      - if:
+          condition:
+            lambda: 'return id(in_music) && dial_ha_entity_enabled("${music_player_entity}");'
+          then:
+            - lambda: 'id(music_feedback_btn) = 1;'
+            - script.execute:
+                id: music_transport_feedback
+                wait_for_finish: false
+            - lambda: |-
+                bool current_playing = id(sendspin_playback_state).state == "playing" ||
+                                       id(media_player_status).state == "playing" ||
+                                       id(media_player_status).state == "buffering";
+                bool will_play = !current_playing;
+                id(music_playing) = will_play;
+                id(music_state_override_until_ms) = millis() + 2500;
+                if (will_play && id(local_progress_sync_ms) == 0) {
+                  id(local_progress_sync_ms) = millis();
+                }
+                lv_label_set_text(id(play_label), will_play ? "${icon_pause}" : "${icon_play}");
+            - lambda: |-
+                ESP_LOGI("music", "MUSIC_HA_ACTION play_pause entity=%s", "${music_player_entity}");
+            - homeassistant.action:
+                action: media_player.media_play_pause
+                data:
+                  entity_id: ${music_player_entity}
   - id: music_volume_up
     then:
       - lambda: |-
