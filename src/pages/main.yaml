@@ -294,9 +294,8 @@ script:
                 }
                 id(open_menu).execute();
 
-  # Count filtered presses instead of on_multi_click. ESPHome 2026.8 sees
-  # GPIO bounce as extra edges; that cancelled single-click and could also
-  # turn one physical press into a "double click".
+  # Count raw presses. delayed_on_off ate short single taps; on_multi_click
+  # cancelled them during the release wait. Bounce closer than 80ms is one press.
   - id: dial_button_decide
     mode: restart
     then:
@@ -564,15 +563,22 @@ binary_sensor:
       mode:
         input: true
         pullup: true
-    # Debounce first, then count presses. on_multi_click treated bounce as a
-    # double-click, so a single press never reached dial_simple_click.
-    filters:
-      - delayed_on_off: 50ms
+    # No delayed_on_off: a light tap can be shorter than 30–50ms and would
+    # never publish. Coalesce bounce in on_press instead.
     on_press:
       - lambda: |-
+          const uint32_t now = millis();
+          const uint32_t last = id(button_last_press_ms);
+          const uint32_t dt = (last == 0 || now < last) ? 0 : (now - last);
+          id(button_last_press_ms) = now;
+          ESP_LOGI("button", "edge dt=%u", (unsigned) dt);
+          if (last != 0 && dt < 80) {
+            ESP_LOGI("button", "bounce ignored");
+            return;
+          }
           id(button_press_count) += 1;
           ESP_LOGI("button", "press n=%d", id(button_press_count));
-      - script.execute: dial_button_decide
+          id(dial_button_decide).execute();
     on_release:
       - lambda: 'ESP_LOGI("button", "release");'
   # M5Dial V1.1 uses GPIO46 as HOLD for battery power retention.

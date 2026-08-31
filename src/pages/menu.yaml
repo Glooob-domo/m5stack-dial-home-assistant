@@ -87,6 +87,9 @@ globals:
   - id: button_press_count
     type: int
     initial_value: '0'
+  - id: button_last_press_ms
+    type: uint32_t
+    initial_value: '0'
 
 dial_carousel:
   - id: menu_carousel
