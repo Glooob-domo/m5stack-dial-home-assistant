@@ -1,2 +1,3 @@
-# Default empty lights list when dial_lights is omitted from the user config.
+# Default empty lights list so the Lights page stays hidden until
+# config.yaml (or the ESPHome device file) lists real entities.
 dial_lights: []

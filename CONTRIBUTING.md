@@ -14,5 +14,5 @@ Thanks for improving Home Assistant Controller for M5Stack Dial.
 
 - Use lowercase snake_case filenames.
 - Use clear LVGL ID prefixes: `page_`, `lbl_`, `btn_`, `arc_`, `img_`.
-- Prefer substitutions for user-specific entity IDs.
+- Prefer `config.yaml` for Home Assistant entity IDs (one category per page).
 - Keep image assets small enough for ESP32-S3 without PSRAM.

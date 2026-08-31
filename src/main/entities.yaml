@@ -1,4 +1,6 @@
 substitutions:
-  # Change these to match your Home Assistant instance before flashing.
-  weather_entity: weather.your_location
-  aqi_entity: sensor.jardin_aqi
+  # Fallbacks if a key is missing from config.yaml. Hidden on the Dial.
+  timezone: Europe/Paris
+  weather_entity: weather.disabled
+  aqi_entity: sensor.disabled
+

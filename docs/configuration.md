@@ -1,12 +1,14 @@
 # Home Assistant Controller for M5Stack Dial configuration reference
 
-This is the detailed reference for the Home Assistant Controller for M5Stack Dial `dial.yaml` remote package. For an overview and a ready-to-use installation example, return to the [README](../README.md). A normal package installation is configured entirely in your local ESPHome YAML; it does not require editing files inside this repository.
+This is the detailed reference for the Home Assistant Controller for M5Stack Dial. For an overview and a ready-to-use installation example, return to the [README](../README.md).
+
+A normal install uses two files in ESPHome: `m5-dial.yaml` (pulls the firmware from GitHub) and `config.yaml` (your entities). You do not copy `src/` or `components/` into ESPHome.
 
 ## Device credentials
 
 ```yaml
 substitutions:
-  timezone: Europe/Madrid
+  timezone: Europe/Paris
   api_encryption_key: !secret api_encryption_key
   wifi_ssid: !secret wifi_ssid
   wifi_password: !secret wifi_password
@@ -18,17 +20,17 @@ The package defaults `device_name`, `device_friendly_name`, fallback hotspot val
 
 ```yaml
 substitutions:
-  timezone: Europe/Madrid
-  weather_entity: weather.your_location
-  aqi_entity: sensor.your_aqi
+  timezone: Europe/Paris
+  weather_entity: weather.maison
+  aqi_entity: sensor.aqi_salon
 ```
 
-`weather_entity` and `aqi_entity` are optional: the package defaults them to placeholder entity IDs, so they are not required to compile. If either entity is missing or unavailable, Clock shows incomplete data or `--`. `weather_entity` supplies weather information; `aqi_entity` should be numeric, with the weather entity's legacy `aqi` attribute used only as a fallback. Find entity IDs under **Developer Tools → States**.
+Leave `weather.disabled` or `sensor.disabled` in `config.yaml` to keep `--` on those fields. If an entity is missing or unavailable, Clock also shows `--`. `weather_entity` supplies weather information; `aqi_entity` should be numeric, with the weather entity's legacy `aqi` attribute used only as a fallback. Find entity IDs under **Developer Tools → States**.
 
 
 ## Optional menu features
 
-Unconfigured optional features are hidden from the menu. Timer is hidden while `timer_entity` remains `timer.your_timer`; AC while `climate_entity` remains `climate.your_ac`; and Music while `music_player_entity` remains `media_player.your_player`. Lights is hidden when `dial_lights` has no entries.
+Unconfigured optional features are hidden from the menu. Set a real Home Assistant entity ID to show the page. Leave `climate.disabled`, `media_player.disabled` or `timer.disabled` to hide it. Lights is hidden when `dial_lights` has no entries.
 
 | Field | Enables | Example |
 | --- | --- | --- |
@@ -129,4 +131,4 @@ Use USB for the initial installation if the device is not on Wi-Fi; later update
 
 ## Development-only customisation
 
-Clone the repository when you need to change the firmware itself. `src/pages/` contains the LVGL pages, while `src/main/` contains hardware, default entities, idle logic and light sensors. Install `requirements.txt`, copy `secrets.example.yaml` to a local `secrets.yaml`, and run `esphome config dial.yaml` before compiling. These internal files are not part of the normal remote-package workflow.
+Clone the repository when you need to change the firmware itself. Edit `config.yaml` for Home Assistant entities. `src/pages/` contains the LVGL pages; `src/main/` contains hardware, idle logic and default entity fallbacks. Install `requirements.txt`, copy `secrets.example.yaml` to a local `secrets.yaml`, and run `esphome config m5-dial.local.yaml` before compiling.

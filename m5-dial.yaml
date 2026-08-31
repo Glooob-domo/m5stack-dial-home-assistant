@@ -1,0 +1,24 @@
+# Fichier appareil ESPHome (celui que tu crées dans le dashboard).
+# ESPHome télécharge le firmware depuis GitHub : tu n'as pas à cloner le dépôt.
+#
+# À placer dans le dossier ESPHome avec config.yaml.
+# Wi-Fi, clé API et OTA : secrets.yaml (déjà géré par ESPHome / HA).
+
+substitutions:
+  device_name: m5stack-dial
+  device_friendly_name: M5Stack Dial
+  wifi_ssid: !secret wifi_ssid
+  wifi_password: !secret wifi_password
+  api_encryption_key: !secret api_encryption_key
+  ota_password: !secret ota_password
+  ap_ssid: Dial Fallback Hotspot
+  ap_password: "changeme-dial-ap"
+
+packages:
+  m5_dial:
+    url: https://github.com/Glooob-domo/m5stack-dial-home-assistant
+    ref: main
+    files:
+      - dial.yaml
+    refresh: 0s
+  user_config: !include config.yaml

@@ -2,7 +2,11 @@
 
 ## Root files
 
-- `dial.yaml`: ESPHome entry point.
+- `m5-dial.yaml`: ESPHome device file for users (GitHub package + `config.yaml`).
+- `m5-dial.local.yaml`: same wiring, compiling this clone instead of GitHub.
+- `config.yaml`: Home Assistant entities; filling a category enables that Dial page.
+- `config.example.yaml`: template for `config.yaml`.
+- `dial.yaml`: firmware package pulled from GitHub by `m5-dial.yaml`.
 - `secrets.example.yaml`: public template for credentials.
 - `requirements.txt`: pinned ESPHome version for reproducible builds.
 - `README.md`: community-facing overview and setup guide.

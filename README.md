@@ -78,67 +78,48 @@ M5Stack Dial V1.1 is the tested target. GPIO46 power hold is configured for V1.1
 - Wi-Fi access for the Dial.
 - Home Assistant entities only for the features and information you want to enable.
 
-Weather and AQI are optional: unavailable or omitted entities leave incomplete data or `--` on the Clock page. Timer, AC, Music and Lights are also optional; those menu entries disappear when left at their package placeholders or, for Lights, when `dial_lights` is empty.
+Weather and AQI are optional: leave them as `weather.disabled` / `sensor.disabled` (or point at unavailable entities) and Clock shows `--`. Timer, AC, Music and Lights are also optional; those menu entries disappear when the matching line in `config.yaml` stays `*.disabled` or, for Lights, when `dial_lights` is empty.
 
 ## Quick installation
 
-1. In ESPHome, create a new device configuration and add your credentials as secrets.
-2. Use the following configuration, replacing the entity IDs with your own Home Assistant entities.
-3. Install it on the Dial over USB for the first flash, then use OTA updates as usual.
+You only add **two files** to ESPHome. ESPHome downloads the firmware from GitHub; you do not copy the rest of this repository.
+
+1. In the ESPHome dashboard, create a device and use [`m5-dial.yaml`](m5-dial.yaml) as the device file (or copy it into your ESPHome folder).
+2. Place [`config.yaml`](config.example.yaml) next to it (copy `config.example.yaml`).
+3. Put Wi-Fi, `api_encryption_key` and `ota_password` in `secrets.yaml`.
+4. Fill `config.yaml` with your Home Assistant entity IDs. Leave `*.disabled` or `dial_lights: []` to hide a page.
+5. Install over USB the first time, then use OTA.
+
+`m5-dial.yaml` pulls this repository:
 
 ```yaml
-substitutions:
-  timezone: Europe/Madrid
-
-  api_encryption_key: !secret api_encryption_key
-  wifi_ssid: !secret wifi_ssid
-  wifi_password: !secret wifi_password
-
-  weather_entity: weather.estacion_meteorologica
-  aqi_entity: sensor.aqi_jardin_pm2_5
-  climate_entity: climate.ac_buhardilla
-  music_player_entity: media_player.arylic_lp100
-  timer_entity: timer.temporizador_dial
-
-  screen_return_timeout: 30s
-  screen_dim_timeout: 15s
-  screen_off_timeout: 60s
-  screen_dim_brightness: "20%"
-
-dial_lights:
-  - entity_id: light.sofa
-    name: Sofá
-
-  - entity_id: light.mesa
-    name: Mesa
-
-  - entity_id: light.luces_jardin
-    name: Jardín
-
 packages:
-  smart_home_button:
-    url: https://github.com/hectorzin/m5stack-dial-home-assistant
+  m5_dial:
+    url: https://github.com/Glooob-domo/m5stack-dial-home-assistant
     ref: main
     files:
       - dial.yaml
     refresh: 0s
+  user_config: !include config.yaml
 ```
 
-Create the referenced secrets in ESPHome, for example:
+Example `config.yaml`:
 
 ```yaml
-api_encryption_key: "replace-with-an-ESPHome-api-key"
-wifi_ssid: "your-wifi-network"
-wifi_password: "your-wifi-password"
+substitutions:
+  timezone: Europe/Paris
+  weather_entity: weather.maison
+  aqi_entity: sensor.aqi_salon
+  climate_entity: climate.salon
+  music_player_entity: media_player.salon
+  timer_entity: timer.dial
+
+dial_lights:
+  - entity_id: light.salon
+    name: Salon
 ```
 
-The package already contains the device hardware, pages and components. A normal installation only needs this local configuration; do not edit `src/main/entities.yaml`, `src/pages/main.yaml` or other package files. To disable Lights explicitly, use an empty list:
-
-```yaml
-dial_lights: []
-```
-
-`ref: main` follows the version currently published on `main`. `refresh: 0s` makes ESPHome check the remote package on every configuration or build, which is useful while tracking that branch but depends on GitHub being reachable and can add download time. It is optional; pin a tag or commit in `ref` when reproducible builds matter.
+Changing `config.yaml` requires a recompile (or OTA). `ref: main` follows the published branch; pin a tag or commit when you want a frozen version.
 
 For all fields, defaults and advanced cases, see [the configuration reference](docs/configuration.md).
 
@@ -211,7 +192,11 @@ The package enables GPIO46 at boot for M5Dial V1.1 battery power hold. This keep
 
 ```text
 m5stack-dial-home-assistant/
-├── dial.yaml                 # Remote ESPHome package entry point
+├── m5-dial.yaml               # ESPHome device file (GitHub package + config)
+├── m5-dial.local.yaml         # Same, compiling this clone instead of GitHub
+├── config.yaml               # Home Assistant entities (enables pages)
+├── config.example.yaml       # Template for config.yaml
+├── dial.yaml                 # Firmware package (pulled from GitHub)
 ├── secrets.example.yaml      # Example credentials for local development
 ├── requirements.txt          # ESPHome version used by this project
 ├── src/
@@ -227,14 +212,14 @@ m5stack-dial-home-assistant/
 
 ## Development and customisation
 
-This section is for people cloning the repository, not for normal package users. Create a local `secrets.yaml` from `secrets.example.yaml`, install the pinned dependencies, then validate and compile locally:
+This section is for people changing the firmware. Create a local `secrets.yaml` from `secrets.example.yaml`, fill `config.yaml`, then compile **this clone** with `m5-dial.local.yaml` (it does not wait for GitHub):
 
 ```bash
 python -m venv .venv
 # Activate .venv (Scripts\Activate.ps1 on Windows, bin/activate on macOS/Linux)
 python -m pip install -r requirements.txt
-esphome config dial.yaml
-esphome compile dial.yaml
+esphome config m5-dial.local.yaml
+esphome compile m5-dial.local.yaml
 ```
 
 Page customisation lives under `src/pages/`; hardware and idle behaviour are under `src/main/`. Keep local secrets out of Git.

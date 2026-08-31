@@ -1,0 +1,37 @@
+# Copier vers config.yaml dans le dossier ESPHome (à côté de m5-dial.yaml).
+# Une catégorie en *.disabled (ou une liste vide) = pas de page associée sur le M5.
+# Identifiants : Home Assistant → Outils de développement → États.
+#
+# Wi-Fi, clé API et mot de passe OTA : secrets.yaml, pas ici.
+
+substitutions:
+  timezone: Europe/Paris
+
+  # --- Horloge (la page existe toujours) ---
+  # Météo : température, humidité, pression, vent. Laisser weather.disabled pour "--".
+  weather_entity: weather.disabled
+  # Qualité d'air (capteur numérique). Laisser sensor.disabled pour "--".
+  aqi_entity: sensor.disabled
+
+  # --- Clim ---
+  # Exemple : climate.salon
+  climate_entity: climate.disabled
+
+  # --- Musique ---
+  # Exemple : media_player.salon
+  music_player_entity: media_player.disabled
+
+  # --- Timer ---
+  # Exemple : timer.dial
+  timer_entity: timer.disabled
+
+# --- Lumières ---
+# Ajoute une entrée (entity_id + name) pour afficher la page Lumières.
+# Liste vide = pas de page.
+#
+# dial_lights:
+#   - entity_id: light.salon
+#     name: Salon
+#   - entity_id: light.cuisine
+#     name: Cuisine
+dial_lights: []

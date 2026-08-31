@@ -1,0 +1,16 @@
+# Compile ce dossier sans passer par GitHub (développement local).
+# Les utilisateurs de la vidéo n'ont pas besoin de ce fichier : voir m5-dial.yaml.
+
+substitutions:
+  device_name: m5stack-dial
+  device_friendly_name: M5Stack Dial
+  wifi_ssid: !secret wifi_ssid
+  wifi_password: !secret wifi_password
+  api_encryption_key: !secret api_encryption_key
+  ota_password: !secret ota_password
+  ap_ssid: Dial Fallback Hotspot
+  ap_password: "changeme-dial-ap"
+
+packages:
+  firmware: !include dial.yaml
+  user_config: !include config.yaml

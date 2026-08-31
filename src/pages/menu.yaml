@@ -107,13 +107,13 @@ script:
       - lambda: |-
           int items[5];
           int n = 0;
-          if (strcmp("${timer_entity}", "timer.your_timer") != 0)
+          if (dial_ha_entity_enabled("${timer_entity}"))
             items[n++] = 0;
           if (id(dial_lights_id).light_count() > 0)
             items[n++] = 1;
-          if (strcmp("${climate_entity}", "climate.your_ac") != 0)
+          if (dial_ha_entity_enabled("${climate_entity}"))
             items[n++] = 2;
-          if (strcmp("${music_player_entity}", "media_player.your_player") != 0)
+          if (dial_ha_entity_enabled("${music_player_entity}"))
             items[n++] = 3;
           items[n++] = 4;
 
@@ -169,13 +169,13 @@ script:
                 auto on_ready = +[](void *ctx) {
                   int local_items[5];
                   int local_n = 0;
-                  if (strcmp("${timer_entity}", "timer.your_timer") != 0)
+                  if (dial_ha_entity_enabled("${timer_entity}"))
                     local_items[local_n++] = 0;
                   if (id(dial_lights_id).light_count() > 0)
                     local_items[local_n++] = 1;
-                  if (strcmp("${climate_entity}", "climate.your_ac") != 0)
+                  if (dial_ha_entity_enabled("${climate_entity}"))
                     local_items[local_n++] = 2;
-                  if (strcmp("${music_player_entity}", "media_player.your_player") != 0)
+                  if (dial_ha_entity_enabled("${music_player_entity}"))
                     local_items[local_n++] = 3;
                   local_items[local_n++] = 4;
 
@@ -202,13 +202,13 @@ script:
                 auto on_ready = +[](void *ctx) {
                   int local_items[5];
                   int local_n = 0;
-                  if (strcmp("${timer_entity}", "timer.your_timer") != 0)
+                  if (dial_ha_entity_enabled("${timer_entity}"))
                     local_items[local_n++] = 0;
                   if (id(dial_lights_id).light_count() > 0)
                     local_items[local_n++] = 1;
-                  if (strcmp("${climate_entity}", "climate.your_ac") != 0)
+                  if (dial_ha_entity_enabled("${climate_entity}"))
                     local_items[local_n++] = 2;
-                  if (strcmp("${music_player_entity}", "media_player.your_player") != 0)
+                  if (dial_ha_entity_enabled("${music_player_entity}"))
                     local_items[local_n++] = 3;
                   local_items[local_n++] = 4;
 
@@ -448,13 +448,13 @@ script:
 
           int items[5];
           int n = 0;
-          if (strcmp("${timer_entity}", "timer.your_timer") != 0)
+          if (dial_ha_entity_enabled("${timer_entity}"))
             items[n++] = 0;
           if (id(dial_lights_id).light_count() > 0)
             items[n++] = 1;
-          if (strcmp("${climate_entity}", "climate.your_ac") != 0)
+          if (dial_ha_entity_enabled("${climate_entity}"))
             items[n++] = 2;
-          if (strcmp("${music_player_entity}", "media_player.your_player") != 0)
+          if (dial_ha_entity_enabled("${music_player_entity}"))
             items[n++] = 3;
           items[n++] = 4;
 
@@ -502,13 +502,13 @@ script:
 
           int items[5];
           int n = 0;
-          if (strcmp("${timer_entity}", "timer.your_timer") != 0)
+          if (dial_ha_entity_enabled("${timer_entity}"))
             items[n++] = 0;
           if (id(dial_lights_id).light_count() > 0)
             items[n++] = 1;
-          if (strcmp("${climate_entity}", "climate.your_ac") != 0)
+          if (dial_ha_entity_enabled("${climate_entity}"))
             items[n++] = 2;
-          if (strcmp("${music_player_entity}", "media_player.your_player") != 0)
+          if (dial_ha_entity_enabled("${music_player_entity}"))
             items[n++] = 3;
           items[n++] = 4;
 
