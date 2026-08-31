@@ -16,14 +16,18 @@ switch:
   # M5Dial V1.1 battery power hold. GPIO46 must stay HIGH after WAKE,
   # otherwise the device immediately returns to sleep on battery-only power.
   - platform: gpio
-    pin: GPIO46
+    pin:
+      number: GPIO46
+      ignore_strapping_warning: true
     id: power_hold
     internal: true
     restore_mode: ALWAYS_ON
 
 output:
   - platform: ledc
-    pin: GPIO3
+    pin:
+      number: GPIO3
+      ignore_strapping_warning: true
     id: buzzer
   - platform: ledc
     pin: GPIO9

@@ -104,6 +104,8 @@ async def _make_ha_sensor(index, suffix, entity_id, attribute):
 
 
 async def to_code(config):
+    # Loaded with github:// components, so lambdas work without a local includes: path.
+    cg.add_global(cg.RawStatement('#include "esphome/components/dial_lights/dial_entity.h"'))
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
     for index, light in enumerate(config["lights"]):
