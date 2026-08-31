@@ -5,16 +5,7 @@ substitutions:
   icon_forward: "\uF002"
   icon_backward: "\uF003"
   icon_music: "\uF004"
-  icon_volume: "\uF005"
-
-external_components:
-  - source: github://hectorzin/m5stack-dial-home-assistant@c0d6a0bd8401486ca1fa7ad3ae3bfbcaff036b94
-    components:
-      - generic_image
-      - media_source
-      - sendspin
-    refresh: 0s
-  
+  icon_volume: "\uF005" 
 
 font:
   - file:
@@ -51,7 +42,8 @@ color:
     hex: "1A1040"
 
 image:
-  - file: src/assets/images/place_holder.png
+  - platform: file
+    file: src/assets/images/place_holder.png
     id: place_holder
     type: RGB565
     transparency: alpha_channel

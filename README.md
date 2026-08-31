@@ -6,7 +6,7 @@
 
 ### A circular Home Assistant controller for M5Stack Dial, built with ESPHome and LVGL.
 
-[![ESPHome](https://img.shields.io/badge/ESPHome-2026.7.2-blue?style=flat-square&logo=esphome)](https://esphome.io/)
+[![ESPHome](https://img.shields.io/badge/ESPHome-2026.7+-blue?style=flat-square&logo=esphome)](https://esphome.io/)
 [![Platform](https://img.shields.io/badge/Platform-ESP32--S3-red?style=flat-square&logo=espressif)](https://www.espressif.com/)
 [![Display](https://img.shields.io/badge/Display-GC9A01A%20240x240-purple?style=flat-square)](#hardware)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](#license)

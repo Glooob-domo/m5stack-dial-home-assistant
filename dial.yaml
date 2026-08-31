@@ -17,7 +17,7 @@ external_components:
   - source:
       type: local
       path: components
-    components: [dial_lights, dial_carousel]
+    components: [dial_lights, dial_carousel, generic_image, media_source, sendspin]
 
 substitutions:
   light_entity: light.disabled
@@ -40,6 +40,7 @@ substitutions:
 esphome:
   name: ${device_name}
   friendly_name: ${device_friendly_name}
+  min_version: 2026.7.0
   includes:
     - src/main/dial_entity.h
   on_boot:
@@ -102,42 +103,50 @@ globals:
     initial_value: 'false'
 
 image:
-  - file: src/assets/images/logo.png
+  - platform: file
+    file: src/assets/images/logo.png
     id: logo_img
     type: RGB565
     transparency: alpha_channel
     resize: 72x72
-  - file: src/assets/images/scene.png
+  - platform: file
+    file: src/assets/images/scene.png
     id: img_scene
     type: RGB565
     transparency: alpha_channel
     resize: 24x24
-  - file: src/assets/images/bulb.png
+  - platform: file
+    file: src/assets/images/bulb.png
     id: img_light
     type: RGB565
     transparency: alpha_channel
     resize: 24x24
-  - file: src/assets/images/ac.png
+  - platform: file
+    file: src/assets/images/ac.png
     id: img_ac
     type: RGB565
     transparency: alpha_channel
     resize: 24x24
-  - file: src/assets/images/music.png
+  - platform: file
+    file: src/assets/images/music.png
     id: img_music
     type: RGB565
     transparency: alpha_channel
     resize: 24x24
-  - file: src/assets/images/palette.png
+  - platform: file
+    file: src/assets/images/palette.png
     id: img_palette
     type: RGB565
     transparency: alpha_channel
     resize: 24x24
-  - file: src/assets/images/brightness.png
+  - platform: file
+    file: src/assets/images/brightness.png
     id: img_brightness
     type: RGB565
     transparency: alpha_channel
     resize: 24x24
-  - file: src/assets/images/light.png
+  - platform: file
+    file: src/assets/images/light.png
     id: img_dengguang
     type: RGB565
     transparency: alpha_channel

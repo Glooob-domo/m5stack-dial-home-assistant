@@ -5,7 +5,7 @@ Thanks for improving Home Assistant Controller for M5Stack Dial.
 ## Before opening a pull request
 
 - Keep credentials out of the repository.
-- Run `esphome config dial.yaml` before submitting changes.
+- Run `esphome config m5-dial.local.yaml` before submitting changes (ESPHome 2026.7 or later).
 - Keep page files focused: one feature page per YAML file in `src/pages/`.
 - Avoid committing generated build output, virtual environments, caches, or local IDE settings.
 - Document any new Home Assistant entity dependency in `docs/configuration.md`.

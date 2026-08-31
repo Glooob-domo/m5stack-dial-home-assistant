@@ -1,2 +1,2 @@
-# Minimum tested ESPHome version for this package.
-esphome==2026.7.0
+# Minimum ESPHome version for this package (Python 3.12+).
+esphome>=2026.7.0

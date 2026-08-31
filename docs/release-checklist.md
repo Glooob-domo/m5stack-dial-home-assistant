@@ -6,8 +6,8 @@ Before publishing to GitHub, Hackster, or a ZIP download:
 - [ ] Confirm `.esphome/`, `esphome-env/`, `.venv/`, `.vscode/`, and `mini_code/` are not included.
 - [ ] Run a sensitive scan for Wi-Fi names, passwords, API keys, local IPs, and local paths.
 - [ ] Check that public Git commit author name/email are OK to publish.
-- [ ] Replace local Home Assistant entities in `src/main/entities.yaml` with placeholders or examples.
-- [ ] Run `esphome config dial.yaml` using placeholder secrets.
+- [ ] Replace local Home Assistant entities in `config.yaml` with placeholders or examples.
+- [ ] Run `esphome config m5-dial.local.yaml` using placeholder secrets.
 - [ ] Add photos, demo GIFs, and setup notes for the community post.
 - [ ] Keep third-party license notices for copied components, fonts, and icons.
 - [ ] Publish from a fresh Git repository or a clean export folder, not from old history that may contain secrets.
