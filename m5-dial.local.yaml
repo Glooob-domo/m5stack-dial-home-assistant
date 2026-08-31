@@ -1,5 +1,4 @@
-# Compile ce dossier sans passer par GitHub (développement local).
-# Les utilisateurs de la vidéo n'ont pas besoin de ce fichier : voir m5-dial.yaml.
+# Compile ce dossier sans GitHub. Les utilisateurs n'ont besoin que de m5-dial.yaml.
 
 substitutions:
   device_name: m5stack-dial
@@ -11,6 +10,14 @@ substitutions:
   ap_ssid: Dial Fallback Hotspot
   ap_password: "changeme-dial-ap"
 
+  timezone: Europe/Paris
+  weather_entity: weather.disabled
+  aqi_entity: sensor.disabled
+  climate_entity: climate.disabled
+  music_player_entity: media_player.disabled
+  timer_entity: timer.disabled
+
+dial_lights: []
+
 packages:
   firmware: !include dial.yaml
-  user_config: !include config.yaml

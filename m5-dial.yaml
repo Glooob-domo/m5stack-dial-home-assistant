@@ -1,8 +1,8 @@
-# Fichier appareil ESPHome (celui que tu crées dans le dashboard).
-# ESPHome télécharge le firmware depuis GitHub : tu n'as pas à cloner le dépôt.
+# Fichier unique à coller dans ESPHome (dashboard).
+# ESPHome télécharge le firmware depuis GitHub. Wi-Fi / clé API / OTA : secrets.yaml.
 #
-# À placer dans le dossier ESPHome avec config.yaml.
-# Wi-Fi, clé API et OTA : secrets.yaml (déjà géré par ESPHome / HA).
+# Une catégorie en *.disabled (ou dial_lights vide) = pas de page sur le M5.
+# Identifiants : Home Assistant → Outils de développement → États.
 
 substitutions:
   device_name: m5stack-dial
@@ -14,6 +14,30 @@ substitutions:
   ap_ssid: Dial Fallback Hotspot
   ap_password: "changeme-dial-ap"
 
+  timezone: Europe/Paris
+
+  # --- Horloge (la page existe toujours) ---
+  weather_entity: weather.disabled
+  aqi_entity: sensor.disabled
+
+  # --- Clim ---
+  # Exemple : climate.salon
+  climate_entity: climate.disabled
+
+  # --- Musique ---
+  # Exemple : media_player.salon
+  music_player_entity: media_player.disabled
+
+  # --- Timer ---
+  # Exemple : timer.dial
+  timer_entity: timer.disabled
+
+# --- Lumières ---
+# dial_lights:
+#   - entity_id: light.salon
+#     name: Salon
+dial_lights: []
+
 packages:
   m5_dial:
     url: https://github.com/Glooob-domo/m5stack-dial-home-assistant
@@ -21,4 +45,3 @@ packages:
     files:
       - dial.yaml
     refresh: 0s
-  user_config: !include config.yaml

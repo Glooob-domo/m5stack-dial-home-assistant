@@ -78,32 +78,18 @@ M5Stack Dial V1.1 is the tested target. GPIO46 power hold is configured for V1.1
 - Wi-Fi access for the Dial.
 - Home Assistant entities only for the features and information you want to enable.
 
-Weather and AQI are optional: leave them as `weather.disabled` / `sensor.disabled` (or point at unavailable entities) and Clock shows `--`. Timer, AC, Music and Lights are also optional; those menu entries disappear when the matching line in `config.yaml` stays `*.disabled` or, for Lights, when `dial_lights` is empty.
+Weather and AQI are optional: leave them as `weather.disabled` / `sensor.disabled` (or point at unavailable entities) and Clock shows `--`. Timer, AC, Music and Lights are also optional; those menu entries disappear when the matching line in `m5-dial.yaml` stays `*.disabled` or, for Lights, when `dial_lights` is empty.
 
 ## Quick installation
 
-You only add **two files** to ESPHome. ESPHome downloads the firmware from GitHub; you do not copy the rest of this repository.
+You only add **one file** to ESPHome. ESPHome downloads the firmware from GitHub; you do not copy the rest of this repository.
 
-1. In the ESPHome dashboard, create a device and use [`m5-dial.yaml`](m5-dial.yaml) as the device file (or copy it into your ESPHome folder).
-2. Place [`config.yaml`](config.example.yaml) next to it (copy `config.example.yaml`).
-3. Put Wi-Fi, `api_encryption_key` and `ota_password` in `secrets.yaml`.
-4. Fill `config.yaml` with your Home Assistant entity IDs. Leave `*.disabled` or `dial_lights: []` to hide a page.
-5. Install over USB the first time, then use OTA.
+1. In the ESPHome dashboard, create a device and paste [`m5-dial.yaml`](m5-dial.yaml).
+2. Put Wi-Fi, `api_encryption_key` and `ota_password` in `secrets.yaml`.
+3. In that same YAML, replace `*.disabled` with your Home Assistant entity IDs (and fill `dial_lights` if you want the Lights page).
+4. Install over USB the first time, then use OTA.
 
-`m5-dial.yaml` pulls this repository:
-
-```yaml
-packages:
-  m5_dial:
-    url: https://github.com/Glooob-domo/m5stack-dial-home-assistant
-    ref: main
-    files:
-      - dial.yaml
-    refresh: 0s
-  user_config: !include config.yaml
-```
-
-Example `config.yaml`:
+Example of the fields you edit:
 
 ```yaml
 substitutions:
@@ -117,9 +103,17 @@ substitutions:
 dial_lights:
   - entity_id: light.salon
     name: Salon
+
+packages:
+  m5_dial:
+    url: https://github.com/Glooob-domo/m5stack-dial-home-assistant
+    ref: main
+    files:
+      - dial.yaml
+    refresh: 0s
 ```
 
-Changing `config.yaml` requires a recompile (or OTA). `ref: main` follows the published branch; pin a tag or commit when you want a frozen version.
+Changing an entity ID requires a recompile (or OTA). `ref: main` follows the published branch; pin a tag or commit when you want a frozen version.
 
 For all fields, defaults and advanced cases, see [the configuration reference](docs/configuration.md).
 
@@ -192,10 +186,8 @@ The package enables GPIO46 at boot for M5Dial V1.1 battery power hold. This keep
 
 ```text
 m5stack-dial-home-assistant/
-├── m5-dial.yaml               # ESPHome device file (GitHub package + config)
+├── m5-dial.yaml               # Single ESPHome device file (GitHub package + entities)
 ├── m5-dial.local.yaml         # Same, compiling this clone instead of GitHub
-├── config.yaml               # Home Assistant entities (enables pages)
-├── config.example.yaml       # Template for config.yaml
 ├── dial.yaml                 # Firmware package (pulled from GitHub)
 ├── secrets.example.yaml      # Example credentials for local development
 ├── requirements.txt          # ESPHome version used by this project
@@ -212,7 +204,7 @@ m5stack-dial-home-assistant/
 
 ## Development and customisation
 
-This section is for people changing the firmware. Create a local `secrets.yaml` from `secrets.example.yaml`, fill `config.yaml`, then compile **this clone** with `m5-dial.local.yaml` (it does not wait for GitHub):
+This section is for people changing the firmware. Create a local `secrets.yaml` from `secrets.example.yaml`, edit entities in `m5-dial.local.yaml`, then compile **this clone**:
 
 ```bash
 python -m venv .venv

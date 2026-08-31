@@ -2,7 +2,7 @@
 
 This is the detailed reference for the Home Assistant Controller for M5Stack Dial. For an overview and a ready-to-use installation example, return to the [README](../README.md).
 
-A normal install uses two files in ESPHome: `m5-dial.yaml` (pulls the firmware from GitHub) and `config.yaml` (your entities). You do not copy `src/` or `components/` into ESPHome.
+A normal install uses one file in ESPHome: `m5-dial.yaml`. It pulls the firmware from GitHub and holds your entity IDs. You do not copy `src/` or `components/` into ESPHome.
 
 ## Device credentials
 
@@ -25,7 +25,7 @@ substitutions:
   aqi_entity: sensor.aqi_salon
 ```
 
-Leave `weather.disabled` or `sensor.disabled` in `config.yaml` to keep `--` on those fields. If an entity is missing or unavailable, Clock also shows `--`. `weather_entity` supplies weather information; `aqi_entity` should be numeric, with the weather entity's legacy `aqi` attribute used only as a fallback. Find entity IDs under **Developer Tools → States**.
+Leave `weather.disabled` or `sensor.disabled` in `m5-dial.yaml` to keep `--` on those fields. If an entity is missing or unavailable, Clock also shows `--`. `weather_entity` supplies weather information; `aqi_entity` should be numeric, with the weather entity's legacy `aqi` attribute used only as a fallback. Find entity IDs under **Developer Tools → States**.
 
 
 ## Optional menu features
@@ -131,4 +131,4 @@ Use USB for the initial installation if the device is not on Wi-Fi; later update
 
 ## Development-only customisation
 
-Clone the repository when you need to change the firmware itself. Edit `config.yaml` for Home Assistant entities. `src/pages/` contains the LVGL pages; `src/main/` contains hardware, idle logic and default entity fallbacks. Install `requirements.txt`, copy `secrets.example.yaml` to a local `secrets.yaml`, and run `esphome config m5-dial.local.yaml` before compiling.
+Clone the repository when you need to change the firmware itself. Edit entity IDs in `m5-dial.yaml` (or `m5-dial.local.yaml` when compiling this clone). `src/pages/` contains the LVGL pages; `src/main/` contains hardware, idle logic and default entity fallbacks. Install `requirements.txt`, copy `secrets.example.yaml` to a local `secrets.yaml`, and run `esphome config m5-dial.local.yaml` before compiling.

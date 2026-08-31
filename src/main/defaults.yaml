@@ -1,3 +1,3 @@
 # Default empty lights list so the Lights page stays hidden until
-# config.yaml (or the ESPHome device file) lists real entities.
+# m5-dial.yaml lists real entities.
 dial_lights: []

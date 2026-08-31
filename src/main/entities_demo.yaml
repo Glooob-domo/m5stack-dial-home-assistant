@@ -1,4 +1,4 @@
-# Fallbacks if a key is missing from config.yaml. Hidden on the Dial.
+# Fallbacks if a key is missing from m5-dial.yaml. Hidden on the Dial.
 substitutions:
   climate_entity: climate.disabled
   music_player_entity: media_player.disabled
