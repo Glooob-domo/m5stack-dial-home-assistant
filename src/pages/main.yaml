@@ -547,14 +547,20 @@ binary_sensor:
       mode:
         input: true
         pullup: true
+    # ESPHome 2026.3+ wakes the loop on every GPIO edge, so mechanical bounce
+    # cancels a pending "OFF for at least …" single-click. Double-click still
+    # fired because its final window was only 40ms.
+    filters:
+      - delayed_on_off: 30ms
     on_multi_click:
       - timing:
-          - ON for at most 500ms
-          - OFF for at most 500ms
-          - ON for at most 500ms
-          - OFF for at least 40ms
+          - ON for at most 1s
+          - OFF for at most 300ms
+          - ON for at most 1s
+          - OFF for at least 50ms
         invalid_cooldown: 150ms
         then:
+          - lambda: 'ESP_LOGI("button", "double click");'
           - if:
               condition:
                 lambda: 'return !id(button_debounce);'
@@ -564,10 +570,11 @@ binary_sensor:
                 - delay: 250ms
                 - globals.set: {id: button_debounce, value: 'false'}
       - timing:
-          - ON for 50ms to 500ms
-          - OFF for at least 520ms
+          - ON for at most 1s
+          - OFF for at least 350ms
         invalid_cooldown: 150ms
         then:
+          - lambda: 'ESP_LOGI("button", "single click");'
           - if:
               condition:
                 lambda: 'return !id(button_debounce);'
