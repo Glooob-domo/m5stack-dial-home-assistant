@@ -1,20 +1,20 @@
 image:
   - platform: file
-    file: "src/assets/images/palette.png"
+    file: ${asset_url}src/assets/images/palette.png
     id: light_img_palette
     type: RGB565
     transparency: alpha_channel
     resize: 22x22
 
   - platform: file
-    file: src/assets/images/light.png
+    file: ${asset_url}src/assets/images/light.png
     id: light_img_dengguang
     type: RGB565
     transparency: alpha_channel
     resize: 20x20
 
   - platform: file
-    file: src/assets/images/light.png
+    file: ${asset_url}src/assets/images/light.png
     id: light_img_dengguang_onoff
     type: RGB565
     transparency: alpha_channel

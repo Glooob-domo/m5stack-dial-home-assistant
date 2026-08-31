@@ -52,42 +52,42 @@ font:
 
 image:
   - platform: file
-    file: src/assets/images/air_page/fan_off.png
+    file: ${asset_url}src/assets/images/air_page/fan_off.png
     id: img_air_fan_off
     type: RGB565
     transparency: alpha_channel
     resize: 25x25
 
   - platform: file
-    file: src/assets/images/air_page/fan_on.png
+    file: ${asset_url}src/assets/images/air_page/fan_on.png
     id: img_air_fan_on
     type: RGB565
     transparency: alpha_channel
     resize: 25x25
 
   - platform: file
-    file: src/assets/images/air_page/power_off.png
+    file: ${asset_url}src/assets/images/air_page/power_off.png
     id: img_air_power_off
     type: RGB565
     transparency: alpha_channel
     resize: 25x25
 
   - platform: file
-    file: src/assets/images/air_page/power_on.png
+    file: ${asset_url}src/assets/images/air_page/power_on.png
     id: img_air_power_on
     type: RGB565
     transparency: alpha_channel
     resize: 25x25
 
   - platform: file
-    file: src/assets/images/air_page/swing_off.png
+    file: ${asset_url}src/assets/images/air_page/swing_off.png
     id: img_air_swing_off
     type: RGB565
     transparency: alpha_channel
     resize: 25x25
 
   - platform: file
-    file: src/assets/images/air_page/swing_on.png
+    file: ${asset_url}src/assets/images/air_page/swing_on.png
     id: img_air_swing_on
     type: RGB565
     transparency: alpha_channel

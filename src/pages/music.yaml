@@ -17,7 +17,7 @@ font:
     bpp: 4
     glyphs: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .,!?-''_()"&áéíóúÁÉÍÓÚñÑüÜçÇ¿¡’'
 
-  - file: ./src/assets/fonts/media_player_icons.ttf
+  - file: ${asset_url}src/assets/fonts/media_player_icons.ttf
     id: media_player_icons
     size: 24
     bpp: 4
@@ -43,7 +43,7 @@ color:
 
 image:
   - platform: file
-    file: src/assets/images/place_holder.png
+    file: ${asset_url}src/assets/images/place_holder.png
     id: place_holder
     type: RGB565
     transparency: alpha_channel

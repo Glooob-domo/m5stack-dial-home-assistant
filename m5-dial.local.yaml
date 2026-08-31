@@ -17,6 +17,9 @@ substitutions:
   music_player_entity: media_player.disabled
   timer_entity: timer.disabled
 
+  # Local files from this clone (empty prefix).
+  asset_url: ""
+
 dial_lights: []
 
 # Local components while iterating; m5-dial.yaml (GitHub package) uses github:// instead.

@@ -39,31 +39,31 @@ color:
 
 image:
   - platform: file
-    file: src/assets/images/bulb.png
+    file: ${asset_url}src/assets/images/bulb.png
     id: menu_img_light
     type: RGB565
     transparency: alpha_channel
     resize: 34x34
   - platform: file
-    file: src/assets/images/ac_logo.png
+    file: ${asset_url}src/assets/images/ac_logo.png
     id: menu_img_ac
     type: RGB565
     transparency: alpha_channel
     resize: 32x32
   - platform: file
-    file: src/assets/images/music.png
+    file: ${asset_url}src/assets/images/music.png
     id: menu_img_music
     type: RGB565
     transparency: alpha_channel
     resize: 34x34
   - platform: file
-    file: src/assets/images/timer.png
+    file: ${asset_url}src/assets/images/timer.png
     id: menu_img_timer
     type: RGB565
     transparency: alpha_channel
     resize: 32x32
   - platform: file
-    file: src/assets/images/home.png
+    file: ${asset_url}src/assets/images/home.png
     id: menu_img_home
     type: RGB565
     transparency: alpha_channel
