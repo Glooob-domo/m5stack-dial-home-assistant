@@ -15,7 +15,7 @@ font:
     id: font_menu_sub
     size: 12
     bpp: 4
-    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÀÁÂÄÇÈÉÊËÌÍÎÏÑÒÓÔÖÙÚÛÜàáâäçèéêëìíîïñòóôöùúûüß0123456789 .-_%/:·°'"
+    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÀÁÄÇÈÉÊËÌÍÎÏÑÒÓÔÖÙÚÛÜàáäçèéêëìíîïñòóôöùúûüß0123456789 .-_%/:·°'"
 
   - file: "gfonts://DM+Sans"
     id: font_light_selector_near

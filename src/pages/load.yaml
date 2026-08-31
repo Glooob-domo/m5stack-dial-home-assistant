@@ -3,7 +3,7 @@ font:
     id: font_main
     size: 16
     bpp: 4
-    glyphs: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZÀÁÂÄÇÈÉÊËÌÍÎÏÑÒÓÔÖÙÚÛÜàáâäçèéêëìíîïñòóôöùúûüß0123456789 .!-"
+    glyphs: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZÀÁÄÇÈÉÊËÌÍÎÏÑÒÓÔÖÙÚÛÜàáäçèéêëìíîïñòóôöùúûüß0123456789 .!-"
 
   - file:
       family: DM+Sans
@@ -12,7 +12,7 @@ font:
     id: font_sm
     size: 14
     bpp: 4
-    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÀÁÂÄÇÈÉÊËÌÍÎÏÑÒÓÔÖÙÚÛÜàáâäçèéêëìíîïñòóôöùúûüß0123456789 .:%\xc2\xb0/-"
+    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÀÁÄÇÈÉÊËÌÍÎÏÑÒÓÔÖÙÚÛÜàáäçèéêëìíîïñòóôöùúûüß0123456789 .:%\xc2\xb0/-"
 
 color:
   - id: col_blue

@@ -10,7 +10,7 @@ font:
     id: font_date
     size: 14
     bpp: 4
-    glyphs: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZÀÁÂÄÇÈÉÊËÌÍÎÏÑÒÓÔÖÙÚÛÜàáâäçèéêëìíîïñòóôöùúûüß0123456789 /.-"
+    glyphs: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZÀÁÄÇÈÉÊËÌÍÎÏÑÒÓÔÖÙÚÛÜàáäçèéêëìíîïñòóôöùúûüß0123456789 /.-"
 
   - file: "gfonts://DM+Sans"
     id: font_val
@@ -31,7 +31,7 @@ font:
     id: font_lbl
     size: 11
     bpp: 4
-    glyphs: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZÀÁÂÄÇÈÉÊËÌÍÎÏÑÒÓÔÖÙÚÛÜàáâäçèéêëìíîïñòóôöùúûüß0123456789 ."
+    glyphs: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZÀÁÄÇÈÉÊËÌÍÎÏÑÒÓÔÖÙÚÛÜàáäçèéêëìíîïñòóôöùúûüß0123456789 ."
 
   - file:
       family: DM+Sans
@@ -40,7 +40,7 @@ font:
     id: font_lbl_s
     size: 9
     bpp: 4
-    glyphs: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZÀÁÂÄÇÈÉÊËÌÍÎÏÑÒÓÔÖÙÚÛÜàáâäçèéêëìíîïñòóôöùúûüß0123456789 ."
+    glyphs: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZÀÁÄÇÈÉÊËÌÍÎÏÑÒÓÔÖÙÚÛÜàáäçèéêëìíîïñòóôöùúûüß0123456789 ."
 
 color:
   - id: col_ring_track
