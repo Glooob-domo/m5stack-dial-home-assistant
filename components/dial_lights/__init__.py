@@ -2,8 +2,16 @@ import esphome.codegen as cg
 import esphome.config_validation as cv
 import esphome.components.sensor as sensor
 import esphome.components.text_sensor as text_sensor
-from esphome.const import CONF_ATTRIBUTE, CONF_ENTITY_ID, CONF_ID, CONF_INTERNAL, CONF_NAME
-from esphome.core import ID
+from esphome.const import (
+    CONF_ATTRIBUTE,
+    CONF_DISABLED_BY_DEFAULT,
+    CONF_ENTITY_ID,
+    CONF_FORCE_UPDATE,
+    CONF_ID,
+    CONF_INTERNAL,
+    CONF_NAME,
+)
+from esphome.core import CORE, ID
 
 CODEOWNERS = []
 DEPENDENCIES = ["api", "sensor", "text_sensor"]
@@ -65,25 +73,26 @@ def _config_schema(value):
 CONFIG_SCHEMA = _config_schema
 
 
-def _ha_id(index, suffix, type_):
-    return ID(f"dial_light_{index}_{suffix}", True, type_)
+def _internal_entity_conf(uid, name):
+    return {
+        CONF_ID: uid,
+        CONF_NAME: name,
+        CONF_INTERNAL: True,
+        CONF_DISABLED_BY_DEFAULT: True,
+        CONF_FORCE_UPDATE: False,
+    }
 
 
 async def _make_ha_text(index, suffix, entity_id, attribute=None):
     from esphome.components.homeassistant import setup_home_assistant_entity
     from esphome.components.homeassistant.text_sensor import HomeassistantTextSensor
 
-    uid = _ha_id(index, suffix, HomeassistantTextSensor)
+    uid = ID(f"dial_light_{index}_{suffix}", True, HomeassistantTextSensor)
+    CORE.component_ids.add(uid.id)
+    conf = _internal_entity_conf(uid, f"Dial light {index} {suffix}")
     var = cg.new_Pvariable(uid)
-    await text_sensor.register_text_sensor(
-        var,
-        {
-            CONF_ID: uid,
-            CONF_NAME: f"Dial light {index} {suffix}",
-            CONF_INTERNAL: True,
-        },
-    )
-    await cg.register_component(var, {CONF_ID: uid})
+    await text_sensor.register_text_sensor(var, conf)
+    await cg.register_component(var, conf)
     ha_conf = {CONF_ENTITY_ID: entity_id, CONF_INTERNAL: True}
     if attribute is not None:
         ha_conf[CONF_ATTRIBUTE] = attribute
@@ -95,17 +104,12 @@ async def _make_ha_sensor(index, suffix, entity_id, attribute):
     from esphome.components.homeassistant import setup_home_assistant_entity
     from esphome.components.homeassistant.sensor import HomeassistantSensor
 
-    uid = _ha_id(index, suffix, HomeassistantSensor)
+    uid = ID(f"dial_light_{index}_{suffix}", True, HomeassistantSensor)
+    CORE.component_ids.add(uid.id)
+    conf = _internal_entity_conf(uid, f"Dial light {index} {suffix}")
     var = cg.new_Pvariable(uid)
-    await sensor.register_sensor(
-        var,
-        {
-            CONF_ID: uid,
-            CONF_NAME: f"Dial light {index} {suffix}",
-            CONF_INTERNAL: True,
-        },
-    )
-    await cg.register_component(var, {CONF_ID: uid})
+    await sensor.register_sensor(var, conf)
+    await cg.register_component(var, conf)
     setup_home_assistant_entity(
         var,
         {
