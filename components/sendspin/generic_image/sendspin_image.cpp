@@ -112,19 +112,14 @@ void SendspinImage::decode_task(void *params) {
     this_image->encoded_data_.clear();
     this_image->decode_active_.store(false, std::memory_order_release);
     this_image->defer("image_error", [this_image]() { this_image->image_error_callback_.call(); });
-#if defined(USE_SOCKET_SELECT_SUPPORT) && defined(USE_WAKE_LOOP_THREADSAFE)
     App.wake_loop_threadsafe();
-#endif
     vTaskDelete(nullptr);
     return;
   }
 
   // Trigger the image received callback (thread-safe via defer)
   this_image->defer("image_received", [this_image]() { this_image->image_received_callback_.call(); });
-  // Wake the main loop immediately to process the deferred callback (~12μs latency vs 0-16ms)
-#if defined(USE_SOCKET_SELECT_SUPPORT) && defined(USE_WAKE_LOOP_THREADSAFE)
   App.wake_loop_threadsafe();
-#endif
 
   this_image->begin_decode(this_image->encoded_data_.size());
   ESP_LOGI(TAG, "Decoding album artwork: encoded=%u bytes", static_cast<unsigned>(this_image->encoded_data_.size()));
@@ -165,10 +160,7 @@ void SendspinImage::decode_task(void *params) {
     // Past due or no time filter — display immediately
     finalize_display();
   });
-  // Wake the main loop immediately to process the deferred callback (~12μs latency vs 0-16ms)
-#if defined(USE_SOCKET_SELECT_SUPPORT) && defined(USE_WAKE_LOOP_THREADSAFE)
   App.wake_loop_threadsafe();
-#endif
 
   // Delete this task
   vTaskDelete(nullptr);

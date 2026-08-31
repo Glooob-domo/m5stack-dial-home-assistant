@@ -78,11 +78,7 @@ SENDSPIN_CONTROLLER_COMMANDS = {
 
 
 def _request_high_performance_networking(config):
-    """Request high performance networking for Sendspin streaming.
-
-    Also enables wake_loop_threadsafe support for fast defer() callbacks
-    from background threads (WebSocket handler, image decoder).
-    """
+    """Request high performance networking for Sendspin streaming."""
     network.require_high_performance_networking()
     # Socket consumption varies by mode:
     # - Server mode: 1 listening socket + 2 client connections (for handoff)
@@ -125,8 +121,6 @@ FINAL_VALIDATE_SCHEMA = _final_validate_codecs
 
 
 async def to_code(config):
-    socket.require_wake_loop_threadsafe()
-
     cg.add_define("USE_SENDSPIN", True)  # for MDNS
 
     # Client mode - enable ESP-IDF WebSocket client
