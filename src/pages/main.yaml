@@ -238,9 +238,15 @@ script:
                                               else:
                                                 - if:
                                                     condition:
-                                                      lambda: 'return id(in_air) || id(in_light) || id(in_music);'
+                                                      lambda: 'return id(in_light);'
                                                     then:
-                                                      - script.execute: dial_back
+                                                      - script.execute: toggle_light_onoff
+                                                    else:
+                                                      - if:
+                                                          condition:
+                                                            lambda: 'return id(in_air) || id(in_music);'
+                                                          then:
+                                                            - script.execute: dial_back
 
   - id: dial_back
     then:

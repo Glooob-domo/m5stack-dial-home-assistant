@@ -1,6 +1,5 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
-import esphome.components.sensor as sensor
 import esphome.components.text_sensor as text_sensor
 from esphome.const import (
     CONF_ATTRIBUTE,
@@ -14,8 +13,8 @@ from esphome.const import (
 from esphome.core import CORE, ID
 
 CODEOWNERS = []
-DEPENDENCIES = ["api", "sensor", "text_sensor"]
-AUTO_LOAD = ["sensor", "text_sensor"]
+DEPENDENCIES = ["api", "text_sensor"]
+AUTO_LOAD = ["text_sensor"]
 
 CONF_STATE_SENSOR = "state_sensor"
 CONF_MODES_SENSOR = "modes_sensor"
@@ -42,12 +41,12 @@ LIGHT_SCHEMA = cv.Schema(
         cv.Required(CONF_NAME): cv.string,
         cv.Optional(CONF_STATE_SENSOR): cv.use_id(text_sensor.TextSensor),
         cv.Optional(CONF_MODES_SENSOR): cv.use_id(text_sensor.TextSensor),
-        cv.Optional(CONF_BRIGHTNESS_SENSOR): cv.use_id(sensor.Sensor),
+        cv.Optional(CONF_BRIGHTNESS_SENSOR): cv.use_id(text_sensor.TextSensor),
         cv.Optional(CONF_COLOR_SENSOR): cv.use_id(text_sensor.TextSensor),
         cv.Optional(CONF_COLOR_MODE_SENSOR): cv.use_id(text_sensor.TextSensor),
-        cv.Optional(CONF_COLOR_TEMP_KELVIN_SENSOR): cv.use_id(sensor.Sensor),
-        cv.Optional(CONF_MIN_COLOR_TEMP_KELVIN_SENSOR): cv.use_id(sensor.Sensor),
-        cv.Optional(CONF_MAX_COLOR_TEMP_KELVIN_SENSOR): cv.use_id(sensor.Sensor),
+        cv.Optional(CONF_COLOR_TEMP_KELVIN_SENSOR): cv.use_id(text_sensor.TextSensor),
+        cv.Optional(CONF_MIN_COLOR_TEMP_KELVIN_SENSOR): cv.use_id(text_sensor.TextSensor),
+        cv.Optional(CONF_MAX_COLOR_TEMP_KELVIN_SENSOR): cv.use_id(text_sensor.TextSensor),
     }
 )
 
@@ -100,27 +99,6 @@ async def _make_ha_text(index, suffix, entity_id, attribute=None):
     return var
 
 
-async def _make_ha_sensor(index, suffix, entity_id, attribute):
-    from esphome.components.homeassistant import setup_home_assistant_entity
-    from esphome.components.homeassistant.sensor import HomeassistantSensor
-
-    uid = ID(f"dial_light_{index}_{suffix}", True, HomeassistantSensor)
-    CORE.component_ids.add(uid.id)
-    conf = _internal_entity_conf(uid, f"Dial light {index} {suffix}")
-    var = cg.new_Pvariable(uid)
-    await sensor.register_sensor(var, conf)
-    await cg.register_component(var, conf)
-    setup_home_assistant_entity(
-        var,
-        {
-            CONF_ENTITY_ID: entity_id,
-            CONF_ATTRIBUTE: attribute,
-            CONF_INTERNAL: True,
-        },
-    )
-    return var
-
-
 async def to_code(config):
     # Loaded with github:// components, so lambdas work without a local includes: path.
     cg.add_global(cg.RawStatement('#include "esphome/components/dial_lights/dial_entity.h"'))
@@ -142,7 +120,7 @@ async def to_code(config):
         if CONF_BRIGHTNESS_SENSOR in light:
             brightness = await cg.get_variable(light[CONF_BRIGHTNESS_SENSOR])
         else:
-            brightness = await _make_ha_sensor(index, "brightness", entity, "brightness")
+            brightness = await _make_ha_text(index, "brightness", entity, "brightness")
         if CONF_COLOR_SENSOR in light:
             color = await cg.get_variable(light[CONF_COLOR_SENSOR])
         else:
@@ -154,17 +132,17 @@ async def to_code(config):
         if CONF_COLOR_TEMP_KELVIN_SENSOR in light:
             color_temp_kelvin = await cg.get_variable(light[CONF_COLOR_TEMP_KELVIN_SENSOR])
         else:
-            color_temp_kelvin = await _make_ha_sensor(index, "kelvin", entity, "color_temp_kelvin")
+            color_temp_kelvin = await _make_ha_text(index, "kelvin", entity, "color_temp_kelvin")
         if CONF_MIN_COLOR_TEMP_KELVIN_SENSOR in light:
             min_color_temp_kelvin = await cg.get_variable(light[CONF_MIN_COLOR_TEMP_KELVIN_SENSOR])
         else:
-            min_color_temp_kelvin = await _make_ha_sensor(
+            min_color_temp_kelvin = await _make_ha_text(
                 index, "min_kelvin", entity, "min_color_temp_kelvin"
             )
         if CONF_MAX_COLOR_TEMP_KELVIN_SENSOR in light:
             max_color_temp_kelvin = await cg.get_variable(light[CONF_MAX_COLOR_TEMP_KELVIN_SENSOR])
         else:
-            max_color_temp_kelvin = await _make_ha_sensor(
+            max_color_temp_kelvin = await _make_ha_text(
                 index, "max_kelvin", entity, "max_color_temp_kelvin"
             )
         cg.add(

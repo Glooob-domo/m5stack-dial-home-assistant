@@ -66,6 +66,27 @@ void trim_string(std::string &text) {
     text.pop_back();
 }
 
+bool parse_ha_float(const std::string &raw, float &value) {
+  std::string text = raw;
+  trim_string(text);
+  if (text.empty())
+    return false;
+  if (text == "None" || text == "none" || text == "null" || text == "unknown" || text == "unavailable")
+    return false;
+  char *end = nullptr;
+  const float parsed = std::strtof(text.c_str(), &end);
+  if (end == text.c_str())
+    return false;
+  while (end != nullptr && *end != '\0' && std::isspace(static_cast<unsigned char>(*end)))
+    end++;
+  if (end == nullptr || *end != '\0')
+    return false;
+  if (!std::isfinite(parsed))
+    return false;
+  value = parsed;
+  return true;
+}
+
 bool parse_int_strict(const std::string &text, size_t &pos, int &value) {
   while (pos < text.size() && std::isspace(static_cast<unsigned char>(text[pos])))
     pos++;
@@ -187,9 +208,10 @@ int clamp_kelvin(int kelvin, int min_k, int max_k) {
 }  // namespace
 
 void DialLights::add_light(const std::string &entity_id, const std::string &name, text_sensor::TextSensor *state,
-                           text_sensor::TextSensor *modes, sensor::Sensor *brightness, text_sensor::TextSensor *color,
-                           text_sensor::TextSensor *color_mode, sensor::Sensor *color_temp_kelvin,
-                           sensor::Sensor *min_color_temp_kelvin, sensor::Sensor *max_color_temp_kelvin) {
+                           text_sensor::TextSensor *modes, text_sensor::TextSensor *brightness,
+                           text_sensor::TextSensor *color, text_sensor::TextSensor *color_mode,
+                           text_sensor::TextSensor *color_temp_kelvin, text_sensor::TextSensor *min_color_temp_kelvin,
+                           text_sensor::TextSensor *max_color_temp_kelvin) {
   for (const auto &existing : this->lights_) {
     if (existing.entity_id == entity_id) {
       ESP_LOGW(TAG, "Duplicate light entity_id ignored: %s", entity_id.c_str());
@@ -243,7 +265,7 @@ void DialLights::setup() {
       }
     }
     if (light.brightness != nullptr) {
-      light.brightness->add_on_state_callback([this, i](float value) { this->on_brightness_(i, value); });
+      light.brightness->add_on_state_callback([this, i](const std::string &value) { this->on_brightness_(i, value); });
       if (light.brightness->has_state()) {
         this->on_brightness_(i, light.brightness->state);
       }
@@ -262,21 +284,21 @@ void DialLights::setup() {
     }
     if (light.color_temp_kelvin != nullptr) {
       light.color_temp_kelvin->add_on_state_callback(
-          [this, i](float value) { this->on_color_temp_kelvin_(i, value); });
+          [this, i](const std::string &value) { this->on_color_temp_kelvin_(i, value); });
       if (light.color_temp_kelvin->has_state()) {
         this->on_color_temp_kelvin_(i, light.color_temp_kelvin->state);
       }
     }
     if (light.min_color_temp_kelvin != nullptr) {
       light.min_color_temp_kelvin->add_on_state_callback(
-          [this, i](float value) { this->on_min_color_temp_kelvin_(i, value); });
+          [this, i](const std::string &value) { this->on_min_color_temp_kelvin_(i, value); });
       if (light.min_color_temp_kelvin->has_state()) {
         this->on_min_color_temp_kelvin_(i, light.min_color_temp_kelvin->state);
       }
     }
     if (light.max_color_temp_kelvin != nullptr) {
       light.max_color_temp_kelvin->add_on_state_callback(
-          [this, i](float value) { this->on_max_color_temp_kelvin_(i, value); });
+          [this, i](const std::string &value) { this->on_max_color_temp_kelvin_(i, value); });
       if (light.max_color_temp_kelvin->has_state()) {
         this->on_max_color_temp_kelvin_(i, light.max_color_temp_kelvin->state);
       }
@@ -312,11 +334,7 @@ void DialLights::load_active_snapshot() {
   }
 
   if (light.brightness != nullptr && light.brightness->has_state()) {
-    int percent = 0;
-    if (parse_brightness_percent(light.brightness->state, percent)) {
-      light.brightness_valid = true;
-      light.brightness_percent = percent;
-    }
+    this->on_brightness_(this->active_index_, light.brightness->state);
   }
 
   if (light.color != nullptr && light.color->has_state()) {
@@ -373,13 +391,16 @@ void DialLights::on_modes_(size_t index, const std::string &value) {
   parse_color_modes(value, light.supports_brightness, light.supports_rgb, light.supports_color_temp);
 }
 
-void DialLights::on_brightness_(size_t index, float value) {
+void DialLights::on_brightness_(size_t index, const std::string &value) {
   auto &light = this->lights_[index];
+  float raw = 0.0f;
   int percent = 0;
-  if (parse_brightness_percent(value, percent)) {
+  if (parse_ha_float(value, raw) && parse_brightness_percent(raw, percent)) {
     light.brightness_valid = true;
     light.brightness_percent = percent;
+    return;
   }
+  light.brightness_valid = false;
 }
 
 void DialLights::on_color_(size_t index, const std::string &value) {
@@ -406,30 +427,35 @@ void DialLights::on_color_mode_(size_t index, const std::string &value) {
   light.is_color_temp_mode = (value == "color_temp");
 }
 
-void DialLights::on_color_temp_kelvin_(size_t index, float value) {
+void DialLights::on_color_temp_kelvin_(size_t index, const std::string &value) {
   auto &light = this->lights_[index];
+  float raw = 0.0f;
   int kelvin = 0;
-  if (!parse_kelvin_value(value, kelvin))
+  if (!parse_ha_float(value, raw) || !parse_kelvin_value(raw, kelvin)) {
+    light.color_temp_valid = false;
     return;
+  }
   int min_k = light.min_color_temp_kelvin_valid ? light.min_color_temp_kelvin_value : DEFAULT_MIN_KELVIN;
   int max_k = light.max_color_temp_kelvin_valid ? light.max_color_temp_kelvin_value : DEFAULT_MAX_KELVIN;
   light.color_temp_valid = true;
   light.color_temp_kelvin_value = clamp_kelvin(kelvin, min_k, max_k);
 }
 
-void DialLights::on_min_color_temp_kelvin_(size_t index, float value) {
+void DialLights::on_min_color_temp_kelvin_(size_t index, const std::string &value) {
   auto &light = this->lights_[index];
+  float raw = 0.0f;
   int kelvin = 0;
-  if (parse_kelvin_value(value, kelvin)) {
+  if (parse_ha_float(value, raw) && parse_kelvin_value(raw, kelvin)) {
     light.min_color_temp_kelvin_valid = true;
     light.min_color_temp_kelvin_value = kelvin;
   }
 }
 
-void DialLights::on_max_color_temp_kelvin_(size_t index, float value) {
+void DialLights::on_max_color_temp_kelvin_(size_t index, const std::string &value) {
   auto &light = this->lights_[index];
+  float raw = 0.0f;
   int kelvin = 0;
-  if (parse_kelvin_value(value, kelvin)) {
+  if (parse_ha_float(value, raw) && parse_kelvin_value(raw, kelvin)) {
     light.max_color_temp_kelvin_valid = true;
     light.max_color_temp_kelvin_value = kelvin;
   }

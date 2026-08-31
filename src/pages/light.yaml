@@ -432,9 +432,19 @@ script:
           id(light_user_adjusting) = false;
           int requested = id(light_requested_brightness);
           int received = id(light_last_ha_brightness);
-          bool confirmed = id(light_ha_brightness_received_after_send) &&
-                           received >= 0 && abs(received - requested) <= 2;
-          if (confirmed) {
+          if (id(light_multilight_active) && id(dial_lights_id).active_brightness_valid()) {
+            received = id(dial_lights_id).active_brightness_percent();
+          }
+          const bool sent = id(light_brightness_action_sent);
+          bool confirmed = received >= 0 && abs(received - requested) <= 2;
+          if (!id(light_multilight_active)) {
+            confirmed = confirmed && id(light_ha_brightness_received_after_send);
+          } else {
+            confirmed = confirmed && sent;
+          }
+          if (!sent) {
+            id(light_brightness) = requested;
+          } else if (confirmed) {
             id(light_brightness) = received;
             ESP_LOGI("light_ha", "reconciled brightness=%d from Home Assistant (requested=%d)",
                      id(light_brightness), requested);
@@ -475,6 +485,11 @@ script:
             : lv_color_hex(0x262626);
           lv_obj_set_style_border_color(id(btn_dengguang), col, LV_STATE_DEFAULT);
           lv_obj_set_style_shadow_color(id(btn_dengguang), col, LV_STATE_DEFAULT);
+          const char *entity = "${light_entity}";
+          if (id(light_multilight_active)) {
+            entity = id(dial_lights_id).active_entity_id().c_str();
+          }
+          ESP_LOGI("light_ha", "toggle %s entity=%s", id(light_on) ? "on" : "off", entity);
       - if:
           condition:
             lambda: 'return id(light_on);'
