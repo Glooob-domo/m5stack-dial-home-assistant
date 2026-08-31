@@ -75,7 +75,14 @@ async def _make_ha_text(index, suffix, entity_id, attribute=None):
 
     uid = _ha_id(index, suffix, HomeassistantTextSensor)
     var = cg.new_Pvariable(uid)
-    await text_sensor.register_text_sensor(var, {CONF_ID: uid, CONF_INTERNAL: True})
+    await text_sensor.register_text_sensor(
+        var,
+        {
+            CONF_ID: uid,
+            CONF_NAME: f"Dial light {index} {suffix}",
+            CONF_INTERNAL: True,
+        },
+    )
     await cg.register_component(var, {CONF_ID: uid})
     ha_conf = {CONF_ENTITY_ID: entity_id, CONF_INTERNAL: True}
     if attribute is not None:
@@ -90,7 +97,14 @@ async def _make_ha_sensor(index, suffix, entity_id, attribute):
 
     uid = _ha_id(index, suffix, HomeassistantSensor)
     var = cg.new_Pvariable(uid)
-    await sensor.register_sensor(var, {CONF_ID: uid, CONF_INTERNAL: True})
+    await sensor.register_sensor(
+        var,
+        {
+            CONF_ID: uid,
+            CONF_NAME: f"Dial light {index} {suffix}",
+            CONF_INTERNAL: True,
+        },
+    )
     await cg.register_component(var, {CONF_ID: uid})
     setup_home_assistant_entity(
         var,
