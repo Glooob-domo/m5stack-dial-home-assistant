@@ -86,7 +86,7 @@ You only add **one file** to ESPHome. ESPHome downloads the firmware from GitHub
 
 1. In the ESPHome dashboard, create a device and paste [`m5-dial.yaml`](m5-dial.yaml).
 2. Put Wi-Fi, `api_encryption_key` and `ota_password` in `secrets.yaml`.
-3. In that same YAML, replace `*.disabled` with your Home Assistant entity IDs (and fill `dial_lights` if you want the Lights page).
+3. In that same YAML, set `ui_language`, replace `*.disabled` with your Home Assistant entity IDs, and fill `dial_lights` if you want the Lights page.
 4. Install over USB the first time, then use OTA.
 
 Example of the fields you edit:
@@ -94,6 +94,7 @@ Example of the fields you edit:
 ```yaml
 substitutions:
   timezone: Europe/Paris
+  ui_language: fr
   weather_entity: weather.maison
   aqi_entity: sensor.aqi_salon
   climate_entity: climate.salon

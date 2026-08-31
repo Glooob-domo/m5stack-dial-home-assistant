@@ -643,7 +643,7 @@ script:
             lv_obj_t *child = lv_obj_get_child(unit_buttons[i], 0);
             if (child) lv_obj_set_style_text_color(child, selected ? accent : lv_color_hex(0x555555), 0);
           }
-          lv_label_set_text(id(lbl_timer_reset), (state == ACTIVE || state == PAUSED) ? "CANCEL" : "RST");
+          lv_label_set_text(id(lbl_timer_reset), (state == ACTIVE || state == PAUSED) ? dial_i18n::cancel() : dial_i18n::rst());
 
 lvgl:
   pages:
@@ -724,7 +724,7 @@ lvgl:
                   widgets:
                     - label:
                         align: CENTER
-                        text: "HR"
+                        text: !lambda "return dial_i18n::unit_hr();"
                         text_font: font_timer_btn
                         text_color: col_timer_dim_text
               - obj:
@@ -751,7 +751,7 @@ lvgl:
                   widgets:
                     - label:
                         align: CENTER
-                        text: "MIN"
+                        text: !lambda "return dial_i18n::unit_min();"
                         text_font: font_timer_btn
                         text_color: col_timer_dim_text
               - obj:
@@ -778,7 +778,7 @@ lvgl:
                   widgets:
                     - label:
                         align: CENTER
-                        text: "SEC"
+                        text: !lambda "return dial_i18n::unit_sec();"
                         text_font: font_timer_btn
                         text_color: col_timer_dim_text
               - obj:
@@ -803,6 +803,6 @@ lvgl:
                     - label:
                         id: lbl_timer_reset
                         align: CENTER
-                        text: "RST"
+                        text: !lambda "return dial_i18n::rst();"
                         text_font: font_timer_btn
                         text_color: col_timer_dim_text

@@ -15,7 +15,7 @@ font:
     id: font_music_title
     size: 15
     bpp: 4
-    glyphs: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .,!?-''_()"&áéíóúÁÉÍÓÚñÑüÜçÇ¿¡’'
+    glyphs: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .,!?-''_()"&áéíóúÁÉÍÓÚñÑüÜçÇàèêëîïôùûÀÈÊ¿¡’'
 
   - file: ${asset_url}src/assets/fonts/media_player_icons.ttf
     id: media_player_icons
@@ -297,7 +297,7 @@ script:
             return "";
           };
           std::string title = pick(id(ha_media_title).state, id(track_title).state);
-          if (title.empty()) title = "Ready to Play";
+          if (title.empty()) title = dial_i18n::ready_to_play();
           lv_label_set_text(id(lbl_music_title), title.c_str());
           std::string artist = pick(id(ha_media_artist).state, id(track_artist).state);
           lv_label_set_text(id(lbl_music_artist), artist.c_str());
@@ -542,7 +542,7 @@ lvgl:
                   x: 20
                   y: 118
                   width: 200
-                  text: "Ready to Play"
+                  text: !lambda "return dial_i18n::ready_to_play();"
                   text_font: font_music_title
                   text_color: 0xFFFFFF
                   text_align: CENTER

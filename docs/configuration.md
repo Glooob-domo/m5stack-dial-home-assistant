@@ -16,6 +16,15 @@ substitutions:
 
 The package defaults `device_name`, `device_friendly_name`, fallback hotspot values and OTA password for validation. Override those values, especially the OTA password, for a real installation. Keep credentials in `secrets.yaml` and never commit them.
 
+## Language
+
+```yaml
+substitutions:
+  ui_language: fr
+```
+
+`ui_language` picks the labels on Clock, the menu and the other pages. Supported values: `en`, `fr`, `es`, `de`, `it`. Changing it requires a recompile. The default is `en` if the key is omitted.
+
 ## Optional Clock data
 
 ```yaml

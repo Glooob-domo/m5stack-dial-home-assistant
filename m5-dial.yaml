@@ -16,6 +16,9 @@ substitutions:
 
   timezone: Europe/Paris
 
+  # Interface : en, fr, es, de, it
+  ui_language: fr
+
   # --- Horloge (la page existe toujours) ---
   weather_entity: weather.disabled
   aqi_entity: sensor.disabled

@@ -43,7 +43,7 @@ font:
     id: font_light_label
     size: 14
     bpp: 4
-    glyphs: "ABCEFGHIKLNOPRSTUY "
+    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZ "
 
   - file:
       family: DM+Sans
@@ -61,7 +61,7 @@ font:
     id: font_cp_mode
     size: 11
     bpp: 4
-    glyphs: "COLRWHITE "
+    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZ "
 
 color:
   - id: col_light_bg
@@ -702,7 +702,7 @@ script:
             static char hbuf[7];
             snprintf(hbuf, sizeof(hbuf), "%02X%02X%02X", r8, g8, b8);
             lv_label_set_text(id(lbl_hex_val), hbuf);
-            lv_label_set_text(id(lbl_cp_mode), "COLOR");
+            lv_label_set_text(id(lbl_cp_mode), dial_i18n::color());
           } else {
             int kelvin = id(light_white_kelvin);
             int min_k = id(light_white_kelvin_min);
@@ -725,7 +725,7 @@ script:
             static char kbuf[8];
             snprintf(kbuf, sizeof(kbuf), "%dK", kelvin);
             lv_label_set_text(id(lbl_hex_val), kbuf);
-            lv_label_set_text(id(lbl_cp_mode), "WHITE");
+            lv_label_set_text(id(lbl_cp_mode), dial_i18n::white());
           }
           lv_color_t col = lv_color_make(r8, g8, b8);
           lv_obj_set_style_bg_color(id(cw_color_circle), col, LV_STATE_DEFAULT);
@@ -798,7 +798,7 @@ script:
             lv_color_t tc = lv_color_make(id(light_color_r), id(light_color_g), id(light_color_b));
             lv_obj_set_style_text_color(id(lbl_light_title), tc, LV_STATE_DEFAULT);
             if (id(light_on)) {
-              lv_label_set_text(id(lbl_onoff_state), "ON");
+              lv_label_set_text(id(lbl_onoff_state), dial_i18n::on());
               lv_obj_set_style_bg_color(id(onoff_main_btn), lv_color_hex(0x282729), LV_STATE_DEFAULT);
               lv_obj_set_style_border_color(id(onoff_main_btn), lv_color_hex(0xA98FFF), LV_STATE_DEFAULT);
               lv_obj_set_style_border_width(id(onoff_main_btn), 3, LV_STATE_DEFAULT);
@@ -807,7 +807,7 @@ script:
               lv_obj_set_style_shadow_opa(id(onoff_main_btn), LV_OPA_40, LV_STATE_DEFAULT);
               lv_obj_set_style_text_color(id(lbl_onoff_state), lv_color_hex(0xA98FFF), LV_STATE_DEFAULT);
             } else {
-              lv_label_set_text(id(lbl_onoff_state), "OFF");
+              lv_label_set_text(id(lbl_onoff_state), dial_i18n::off());
               lv_obj_set_style_bg_color(id(onoff_main_btn), lv_color_hex(0x000000), LV_STATE_DEFAULT);
               lv_obj_set_style_border_color(id(onoff_main_btn), lv_color_hex(0x282729), LV_STATE_DEFAULT);
               lv_obj_set_style_border_width(id(onoff_main_btn), 2, LV_STATE_DEFAULT);
@@ -969,7 +969,7 @@ lvgl:
                     - label:
                         id: lbl_light_title
                         align: CENTER
-                        text: "LIGHT"
+                        text: !lambda "return dial_i18n::light_title();"
                         text_font: font_menu_item
                         text_color: col_light_label_text
 
@@ -1065,7 +1065,7 @@ lvgl:
                         id: lbl_onoff_state
                         align: CENTER
                         y: 18
-                        text: "OFF"
+                        text: !lambda "return dial_i18n::off();"
                         text_font: font_light_label
                         text_color: col_light_track
 
@@ -1143,7 +1143,7 @@ lvgl:
                         id: lbl_cp_mode
                         align: TOP_MID
                         y: 18
-                        text: "COLOR"
+                        text: !lambda "return dial_i18n::color();"
                         text_font: font_cp_mode
                         text_color: 0xAAAAAA
                     - label:

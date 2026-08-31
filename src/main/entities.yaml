@@ -7,4 +7,6 @@ substitutions:
   # remote package (ESPHome looks up file: paths in /config/esphome/).
   # Override with "" in m5-dial.local.yaml to use files from this clone.
   asset_url: "https://raw.githubusercontent.com/Glooob-domo/m5stack-dial-home-assistant/main/"
+  # Clock, menu and page labels. en, fr, es, de, it
+  ui_language: en
 

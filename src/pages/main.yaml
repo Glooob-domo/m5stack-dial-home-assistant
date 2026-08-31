@@ -10,7 +10,7 @@ font:
     id: font_date
     size: 14
     bpp: 4
-    glyphs: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 /.-"
+    glyphs: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZÀÁÂÄÇÈÉÊËÌÍÎÏÑÒÓÔÖÙÚÛÜàáâäçèéêëìíîïñòóôöùúûüß0123456789 /.-"
 
   - file: "gfonts://DM+Sans"
     id: font_val
@@ -31,7 +31,7 @@ font:
     id: font_lbl
     size: 11
     bpp: 4
-    glyphs: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ."
+    glyphs: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZÀÁÂÄÇÈÉÊËÌÍÎÏÑÒÓÔÖÙÚÛÜàáâäçèéêëìíîïñòóôöùúûüß0123456789 ."
 
   - file:
       family: DM+Sans
@@ -40,7 +40,7 @@ font:
     id: font_lbl_s
     size: 9
     bpp: 4
-    glyphs: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ."
+    glyphs: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZÀÁÂÄÇÈÉÊËÌÍÎÏÑÒÓÔÖÙÚÛÜàáâäçèéêëìíîïñòóôöùúûüß0123456789 ."
 
 color:
   - id: col_ring_track
@@ -87,8 +87,7 @@ time:
               text: !lambda |-
                 static char buf[20];
                 auto t = id(rtctime).now();
-                const char* days[] = {"Sun","Mon","Tue","Wed","Thu","Fri","Sat"};
-                const char* day = (t.day_of_week >= 1 && t.day_of_week <= 7) ? days[t.day_of_week - 1] : "---";
+                const char* day = dial_i18n::weekday(t.day_of_week);
                 sprintf(buf, "%s  %02d/%02d", day, t.month, t.day_of_month);
                 return buf;
           - lvgl.arc.update:
@@ -686,14 +685,14 @@ lvgl:
             y: 13
             text_font: font_lbl
             text_color: col_text_temp
-            text: "TEMP"
+            text: !lambda "return dial_i18n::temp();"
         - label:
             align: CENTER
             x: 0
             y: 13
             text_font: font_lbl
             text_color: col_text_hum
-            text: "HUM"
+            text: !lambda "return dial_i18n::hum();"
         - label:
             id: lbl_aqi
             align: CENTER
@@ -701,7 +700,7 @@ lvgl:
             y: 13
             text_font: font_lbl
             text_color: col_text_lbl
-            text: "AQI"
+            text: !lambda "return dial_i18n::aqi();"
 
         - label:
             id: lbl_temp
@@ -744,14 +743,14 @@ lvgl:
             y: 60
             text_font: font_lbl
             text_color: col_text_pres
-            text: "PRESSURE"
+            text: !lambda "return dial_i18n::pressure();"
         - label:
             align: CENTER
             x: 40
             y: 60
             text_font: font_lbl
             text_color: col_text_wind
-            text: "WIND"
+            text: !lambda "return dial_i18n::wind();"
 
         - label:
             id: lbl_pressure

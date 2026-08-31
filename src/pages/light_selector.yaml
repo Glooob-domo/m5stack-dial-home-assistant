@@ -92,7 +92,7 @@ script:
 
           auto format_subtitle = [](const esphome::dial_lights::LightCardSnapshot &s, char *buf, size_t len) {
             if (!s.state_valid || !s.is_on) {
-              snprintf(buf, len, "OFF");
+              snprintf(buf, len, "%s", dial_i18n::off());
               return;
             }
             if (s.brightness_valid) {
@@ -103,7 +103,7 @@ script:
               snprintf(buf, len, "%dK", s.color_temp_kelvin);
               return;
             }
-            snprintf(buf, len, "ON");
+            snprintf(buf, len, "%s", dial_i18n::on());
           };
 
           struct CardColors {

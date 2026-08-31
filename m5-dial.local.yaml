@@ -11,6 +11,7 @@ substitutions:
   ap_password: "changeme-dial-ap"
 
   timezone: Europe/Paris
+  ui_language: fr
   weather_entity: weather.disabled
   aqi_entity: sensor.disabled
   climate_entity: climate.disabled
@@ -27,7 +28,7 @@ external_components:
   - source:
       type: local
       path: components
-    components: [dial_lights, dial_carousel, generic_image, media_source, sendspin]
+    components: [dial_lights, dial_carousel, dial_i18n, generic_image, media_source, sendspin]
 
 packages:
   firmware: !include dial.yaml

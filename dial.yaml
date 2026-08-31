@@ -17,7 +17,7 @@ external_components:
   # GitHub, not type: local — ESPHome resolves local paths against the
   # user's /config/esphome folder, not this package.
   - source: github://Glooob-domo/m5stack-dial-home-assistant@main
-    components: [dial_lights, dial_carousel, generic_image, media_source, sendspin]
+    components: [dial_lights, dial_carousel, dial_i18n, generic_image, media_source, sendspin]
     refresh: 0s
 
 substitutions:
@@ -95,6 +95,9 @@ wifi:
     password: ${ap_password}
 
 captive_portal:
+
+dial_i18n:
+  language: ${ui_language}
 
 globals:
   - id: ha_connected
