@@ -38,6 +38,7 @@ substitutions:
   screen_return_timeout: 5min
   screen_off_timeout: 30min
   screen_dim_brightness: "20%"
+  encoder_resolution: "1"
 
 esphome:
   name: ${device_name}

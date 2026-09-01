@@ -25,6 +25,15 @@ substitutions:
 
 `ui_language` picks the labels on Clock, the menu and the other pages. Supported values: `en`, `fr`, `es`, `de`, `it`. Changing it requires a recompile. The default is `en` if the key is omitted.
 
+## Encoder
+
+```yaml
+substitutions:
+  encoder_resolution: "1"
+```
+
+The Dial encoder produces four quadrature pulses per mechanical click. `encoder_resolution` is how many of those pulses count as one UI step. Allowed values: `1`, `2` or `4`. The default `1` is one step per click. `4` is more sensitive and can jump several steps on a slow turn. Changing it requires a recompile.
+
 ## Optional Clock data
 
 ```yaml

@@ -19,6 +19,9 @@ substitutions:
   # Interface : en, fr, es, de, it
   ui_language: fr
 
+  # Molette : 1 = un pas par cran, 4 = plus sensible (sauts possibles en tournant lentement)
+  encoder_resolution: "1"
+
   # --- Horloge (la page existe toujours) ---
   weather_entity: weather.disabled
   aqi_entity: sensor.disabled

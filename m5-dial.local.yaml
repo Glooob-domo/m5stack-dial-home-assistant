@@ -13,6 +13,7 @@ substitutions:
 
   timezone: Europe/Paris
   ui_language: fr
+  encoder_resolution: "1"
   weather_entity: weather.disabled
   aqi_entity: sensor.disabled
   timer_entity: timer.disabled

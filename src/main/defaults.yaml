@@ -10,6 +10,8 @@ substitutions:
   asset_url: "https://raw.githubusercontent.com/Glooob-domo/m5stack-dial-home-assistant/main/"
   # Clock, menu and page labels. en, fr, es, de, it
   ui_language: en
+  # Quadrature pulses counted per encoder click. 1, 2 or 4.
+  encoder_resolution: "1"
 
 # Empty lists hide those pages until m5-dial.yaml lists entities.
 dial_lights: []

@@ -372,7 +372,7 @@ sensor:
     pin_b:
       number: GPIO41
       mode: INPUT_PULLUP
-    resolution: 1
+    resolution: ${encoder_resolution}
     on_clockwise:
       - script.execute:
           id: dial_register_activity

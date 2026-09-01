@@ -103,6 +103,7 @@ Example of the fields you edit:
 substitutions:
   timezone: Europe/Paris
   ui_language: fr
+  encoder_resolution: "1"
   weather_entity: weather.maison
   aqi_entity: sensor.aqi_salon
   timer_entity: timer.dial
@@ -165,6 +166,13 @@ The Dial supports the rotary encoder, the front button and horizontal touch gest
 | Timer | Adjusts the selected duration unit while the timer is idle | Starts, pauses, resumes or clears the finished state | Double press or swipe right goes back. Touch selects hours/minutes/seconds and accesses reset/cancel. |
 
 The first encoder turn, button press or touch gesture after the screen has dimmed or turned off only wakes the display; repeat the action to control the interface.
+
+```yaml
+substitutions:
+  encoder_resolution: "1"
+```
+
+`encoder_resolution` is `1`, `2` or `4`. The default `1` is one UI step per mechanical click. Use `4` if you want a more sensitive wheel.
 
 ## Screen management
 
