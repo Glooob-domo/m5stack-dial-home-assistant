@@ -95,23 +95,6 @@ generic_image:
           lv_anim_start(&a);
 
 text_sensor:
-  - platform: homeassistant
-    id: ha_media_title
-    entity_id: ${music_player_entity}
-    attribute: media_title
-    internal: true
-    on_value:
-      - script.execute: refresh_music_metadata
-      - script.execute: menu_on_ha_update
-
-  - platform: homeassistant
-    id: ha_media_artist
-    entity_id: ${music_player_entity}
-    attribute: media_artist
-    internal: true
-    on_value:
-      - script.execute: refresh_music_metadata
-
   - platform: sendspin
     id: track_title
     type: title
@@ -144,50 +127,7 @@ text_sensor:
       - script.execute: refresh_music_progress
       - script.execute: menu_on_ha_update
 
-  - platform: homeassistant
-    id: media_player_status
-    entity_id: ${music_player_entity}
-    on_value:
-      - lambda: |-
-          ESP_LOGD("Media Player", "Read media player status: %s", x.c_str());
-          if ( x == "idle" || x == "paused"
-              || x == "unavailable" || x == "off"
-              || x == "unknown" )
-          {
-            id(music_playing) = false;
-            lv_label_set_text(id(play_label), "${icon_play}");
-          }
-          else if ( x == "playing" || x == "buffering" ) {
-            id(music_playing) = true;
-            lv_label_set_text(id(play_label), "${icon_pause}");
-          }
-          // read track progress and duration when state change
-          auto progress = id(sendspin_hub).get_track_progress_ms();
-          auto duration = id(sendspin_hub).get_track_duration_ms();
-          if (duration > 0) {
-            id(local_duration_ms) = duration;
-            id(local_progress_ms) = progress;
-            id(local_progress_sync_ms) = millis();
-          }
-      - script.execute: refresh_music_progress
-      - script.execute: menu_on_ha_update
-
 sensor:
-  - platform: homeassistant
-    id: ha_media_volume
-    entity_id: ${music_player_entity}
-    attribute: volume_level
-    internal: true
-    on_value:
-      - lambda: |-
-          if (x != x) return;
-          if ((int32_t)(id(music_volume_override_until_ms) - millis()) > 0) return;
-          int v = (int)(x * 100.0f + 0.5f);
-          if (v < 0) v = 0;
-          if (v > 100) v = 100;
-          id(music_volume) = v;
-      - script.execute: refresh_music_volume
-
   - platform: sendspin
     id: sendspin_controller_volume
     type: controller_volume
@@ -201,29 +141,6 @@ sensor:
           if (v > 100) v = 100;
           id(music_volume) = v;
       - script.execute: refresh_music_volume
-
-  - platform: homeassistant
-    id: ha_media_duration
-    entity_id: ${music_player_entity}
-    attribute: media_duration
-    internal: true
-    on_value:
-      - lambda: |-
-          if (x != x || x <= 0) return;
-          id(local_duration_ms) = (int)(x * 1000.0f + 0.5f);
-      - script.execute: refresh_music_progress
-
-  - platform: homeassistant
-    id: ha_media_position
-    entity_id: ${music_player_entity}
-    attribute: media_position
-    internal: true
-    on_value:
-      - lambda: |-
-          if (x != x || x < 0) return;
-          id(local_progress_ms) = (int)(x * 1000.0f + 0.5f);
-          id(local_progress_sync_ms) = millis();
-      - script.execute: refresh_music_progress
 
 globals:
   - id: in_music
@@ -305,23 +222,16 @@ script:
   - id: refresh_music_metadata
     then:
       - lambda: |-
-          auto pick = [](const std::string &ha, const std::string &ss) -> std::string {
-            if (!ha.empty()) return ha;
-            if (!ss.empty()) return ss;
-            return "";
-          };
           std::string title;
           std::string artist;
-          if (id(dial_media_players_id).count() > 0) {
-            if (id(dial_media_players_id).active_attr_valid("title"))
-              title = id(dial_media_players_id).active_attr("title");
-            if (id(dial_media_players_id).active_attr_valid("artist"))
-              artist = id(dial_media_players_id).active_attr("artist");
-          }
-          if (title.empty()) title = pick(id(ha_media_title).state, id(track_title).state);
+          if (id(dial_media_players_id).active_attr_valid("title"))
+            title = id(dial_media_players_id).active_attr("title");
+          if (id(dial_media_players_id).active_attr_valid("artist"))
+            artist = id(dial_media_players_id).active_attr("artist");
+          if (title.empty()) title = id(track_title).state;
           if (title.empty()) title = dial_i18n::ready_to_play();
           lv_label_set_text(id(lbl_music_title), title.c_str());
-          if (artist.empty()) artist = pick(id(ha_media_artist).state, id(track_artist).state);
+          if (artist.empty()) artist = id(track_artist).state;
           lv_label_set_text(id(lbl_music_artist), artist.c_str());
 
   - id: music_transport_feedback
@@ -364,47 +274,43 @@ script:
     then:
       - if:
           condition:
-            lambda: 'return id(in_music) && (id(dial_media_players_id).count() > 0 || dial_ha_entity_enabled("${music_player_entity}"));'
+            lambda: 'return id(in_music) && id(dial_media_players_id).count() > 0;'
           then:
             - lambda: 'id(music_feedback_btn) = 2;'
             - script.execute:
                 id: music_transport_feedback
                 wait_for_finish: false
             - lambda: |-
-                ESP_LOGI("music", "MUSIC_HA_ACTION next entity=%s", "${music_player_entity}");
+                ESP_LOGI("music", "MUSIC_HA_ACTION next entity=%s",
+                         id(dial_media_players_id).active_entity_id().c_str());
             - homeassistant.action:
                 action: media_player.media_next_track
                 data:
-                  entity_id: !lambda |-
-                    if (id(dial_media_players_id).count() > 0)
-                      return id(dial_media_players_id).active_entity_id();
-                    return std::string("${music_player_entity}");
+                  entity_id: !lambda 'return id(dial_media_players_id).active_entity_id();'
 
   - id: play_prev
     then:
       - if:
           condition:
-            lambda: 'return id(in_music) && (id(dial_media_players_id).count() > 0 || dial_ha_entity_enabled("${music_player_entity}"));'
+            lambda: 'return id(in_music) && id(dial_media_players_id).count() > 0;'
           then:
             - lambda: 'id(music_feedback_btn) = 0;'
             - script.execute:
                 id: music_transport_feedback
                 wait_for_finish: false
             - lambda: |-
-                ESP_LOGI("music", "MUSIC_HA_ACTION previous entity=%s", "${music_player_entity}");
+                ESP_LOGI("music", "MUSIC_HA_ACTION previous entity=%s",
+                         id(dial_media_players_id).active_entity_id().c_str());
             - homeassistant.action:
                 action: media_player.media_previous_track
                 data:
-                  entity_id: !lambda |-
-                    if (id(dial_media_players_id).count() > 0)
-                      return id(dial_media_players_id).active_entity_id();
-                    return std::string("${music_player_entity}");
+                  entity_id: !lambda 'return id(dial_media_players_id).active_entity_id();'
 
   - id: play_toggle
     then:
       - if:
           condition:
-            lambda: 'return id(in_music) && (id(dial_media_players_id).count() > 0 || dial_ha_entity_enabled("${music_player_entity}"));'
+            lambda: 'return id(in_music) && id(dial_media_players_id).count() > 0;'
           then:
             - lambda: 'id(music_feedback_btn) = 1;'
             - script.execute:
@@ -412,13 +318,9 @@ script:
                 wait_for_finish: false
             - lambda: |-
                 bool current_playing = id(sendspin_playback_state).state == "playing";
-                if (id(dial_media_players_id).count() > 0 && id(dial_media_players_id).active_state_valid()) {
+                if (id(dial_media_players_id).active_state_valid()) {
                   const std::string &st = id(dial_media_players_id).active_state();
                   current_playing = current_playing || st == "playing" || st == "buffering";
-                } else {
-                  current_playing = current_playing ||
-                      id(media_player_status).state == "playing" ||
-                      id(media_player_status).state == "buffering";
                 }
                 bool will_play = !current_playing;
                 id(music_playing) = will_play;
@@ -428,14 +330,13 @@ script:
                 }
                 lv_label_set_text(id(play_label), will_play ? "${icon_pause}" : "${icon_play}");
             - lambda: |-
-                ESP_LOGI("music", "MUSIC_HA_ACTION play_pause entity=%s", "${music_player_entity}");
+                ESP_LOGI("music", "MUSIC_HA_ACTION play_pause entity=%s",
+                         id(dial_media_players_id).active_entity_id().c_str());
             - homeassistant.action:
                 action: media_player.media_play_pause
                 data:
-                  entity_id: !lambda |-
-                    if (id(dial_media_players_id).count() > 0)
-                      return id(dial_media_players_id).active_entity_id();
-                    return std::string("${music_player_entity}");
+                  entity_id: !lambda 'return id(dial_media_players_id).active_entity_id();'
+
   - id: music_volume_up
     then:
       - lambda: |-
@@ -447,16 +348,13 @@ script:
           ESP_LOGI(
             "music",
             "MUSIC_HA_ACTION volume_set entity=%s volume=%.2f",
-            "${music_player_entity}",
+            id(dial_media_players_id).active_entity_id().c_str(),
             id(music_volume) / 100.0f
           );
       - homeassistant.action:
           action: media_player.volume_set
           data:
-            entity_id: !lambda |-
-              if (id(dial_media_players_id).count() > 0)
-                return id(dial_media_players_id).active_entity_id();
-              return std::string("${music_player_entity}");
+            entity_id: !lambda 'return id(dial_media_players_id).active_entity_id();'
           data_template:
             volume_level: !lambda |-
               char buf[8];
@@ -475,16 +373,13 @@ script:
           ESP_LOGI(
             "music",
             "MUSIC_HA_ACTION volume_set entity=%s volume=%.2f",
-            "${music_player_entity}",
+            id(dial_media_players_id).active_entity_id().c_str(),
             id(music_volume) / 100.0f
           );
       - homeassistant.action:
           action: media_player.volume_set
           data:
-            entity_id: !lambda |-
-              if (id(dial_media_players_id).count() > 0)
-                return id(dial_media_players_id).active_entity_id();
-              return std::string("${music_player_entity}");
+            entity_id: !lambda 'return id(dial_media_players_id).active_entity_id();'
           data_template:
             volume_level: !lambda |-
               char buf[8];
@@ -740,10 +635,6 @@ interval:
               }
               id(refresh_music_metadata).execute();
             }
-          } else {
-            server_playing = server_playing ||
-                id(media_player_status).state == "playing" ||
-                id(media_player_status).state == "buffering";
           }
           bool use_local_state = (int32_t)(id(music_state_override_until_ms) - now_ms) > 0;
           bool playing = use_local_state ? id(music_playing) : server_playing;

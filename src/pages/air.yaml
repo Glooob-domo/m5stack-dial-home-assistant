@@ -163,104 +163,6 @@ globals:
     type: std::string
     initial_value: '""'
 
-sensor:
-  - platform: homeassistant
-    id: ha_air_target_temp
-    entity_id: ${climate_entity}
-    attribute: temperature
-    on_value:
-      - if:
-          condition:
-            lambda: 'return id(dial_climates_id).count() == 0;'
-          then:
-            - lambda: 'id(air_temp) = (int)(x) * 2;'
-            - script.execute: refresh_air
-            - script.execute: menu_on_ha_update
-
-  - platform: homeassistant
-    id: ha_air_current_temp
-    entity_id: ${climate_entity}
-    attribute: current_temperature
-    on_value:
-      - if:
-          condition:
-            lambda: 'return id(dial_climates_id).count() == 0;'
-          then:
-            - script.execute: refresh_air
-            - script.execute: menu_on_ha_update
-
-  - platform: homeassistant
-    id: ha_air_humidity
-    entity_id: ${climate_entity}
-    attribute: current_humidity
-    on_value:
-      - if:
-          condition:
-            lambda: 'return id(dial_climates_id).count() == 0;'
-          then:
-            - script.execute: refresh_air
-
-text_sensor:
-  - platform: homeassistant
-    id: ha_air_hvac_mode
-    entity_id: ${climate_entity}
-    on_value:
-      - if:
-          condition:
-            lambda: 'return id(dial_climates_id).count() == 0;'
-          then:
-            - lambda: |-
-                id(air_btn_power_active) = (x != "off" && x != "unknown" && x != "unavailable");
-                if (x != "off" && x != "unknown" && x != "unavailable") {
-                  id(air_last_hvac_mode) = x;
-                  id(air_hvac_mode_pending) = x;
-                }
-            - script.execute: refresh_air
-            - script.execute: menu_on_ha_update
-
-  - platform: homeassistant
-    id: ha_air_hvac_modes
-    entity_id: ${climate_entity}
-    attribute: hvac_modes
-    internal: true
-    on_value:
-      - if:
-          condition:
-            lambda: 'return id(dial_climates_id).count() == 0;'
-          then:
-            - script.execute: air_parse_hvac_modes
-
-  - platform: homeassistant
-    id: ha_air_fan_mode
-    entity_id: ${climate_entity}
-    attribute: fan_mode
-    internal: true
-    on_value:
-      - if:
-          condition:
-            lambda: 'return id(dial_climates_id).count() == 0;'
-          then:
-            - lambda: |-
-                if (x.empty()) return;
-                std::string lower = x;
-                for (char &c : lower) c = (char) std::tolower((unsigned char) c);
-                if (lower == "unknown" || lower == "unavailable" || lower == "none" || lower == "null") return;
-                id(air_fan_mode_pending) = x;
-                id(air_last_valid_fan_mode) = x;
-            - script.execute: refresh_air
-
-  - platform: homeassistant
-    id: ha_air_fan_modes
-    entity_id: ${climate_entity}
-    attribute: fan_modes
-    internal: true
-    on_value:
-      - if:
-          condition:
-            lambda: 'return id(dial_climates_id).count() == 0;'
-          then:
-            - script.execute: air_parse_fan_modes
-
 script:
   - id: open_air
     then:
@@ -316,10 +218,7 @@ script:
       - homeassistant.service:
           service: climate.set_temperature
           data:
-            entity_id: !lambda |-
-              if (id(dial_climates_id).count() > 0)
-                return id(dial_climates_id).active_entity_id();
-              return std::string("${climate_entity}");
+            entity_id: !lambda 'return id(dial_climates_id).active_entity_id();'
             temperature: !lambda 'return std::to_string((int)(id(air_temp) / 2));'
       - script.execute: refresh_air
 
@@ -332,10 +231,7 @@ script:
       - homeassistant.service:
           service: climate.set_temperature
           data:
-            entity_id: !lambda |-
-              if (id(dial_climates_id).count() > 0)
-                return id(dial_climates_id).active_entity_id();
-              return std::string("${climate_entity}");
+            entity_id: !lambda 'return id(dial_climates_id).active_entity_id();'
             temperature: !lambda 'return std::to_string((int)(id(air_temp) / 2));'
       - script.execute: refresh_air
 
@@ -376,9 +272,7 @@ script:
             return csv;
           };
 
-          const std::string &raw = (id(dial_climates_id).count() > 0)
-              ? id(dial_climates_id).active_attr("hvac_modes")
-              : id(ha_air_hvac_modes).state;
+          const std::string &raw = id(dial_climates_id).active_attr("hvac_modes");
           if (is_invalid(raw)) {
             id(air_hvac_modes_csv) = "";
             return;
@@ -421,9 +315,7 @@ script:
             return csv;
           };
 
-          const std::string &raw = (id(dial_climates_id).count() > 0)
-              ? id(dial_climates_id).active_attr("fan_modes")
-              : id(ha_air_fan_modes).state;
+          const std::string &raw = id(dial_climates_id).active_attr("fan_modes");
           if (is_invalid(raw)) {
             id(air_fan_modes_csv) = "";
             id(air_fan_modes_supported) = false;
@@ -477,17 +369,12 @@ script:
       - if:
           condition:
             lambda: |-
-              const std::string &s = (id(dial_climates_id).count() > 0)
-                  ? id(dial_climates_id).active_state()
-                  : id(ha_air_hvac_mode).state;
+              const std::string &s = id(dial_climates_id).active_state();
               return s != "unknown" && s != "unavailable";
           then:
             - if:
                 condition:
-                  lambda: |-
-                    if (id(dial_climates_id).count() > 0)
-                      return id(dial_climates_id).active_state() == "off";
-                    return id(ha_air_hvac_mode).state == "off";
+                  lambda: 'return id(dial_climates_id).active_state() == "off";'
                 then:
                   - lambda: |-
                       static auto is_invalid = [](const std::string &s) -> bool {
@@ -532,7 +419,8 @@ script:
 
                       id(air_btn_power_active) = true;
                       id(air_hvac_mode_pending) = power_on_mode;
-                      ESP_LOGI("air", "AIR_HA_ACTION power_on entity=${climate_entity} mode=%s", power_on_mode.c_str());
+                      ESP_LOGI("air", "AIR_HA_ACTION power_on entity=%s mode=%s",
+                               id(dial_climates_id).active_entity_id().c_str(), power_on_mode.c_str());
                   - if:
                       condition:
                         lambda: 'return !id(air_hvac_modes_csv).empty();'
@@ -540,22 +428,17 @@ script:
                         - homeassistant.service:
                             service: climate.set_hvac_mode
                             data:
-                              entity_id: !lambda |-
-                                if (id(dial_climates_id).count() > 0)
-                                  return id(dial_climates_id).active_entity_id();
-                                return std::string("${climate_entity}");
+                              entity_id: !lambda 'return id(dial_climates_id).active_entity_id();'
                               hvac_mode: !lambda 'return id(air_hvac_mode_pending);'
                 else:
                   - lambda: |-
                       id(air_btn_power_active) = false;
-                      ESP_LOGI("air", "AIR_HA_ACTION turn_off entity=${climate_entity}");
+                      ESP_LOGI("air", "AIR_HA_ACTION turn_off entity=%s",
+                               id(dial_climates_id).active_entity_id().c_str());
                   - homeassistant.service:
                       service: climate.turn_off
                       data:
-                        entity_id: !lambda |-
-                          if (id(dial_climates_id).count() > 0)
-                            return id(dial_climates_id).active_entity_id();
-                          return std::string("${climate_entity}");
+                        entity_id: !lambda 'return id(dial_climates_id).active_entity_id();'
       - script.execute: refresh_air
 
   - id: air_fan_step
@@ -597,8 +480,9 @@ script:
           std::string current;
           if (!is_invalid(id(air_fan_mode_pending))) {
             current = id(air_fan_mode_pending);
-          } else if (id(ha_air_fan_mode).has_state() && !is_invalid(id(ha_air_fan_mode).state)) {
-            current = id(ha_air_fan_mode).state;
+          } else if (id(dial_climates_id).active_attr_valid("fan_mode") &&
+                     !is_invalid(id(dial_climates_id).active_attr("fan_mode"))) {
+            current = id(dial_climates_id).active_attr("fan_mode");
           }
 
           size_t idx = 0;
@@ -622,7 +506,8 @@ script:
 
           id(air_fan_mode_pending) = modes[idx];
           id(air_last_valid_fan_mode) = modes[idx];
-          ESP_LOGI("air", "AIR_HA_ACTION fan_mode entity=${climate_entity} mode=%s", modes[idx].c_str());
+          ESP_LOGI("air", "AIR_HA_ACTION fan_mode entity=%s mode=%s",
+                   id(dial_climates_id).active_entity_id().c_str(), modes[idx].c_str());
       - if:
           condition:
             lambda: 'return !id(air_fan_modes_csv).empty();'
@@ -630,10 +515,7 @@ script:
             - homeassistant.service:
                 service: climate.set_fan_mode
                 data:
-                  entity_id: !lambda |-
-                    if (id(dial_climates_id).count() > 0)
-                      return id(dial_climates_id).active_entity_id();
-                    return std::string("${climate_entity}");
+                  entity_id: !lambda 'return id(dial_climates_id).active_entity_id();'
                   fan_mode: !lambda 'return id(air_fan_mode_pending);'
       - script.execute: refresh_air
 
@@ -676,11 +558,9 @@ script:
           std::string current;
           if (!is_invalid(id(air_hvac_mode_pending))) {
             current = id(air_hvac_mode_pending);
-          } else if (id(dial_climates_id).count() > 0 && id(dial_climates_id).active_state_valid() &&
+          } else if (id(dial_climates_id).active_state_valid() &&
                      !is_invalid(id(dial_climates_id).active_state())) {
             current = id(dial_climates_id).active_state();
-          } else if (id(ha_air_hvac_mode).has_state() && !is_invalid(id(ha_air_hvac_mode).state)) {
-            current = id(ha_air_hvac_mode).state;
           }
 
           size_t idx = 0;
@@ -704,7 +584,8 @@ script:
 
           id(air_hvac_mode_pending) = modes[idx];
           id(air_last_hvac_mode) = modes[idx];
-          ESP_LOGI("air", "AIR_HA_ACTION hvac_mode entity=${climate_entity} mode=%s", modes[idx].c_str());
+          ESP_LOGI("air", "AIR_HA_ACTION hvac_mode entity=%s mode=%s",
+                   id(dial_climates_id).active_entity_id().c_str(), modes[idx].c_str());
       - if:
           condition:
             lambda: 'return !id(air_hvac_modes_csv).empty();'
@@ -712,10 +593,7 @@ script:
             - homeassistant.service:
                 service: climate.set_hvac_mode
                 data:
-                  entity_id: !lambda |-
-                    if (id(dial_climates_id).count() > 0)
-                      return id(dial_climates_id).active_entity_id();
-                    return std::string("${climate_entity}");
+                  entity_id: !lambda 'return id(dial_climates_id).active_entity_id();'
                   hvac_mode: !lambda 'return id(air_hvac_mode_pending);'
       - script.execute: refresh_air
 
@@ -779,15 +657,10 @@ script:
 
           float ct = NAN;
           float hm = NAN;
-          if (id(dial_climates_id).count() > 0) {
-            if (id(dial_climates_id).active_attr_valid("current_temperature"))
-              ct = atof(id(dial_climates_id).active_attr("current_temperature").c_str());
-            if (id(dial_climates_id).active_attr_valid("humidity"))
-              hm = atof(id(dial_climates_id).active_attr("humidity").c_str());
-          } else {
-            ct = id(ha_air_current_temp).state;
-            hm = id(ha_air_humidity).state;
-          }
+          if (id(dial_climates_id).active_attr_valid("current_temperature"))
+            ct = atof(id(dial_climates_id).active_attr("current_temperature").c_str());
+          if (id(dial_climates_id).active_attr_valid("humidity"))
+            hm = atof(id(dial_climates_id).active_attr("humidity").c_str());
           if (isnan(ct)) ct = (float)(t / 2);
           if (isnan(hm)) hm = 60.0f;
 
@@ -800,10 +673,8 @@ script:
           std::string hvac_mode;
           if (cm == 2 && !is_invalid(id(air_hvac_mode_pending))) {
             hvac_mode = id(air_hvac_mode_pending);
-          } else if (id(dial_climates_id).count() > 0 && id(dial_climates_id).active_state_valid()) {
+          } else if (id(dial_climates_id).active_state_valid()) {
             hvac_mode = id(dial_climates_id).active_state();
-          } else if (id(ha_air_hvac_mode).has_state()) {
-            hvac_mode = id(ha_air_hvac_mode).state;
           }
           if (is_invalid(hvac_mode)) hvac_mode = "off";
 
@@ -818,10 +689,8 @@ script:
           std::string fan_mode;
           if (cm == 1 && !is_invalid(id(air_fan_mode_pending))) {
             fan_mode = id(air_fan_mode_pending);
-          } else if (id(dial_climates_id).count() > 0 && id(dial_climates_id).active_attr_valid("fan_mode")) {
+          } else if (id(dial_climates_id).active_attr_valid("fan_mode")) {
             fan_mode = id(dial_climates_id).active_attr("fan_mode");
-          } else if (id(ha_air_fan_mode).has_state() && !is_invalid(id(ha_air_fan_mode).state)) {
-            fan_mode = id(ha_air_fan_mode).state;
           }
           static char fan_buf[28];
           format_fan_label(fan_mode, fan_buf, sizeof(fan_buf));
@@ -893,8 +762,9 @@ script:
             std::string fan_mode_seg;
             if (!is_invalid(id(air_fan_mode_pending))) {
               fan_mode_seg = id(air_fan_mode_pending);
-            } else if (id(ha_air_fan_mode).has_state() && !is_invalid(id(ha_air_fan_mode).state)) {
-              fan_mode_seg = id(ha_air_fan_mode).state;
+            } else if (id(dial_climates_id).active_attr_valid("fan_mode") &&
+                       !is_invalid(id(dial_climates_id).active_attr("fan_mode"))) {
+              fan_mode_seg = id(dial_climates_id).active_attr("fan_mode");
             } else if (!is_invalid(id(air_last_valid_fan_mode))) {
               fan_mode_seg = id(air_last_valid_fan_mode);
             }

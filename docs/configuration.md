@@ -39,19 +39,17 @@ Leave `weather.disabled` or `sensor.disabled` in `m5-dial.yaml` to keep `--` on 
 
 ## Optional menu features
 
-Unconfigured optional features are hidden from the menu. Set a real Home Assistant entity ID, or fill the matching list, to show the page. Leave `climate.disabled`, `media_player.disabled` or `timer.disabled` (and an empty list) to hide it. Lights, Covers, Garage, Outlets and Scenes are hidden when their lists have no entries.
+Unconfigured optional features are hidden from the menu. Fill the matching list to show a page, or set `timer_entity` for Timer. Leave a list empty (`[]`) to hide it. Leave `timer.disabled` to hide Timer. Clock weather/AQI stay on the clock page and show `--` when left as `*.disabled`.
 
 | Field | Enables | Example |
 | --- | --- | --- |
 | `dial_lights` | Lights | A list of Home Assistant light entities. |
-| `dial_climates` | AC | A list of climate entities. If omitted, `climate_entity` still works for a single AC. |
-| `dial_media_players` | Music | A list of media players. If omitted, `music_player_entity` still works for a single player. |
+| `dial_climates` | AC | A list of climate entities. |
+| `dial_media_players` | Music | A list of media players. |
 | `dial_covers` | Covers | A list of cover / shutter entities. |
 | `dial_garages` | Garage | A list of garage / gate cover entities. |
 | `dial_switches` | Outlets | A list of `switch` or `input_boolean` entities. |
 | `dial_scenes` | Scenes | A list of `scene` or `script` entities. |
-| `climate_entity` | AC (legacy single) | `climate.living_room` |
-| `music_player_entity` | Music (legacy single) | `media_player.living_room` |
 | `timer_entity` | Timer | `timer.dial_timer` |
 
 ### Lights
@@ -76,7 +74,7 @@ dial_climates:
     name: Bedroom
 ```
 
-Same rule as lights: one climate opens the page directly, several open a selector. `climate_entity` remains valid when `dial_climates` is empty.
+Same rule as lights: one climate opens the page directly, several open a selector.
 
 The page supports target temperature and uses modes advertised by the entity. HVAC mode, fan mode and swing-related capabilities vary between Home Assistant integrations, so only controls supported by the entity should be expected.
 
@@ -88,7 +86,7 @@ dial_media_players:
     name: Living room
 ```
 
-`music_player_entity` remains valid when `dial_media_players` is empty. Select the entity that actually plays the audio. Home Assistant supplies player state, transport actions, volume and available metadata, including `media_title`, `media_artist`, `media_duration` and `media_position`. SendSpin is optional and currently supplies only 100 × 100 album artwork when a compatible SendSpin source is available.
+Select the entity that actually plays the audio. Home Assistant supplies player state, transport actions, volume and available metadata, including `media_title`, `media_artist`, `media_duration` and `media_position`. SendSpin is optional and currently supplies only 100 × 100 album artwork when a compatible SendSpin source is available.
 
 ### Covers
 

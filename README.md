@@ -37,12 +37,12 @@ Many thanks to Jason Wen for creating and sharing the foundation of this project
 - Air-quality index (AQI) from a Home Assistant sensor.
 - Circular menu navigation with the encoder, touch gestures and front button.
 - Configurable Home Assistant lights through `dial_lights`.
-- Climate control through `dial_climates` (or a single `climate_entity`).
+- Climate control through `dial_climates`.
 - Cover / shutter control through `dial_covers`.
 - Garage / gate control through `dial_garages`.
 - Outlet / switch control through `dial_switches`.
 - Scene and script activation through `dial_scenes`.
-- Media playback, volume and metadata through `dial_media_players` (or a single `music_player_entity`).
+- Media playback, volume and metadata through `dial_media_players`.
 - Home Assistant timer control through a `timer_entity`.
 - Menu subtitles based on live Home Assistant states.
 - Automatic return to the clock after inactivity.
@@ -68,8 +68,8 @@ Many thanks to Jason Wen for creating and sharing the foundation of this project
 | Garage | Controls garage / gate covers declared in `dial_garages`. |
 | Outlets | Toggles `switch` or `input_boolean` entities declared in `dial_switches`. |
 | Scenes | Runs `scene` or `script` entities declared in `dial_scenes`. |
-| AC | Controls `dial_climates`, or a single `climate_entity` when the list is empty. |
-| Music | Controls `dial_media_players`, or a single `music_player_entity` when the list is empty. |
+| AC | Controls the Home Assistant climate entities declared in `dial_climates`. Same skip-if-one rule as lights. |
+| Music | Controls the Home Assistant media players declared in `dial_media_players`. Same skip-if-one rule as lights. |
 | Timer | Uses `timer_entity` as the source of truth for a Home Assistant countdown timer. |
 
 ## Hardware
@@ -94,7 +94,7 @@ You only add **one file** to ESPHome. ESPHome downloads the firmware from GitHub
 
 1. In the ESPHome dashboard, create a device and paste [`m5-dial.yaml`](m5-dial.yaml).
 2. Put Wi-Fi, `api_encryption_key` and `ota_password` in `secrets.yaml`.
-3. In that same YAML, set `ui_language`, replace `*.disabled` with your Home Assistant entity IDs, and fill `dial_lights`, `dial_climates`, `dial_media_players`, `dial_covers`, `dial_garages`, `dial_switches` and `dial_scenes` for the pages you want.
+3. In that same YAML, set `ui_language`, replace `timer_entity` / `weather_entity` / `aqi_entity` when you want those fields, and fill `dial_lights`, `dial_climates`, `dial_media_players`, `dial_covers`, `dial_garages`, `dial_switches` and `dial_scenes` for the pages you want.
 4. Install over USB the first time, then use OTA.
 
 Example of the fields you edit:
@@ -105,15 +105,17 @@ substitutions:
   ui_language: fr
   weather_entity: weather.maison
   aqi_entity: sensor.aqi_salon
-  climate_entity: climate.salon
-  music_player_entity: media_player.salon
   timer_entity: timer.dial
 
 dial_lights:
   - entity_id: light.salon
     name: Salon
-dial_climates: []
-dial_media_players: []
+dial_climates:
+  - entity_id: climate.salon
+    name: Salon
+dial_media_players:
+  - entity_id: media_player.salon
+    name: Salon
 dial_covers: []
 dial_garages: []
 dial_switches: []
@@ -175,7 +177,7 @@ The Menu is more than a launcher: its current selection shows a live subtitle. T
 
 ### Music
 
-The Music page is controlled through `dial_media_players`, or `music_player_entity` when that list is empty. Home Assistant provides playback state, play/pause and transport actions, volume, title and metadata, plus duration and position when available. SendSpin is optional and is currently used only to provide 100 × 100 album artwork when a compatible SendSpin source is available. Album art is intentionally kept small for the Dial's memory budget.
+The Music page is controlled through `dial_media_players`. Home Assistant provides playback state, play/pause and transport actions, volume, title and metadata, plus duration and position when available. SendSpin is optional and is currently used only to provide 100 × 100 album artwork when a compatible SendSpin source is available. Album art is intentionally kept small for the Dial's memory budget.
 
 ### Climate
 
@@ -196,7 +198,7 @@ The package enables GPIO46 at boot for M5Dial V1.1 battery power hold. This keep
 ## Troubleshooting
 
 - **Device does not appear in Home Assistant:** confirm Wi-Fi, API connectivity and a valid `api_encryption_key`.
-- **A menu item is hidden:** configure its matching entity, or add at least one entry to the matching list (`dial_lights`, `dial_climates`, `dial_media_players`, `dial_covers`). Empty lists intentionally hide that page.
+- **A menu item is hidden:** add at least one entry to the matching list (`dial_lights`, `dial_climates`, `dial_media_players`, `dial_covers`, `dial_garages`, `dial_switches`, `dial_scenes`), or set `timer_entity` for Timer. Empty lists hide that page.
 - **AQI shows `--`:** use an existing numeric sensor for `aqi_entity`.
 - **A feature is unavailable:** check that its configured entity exists and is available in Home Assistant.
 - **Music is unavailable:** use the entity that actually plays audio and exposes its media state.

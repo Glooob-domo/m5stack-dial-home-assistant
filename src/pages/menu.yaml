@@ -150,7 +150,7 @@ script:
           counts.media = id(dial_media_players_id).count();
           int items[DIAL_MENU_MAX];
           const int n = dial_collect_menu_items(
-              items, "${timer_entity}", "${climate_entity}", "${music_player_entity}", counts);
+              items, "${timer_entity}", counts);
 
           const int home_idx = n - 1;
           bool found = false;
@@ -212,7 +212,7 @@ script:
                   counts.media = id(dial_media_players_id).count();
                   int local_items[DIAL_MENU_MAX];
                   const int local_n = dial_collect_menu_items(
-                      local_items, "${timer_entity}", "${climate_entity}", "${music_player_entity}", counts);
+                      local_items, "${timer_entity}", counts);
 
                   id(menu_sel) = ((id(menu_sel) - 1) % local_n + local_n) % local_n;
                   id(menu_func) = local_items[id(menu_sel)];
@@ -245,7 +245,7 @@ script:
                   counts.media = id(dial_media_players_id).count();
                   int local_items[DIAL_MENU_MAX];
                   const int local_n = dial_collect_menu_items(
-                      local_items, "${timer_entity}", "${climate_entity}", "${music_player_entity}", counts);
+                      local_items, "${timer_entity}", counts);
 
                   id(menu_sel) = (id(menu_sel) + 1) % local_n;
                   id(menu_func) = local_items[id(menu_sel)];
@@ -571,8 +571,6 @@ script:
               std::string mode;
               if (id(dial_climates_id).count() == 1 && id(dial_climates_id).state_valid_at(0)) {
                 mode = id(dial_climates_id).state_at(0);
-              } else if (id(ha_air_hvac_mode).has_state() && !is_invalid_state(id(ha_air_hvac_mode).state)) {
-                mode = id(ha_air_hvac_mode).state;
               }
               if (!mode.empty())
                 has_state = hvac_label(mode, statebuf, sizeof(statebuf));
@@ -580,17 +578,10 @@ script:
               float setpoint = NAN;
               if (id(dial_climates_id).count() == 1 && id(dial_climates_id).attr_valid_at(0, "temperature")) {
                 setpoint = atof(id(dial_climates_id).attr_at(0, "temperature").c_str());
-              } else if (id(ha_air_target_temp).has_state()) {
-                const float target = id(ha_air_target_temp).state;
-                if (!isnan(target)) setpoint = target;
               }
-              if (isnan(setpoint) && id(ha_connected)) {
-                const int t2 = id(air_temp);
-                setpoint = t2 / 2.0f;
-              }
-              if (isnan(setpoint) && id(ha_air_current_temp).has_state()) {
-                const float ct = id(ha_air_current_temp).state;
-                if (!isnan(ct)) setpoint = ct;
+              if (isnan(setpoint) && id(dial_climates_id).count() == 1 &&
+                  id(dial_climates_id).attr_valid_at(0, "current_temperature")) {
+                setpoint = atof(id(dial_climates_id).attr_at(0, "current_temperature").c_str());
               }
 
               char tempbuf[16] = "";
@@ -614,8 +605,6 @@ script:
               std::string status;
               if (id(dial_media_players_id).count() == 1 && id(dial_media_players_id).state_valid_at(0)) {
                 status = id(dial_media_players_id).state_at(0);
-              } else if (id(media_player_status).has_state() && !is_invalid_state(id(media_player_status).state)) {
-                status = id(media_player_status).state;
               }
               if (status.empty()) {
                 snprintf(subbuf, sizeof(subbuf), "%s", dial_i18n::unavailable());
@@ -631,7 +620,6 @@ script:
                 std::string title;
                 if (id(dial_media_players_id).count() == 1 && id(dial_media_players_id).attr_valid_at(0, "title"))
                   title = id(dial_media_players_id).attr_at(0, "title");
-                if (title.empty() && id(ha_media_title).has_state()) title = id(ha_media_title).state;
                 if (title.empty()) title = id(track_title).state;
                 if (!title.empty())
                   snprintf(subbuf, sizeof(subbuf), "%s", title.c_str());
@@ -669,7 +657,7 @@ script:
           counts.media = id(dial_media_players_id).count();
           int items[DIAL_MENU_MAX];
           const int n = dial_collect_menu_items(
-              items, "${timer_entity}", "${climate_entity}", "${music_player_entity}", counts);
+              items, "${timer_entity}", counts);
 
           int slot = -1;
           for (int s = 0; s < 5; s++) {
@@ -723,7 +711,7 @@ script:
           counts.media = id(dial_media_players_id).count();
           int items[DIAL_MENU_MAX];
           const int n = dial_collect_menu_items(
-              items, "${timer_entity}", "${climate_entity}", "${music_player_entity}", counts);
+              items, "${timer_entity}", counts);
 
           lv_obj_t* icons[5] = {
             id(slot_far_up_img),  id(slot_near_up_img),

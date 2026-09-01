@@ -1,7 +1,7 @@
 # Fichier unique à coller dans ESPHome (dashboard).
 # ESPHome télécharge le firmware depuis GitHub. Wi-Fi / clé API / OTA : secrets.yaml.
 #
-# Une catégorie en *.disabled (ou dial_lights vide) = pas de page sur le M5.
+# Une liste vide (ou timer/weather en *.disabled) = pas de page sur le M5.
 # Identifiants : Home Assistant → Outils de développement → États.
 
 substitutions:
@@ -23,13 +23,6 @@ substitutions:
   weather_entity: weather.disabled
   aqi_entity: sensor.disabled
 
-  # --- Clim ---
-  # Exemple : climate.salon  (une seule clim, toujours possible)
-  climate_entity: climate.disabled
-
-  # --- Musique ---
-  music_player_entity: media_player.disabled
-
   # --- Timer ---
   timer_entity: timer.disabled
 
@@ -39,7 +32,7 @@ substitutions:
 #     name: Salon
 dial_lights: []
 
-# --- Plusieurs clims / lecteurs / volets ---
+# --- Clim, musique, volets, etc. ---
 # Une seule entrée = ouverture directe. Plusieurs = sélecteur, comme les lumières.
 # dial_climates:
 #   - entity_id: climate.salon

@@ -153,169 +153,6 @@ globals:
   - id: light_ha_brightness_received_after_send
     type: bool
     initial_value: 'false'
-  - id: light_multilight_active
-    type: bool
-    restore_value: no
-    initial_value: 'false'
-
-text_sensor:
-  - platform: homeassistant
-    id: ha_light_state
-    entity_id: ${light_entity}
-    internal: true
-    on_value:
-      - if:
-          condition:
-            lambda: 'return !id(light_multilight_active);'
-          then:
-            - lambda: |-
-                id(light_on) = x == "on";
-            - script.execute: refresh_light_arc
-
-  - platform: homeassistant
-    id: ha_light_rgb_color
-    entity_id: ${light_entity}
-    attribute: rgb_color
-    internal: true
-    on_value:
-      - if:
-          condition:
-            lambda: 'return !id(light_multilight_active);'
-          then:
-            - lambda: |-
-                int r, g, b;
-                if (sscanf(x.c_str(), "[%d, %d, %d]", &r, &g, &b) != 3) return;
-                id(light_color_r) = std::max(0, std::min(255, r));
-                id(light_color_g) = std::max(0, std::min(255, g));
-                id(light_color_b) = std::max(0, std::min(255, b));
-                float rf = id(light_color_r) / 255.0f;
-                float gf = id(light_color_g) / 255.0f;
-                float bf = id(light_color_b) / 255.0f;
-                float maxc = std::max(rf, std::max(gf, bf));
-                float minc = std::min(rf, std::min(gf, bf));
-                float delta = maxc - minc;
-                float hue = 0.0f;
-                if (delta > 0.0001f) {
-                  if (maxc == rf) hue = 60.0f * fmodf((gf - bf) / delta, 6.0f);
-                  else if (maxc == gf) hue = 60.0f * (((bf - rf) / delta) + 2.0f);
-                  else hue = 60.0f * (((rf - gf) / delta) + 4.0f);
-                }
-                if (hue < 0.0f) hue += 360.0f;
-                id(light_color_h) = (int)(hue + 0.5f) % 360;
-            - script.execute: refresh_light_arc
-
-  - platform: homeassistant
-    id: ha_light_color_modes
-    entity_id: ${light_entity}
-    attribute: supported_color_modes
-    internal: true
-    on_value:
-      - if:
-          condition:
-            lambda: 'return !id(light_multilight_active);'
-          then:
-            - lambda: |-
-                id(light_supports_rgb) = x.find("rgb") != std::string::npos;
-                id(light_supports_color_temp) = x.find("color_temp") != std::string::npos;
-                id(light_supports_brightness) =
-                    id(light_supports_rgb) || x.find("brightness") != std::string::npos ||
-                    x.find("color_temp") != std::string::npos || x.find("hs") != std::string::npos ||
-                    x.find("xy") != std::string::npos;
-                ESP_LOGI("light_ha", "entity=%s supported_color_modes=%s brightness=%s rgb=%s ct=%s",
-                         "${light_entity}", x.c_str(),
-                         id(light_supports_brightness) ? "yes" : "no",
-                         id(light_supports_rgb) ? "yes" : "no",
-                         id(light_supports_color_temp) ? "yes" : "no");
-            - script.execute: refresh_light_arc
-
-  - platform: homeassistant
-    id: ha_light_color_mode
-    entity_id: ${light_entity}
-    attribute: color_mode
-    internal: true
-    on_value:
-      - if:
-          condition:
-            lambda: 'return !id(light_multilight_active);'
-          then:
-            - lambda: |-
-                id(light_ha_color_mode_is_temp) = x == "color_temp";
-            - script.execute: refresh_light_arc
-
-sensor:
-  - platform: homeassistant
-    id: ha_light_color_temp_kelvin
-    entity_id: ${light_entity}
-    attribute: color_temp_kelvin
-    internal: true
-    on_value:
-      - if:
-          condition:
-            lambda: 'return !id(light_multilight_active) && !id(in_colorpicker);'
-          then:
-            - lambda: |-
-                if (x != x || x <= 0.0f) return;
-                id(light_white_kelvin) = static_cast<int>(x + 0.5f);
-
-  - platform: homeassistant
-    id: ha_light_min_color_temp_kelvin
-    entity_id: ${light_entity}
-    attribute: min_color_temp_kelvin
-    internal: true
-    on_value:
-      - if:
-          condition:
-            lambda: 'return !id(light_multilight_active);'
-          then:
-            - lambda: |-
-                if (x != x || x <= 0.0f) return;
-                id(light_white_kelvin_min) = static_cast<int>(x + 0.5f);
-
-  - platform: homeassistant
-    id: ha_light_max_color_temp_kelvin
-    entity_id: ${light_entity}
-    attribute: max_color_temp_kelvin
-    internal: true
-    on_value:
-      - if:
-          condition:
-            lambda: 'return !id(light_multilight_active);'
-          then:
-            - lambda: |-
-                if (x != x || x <= 0.0f) return;
-                id(light_white_kelvin_max) = static_cast<int>(x + 0.5f);
-
-  - platform: homeassistant
-    id: ha_light_brightness
-    entity_id: ${light_entity}
-    attribute: brightness
-    internal: true
-    on_value:
-      - if:
-          condition:
-            lambda: 'return !id(light_multilight_active);'
-          then:
-            - lambda: |-
-                if (x != x) return;
-                int brightness = (int)(x * 100.0f / 255.0f + 0.5f);
-                id(light_last_ha_brightness) = std::max(0, std::min(100, brightness));
-                if (id(light_user_adjusting)) {
-                  if (id(light_brightness_action_sent)) {
-                    id(light_ha_brightness_received_after_send) = true;
-                    ESP_LOGI("light_ha", "stored HA brightness=%d after local send",
-                             id(light_last_ha_brightness));
-                  } else {
-                    ESP_LOGI("light_ha", "ignored pre-send HA brightness=%d while local adjustment is active",
-                             id(light_last_ha_brightness));
-                  }
-                  return;
-                }
-                id(light_brightness) = id(light_last_ha_brightness);
-            - if:
-                condition:
-                  lambda: 'return !id(light_user_adjusting);'
-                then:
-                  - script.execute: refresh_light_arc
 
 script:
   - id: send_light_turn_on
@@ -331,11 +168,7 @@ script:
                   brightness_pct: "{{ brightness | int }}"
                   rgb_color: "[{{ red | int }}, {{ green | int }}, {{ blue | int }}]"
                 variables:
-                  target_entity: !lambda |-
-                    if (id(light_multilight_active)) {
-                      return id(dial_lights_id).active_entity_id();
-                    }
-                    return std::string("${light_entity}");
+                  target_entity: !lambda 'return id(dial_lights_id).active_entity_id();'
                   brightness: !lambda "return id(light_brightness);"
                   red: !lambda "return id(light_color_r);"
                   green: !lambda "return id(light_color_g);"
@@ -351,11 +184,7 @@ script:
                         entity_id: "{{ target_entity }}"
                         brightness_pct: "{{ brightness | int }}"
                       variables:
-                        target_entity: !lambda |-
-                          if (id(light_multilight_active)) {
-                            return id(dial_lights_id).active_entity_id();
-                          }
-                          return std::string("${light_entity}");
+                        target_entity: !lambda 'return id(dial_lights_id).active_entity_id();'
                         brightness: !lambda "return id(light_brightness);"
                 else:
                   - homeassistant.action:
@@ -363,11 +192,7 @@ script:
                       data_template:
                         entity_id: "{{ target_entity }}"
                       variables:
-                        target_entity: !lambda |-
-                          if (id(light_multilight_active)) {
-                            return id(dial_lights_id).active_entity_id();
-                          }
-                          return std::string("${light_entity}");
+                        target_entity: !lambda 'return id(dial_lights_id).active_entity_id();'
 
   - id: send_light_turn_off
     then:
@@ -376,11 +201,7 @@ script:
           data_template:
             entity_id: "{{ target_entity }}"
           variables:
-            target_entity: !lambda |-
-              if (id(light_multilight_active)) {
-                return id(dial_lights_id).active_entity_id();
-              }
-              return std::string("${light_entity}");
+            target_entity: !lambda 'return id(dial_lights_id).active_entity_id();'
 
   - id: send_light_color_temp
     then:
@@ -395,11 +216,7 @@ script:
                   color_temp_kelvin: "{{ kelvin | int }}"
                   brightness_pct: "{{ brightness | int }}"
                 variables:
-                  target_entity: !lambda |-
-                    if (id(light_multilight_active)) {
-                      return id(dial_lights_id).active_entity_id();
-                    }
-                    return std::string("${light_entity}");
+                  target_entity: !lambda 'return id(dial_lights_id).active_entity_id();'
                   kelvin: !lambda "return id(light_white_kelvin);"
                   brightness: !lambda "return id(light_brightness);"
           else:
@@ -409,11 +226,7 @@ script:
                   entity_id: "{{ target_entity }}"
                   color_temp_kelvin: "{{ kelvin | int }}"
                 variables:
-                  target_entity: !lambda |-
-                    if (id(light_multilight_active)) {
-                      return id(dial_lights_id).active_entity_id();
-                    }
-                    return std::string("${light_entity}");
+                  target_entity: !lambda 'return id(dial_lights_id).active_entity_id();'
                   kelvin: !lambda "return id(light_white_kelvin);"
 
   - id: queue_light_brightness
@@ -432,16 +245,11 @@ script:
           id(light_user_adjusting) = false;
           int requested = id(light_requested_brightness);
           int received = id(light_last_ha_brightness);
-          if (id(light_multilight_active) && id(dial_lights_id).active_brightness_valid()) {
+          if (id(dial_lights_id).active_brightness_valid()) {
             received = id(dial_lights_id).active_brightness_percent();
           }
           const bool sent = id(light_brightness_action_sent);
-          bool confirmed = received >= 0 && abs(received - requested) <= 2;
-          if (!id(light_multilight_active)) {
-            confirmed = confirmed && id(light_ha_brightness_received_after_send);
-          } else {
-            confirmed = confirmed && sent;
-          }
+          bool confirmed = sent && received >= 0 && abs(received - requested) <= 2;
           if (!sent) {
             id(light_brightness) = requested;
           } else if (confirmed) {
@@ -473,7 +281,6 @@ script:
     then:
       - globals.set: {id: in_light, value: 'false'}
       - globals.set: {id: in_colorpicker, value: 'false'}
-      - globals.set: {id: light_multilight_active, value: 'false'}
       - script.execute: open_menu_back
 
   - id: toggle_light_onoff
@@ -485,10 +292,7 @@ script:
             : lv_color_hex(0x262626);
           lv_obj_set_style_border_color(id(btn_dengguang), col, LV_STATE_DEFAULT);
           lv_obj_set_style_shadow_color(id(btn_dengguang), col, LV_STATE_DEFAULT);
-          const char *entity = "${light_entity}";
-          if (id(light_multilight_active)) {
-            entity = id(dial_lights_id).active_entity_id().c_str();
-          }
+          const char *entity = id(dial_lights_id).active_entity_id().c_str();
           ESP_LOGI("light_ha", "toggle %s entity=%s", id(light_on) ? "on" : "off", entity);
       - if:
           condition:
@@ -505,40 +309,22 @@ script:
           id(light_color_h_prev) = id(light_color_h);
           id(light_white_kelvin_prev) = id(light_white_kelvin);
 
-          bool rgb = id(light_supports_rgb);
-          bool ct = id(light_supports_color_temp);
+          bool rgb = id(dial_lights_id).active_supports_rgb();
+          bool ct = id(dial_lights_id).active_supports_color_temp();
           bool mode_is_temp = id(light_ha_color_mode_is_temp);
-
-          if (id(light_multilight_active)) {
-            rgb = id(dial_lights_id).active_supports_rgb();
-            ct = id(dial_lights_id).active_supports_color_temp();
-            id(light_supports_rgb) = rgb;
-            id(light_supports_color_temp) = ct;
-            if (id(dial_lights_id).active_color_mode_valid()) {
-              mode_is_temp = id(dial_lights_id).active_is_color_temp_mode();
-            }
-            int min_k = id(dial_lights_id).active_min_color_temp_kelvin();
-            int max_k = id(dial_lights_id).active_max_color_temp_kelvin();
-            if (min_k > max_k) { int tmp = min_k; min_k = max_k; max_k = tmp; }
-            if (max_k - min_k < 1) max_k = min_k + 1;
-            id(light_white_kelvin_min) = min_k;
-            id(light_white_kelvin_max) = max_k;
-            if (id(dial_lights_id).active_color_temp_valid()) {
-              int k = id(dial_lights_id).active_color_temp_kelvin();
-              if (k < min_k) k = min_k;
-              if (k > max_k) k = max_k;
-              id(light_white_kelvin) = k;
-            }
-          } else {
-            int min_k = id(light_white_kelvin_min);
-            int max_k = id(light_white_kelvin_max);
-            if (min_k <= 0) min_k = 2000;
-            if (max_k <= 0) max_k = 6500;
-            if (min_k > max_k) { int tmp = min_k; min_k = max_k; max_k = tmp; }
-            if (max_k - min_k < 1) max_k = min_k + 1;
-            id(light_white_kelvin_min) = min_k;
-            id(light_white_kelvin_max) = max_k;
-            int k = id(light_white_kelvin);
+          id(light_supports_rgb) = rgb;
+          id(light_supports_color_temp) = ct;
+          if (id(dial_lights_id).active_color_mode_valid()) {
+            mode_is_temp = id(dial_lights_id).active_is_color_temp_mode();
+          }
+          int min_k = id(dial_lights_id).active_min_color_temp_kelvin();
+          int max_k = id(dial_lights_id).active_max_color_temp_kelvin();
+          if (min_k > max_k) { int tmp = min_k; min_k = max_k; max_k = tmp; }
+          if (max_k - min_k < 1) max_k = min_k + 1;
+          id(light_white_kelvin_min) = min_k;
+          id(light_white_kelvin_max) = max_k;
+          if (id(dial_lights_id).active_color_temp_valid()) {
+            int k = id(dial_lights_id).active_color_temp_kelvin();
             if (k < min_k) k = min_k;
             if (k > max_k) k = max_k;
             id(light_white_kelvin) = k;

@@ -381,7 +381,6 @@ script:
           condition:
             lambda: 'return id(dial_lights_id).light_count() > 1;'
           then:
-            - globals.set: {id: light_multilight_active, value: 'false'}
             - globals.set: {id: in_light_selector, value: 'true'}
             - globals.set: {id: in_menu, value: 'false'}
             - globals.set: {id: in_light, value: 'false'}
@@ -393,7 +392,6 @@ script:
 
   - id: open_light_selector_back
     then:
-      - globals.set: {id: light_multilight_active, value: 'false'}
       - globals.set: {id: in_light_selector, value: 'true'}
       - globals.set: {id: in_menu, value: 'false'}
       - globals.set: {id: in_light, value: 'false'}
@@ -470,7 +468,6 @@ script:
           id: lbl_light_title
           text: !lambda 'return id(dial_lights_id).active_name().c_str();'
       - lambda: |-
-          id(light_multilight_active) = true;
           id(dial_lights_id).load_active_snapshot();
 
           id(light_on) = false;

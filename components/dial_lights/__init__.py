@@ -27,8 +27,6 @@ CONF_MAX_COLOR_TEMP_KELVIN_SENSOR = "max_color_temp_kelvin_sensor"
 
 LEGACY_DISABLED = {
     "timer.your_timer",
-    "climate.your_ac",
-    "media_player.your_player",
     "weather.your_location",
 }
 

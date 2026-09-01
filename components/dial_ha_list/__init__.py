@@ -18,8 +18,6 @@ AUTO_LOAD = ["text_sensor"]
 
 LEGACY_DISABLED = {
     "timer.your_timer",
-    "climate.your_ac",
-    "media_player.your_player",
     "weather.your_location",
 }
 

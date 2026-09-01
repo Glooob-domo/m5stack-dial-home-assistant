@@ -15,10 +15,6 @@ inline bool dial_ha_entity_enabled(const char *entity) {
 
   if (strcmp(entity, "timer.your_timer") == 0)
     return false;
-  if (strcmp(entity, "climate.your_ac") == 0)
-    return false;
-  if (strcmp(entity, "media_player.your_player") == 0)
-    return false;
   if (strcmp(entity, "weather.your_location") == 0)
     return false;
 
@@ -39,8 +35,7 @@ struct DialMenuCounts {
   size_t media{0};
 };
 
-inline int dial_collect_menu_items(int *items, const char *timer_entity, const char *climate_entity,
-                                   const char *music_entity, const DialMenuCounts &c) {
+inline int dial_collect_menu_items(int *items, const char *timer_entity, const DialMenuCounts &c) {
   int n = 0;
   if (dial_ha_entity_enabled(timer_entity))
     items[n++] = 0;
@@ -54,9 +49,9 @@ inline int dial_collect_menu_items(int *items, const char *timer_entity, const c
     items[n++] = 4;
   if (c.scenes > 0)
     items[n++] = 5;
-  if (c.climates > 0 || dial_ha_entity_enabled(climate_entity))
+  if (c.climates > 0)
     items[n++] = 6;
-  if (c.media > 0 || dial_ha_entity_enabled(music_entity))
+  if (c.media > 0)
     items[n++] = 7;
   items[n++] = DIAL_FUNC_HOME;
   return n;
