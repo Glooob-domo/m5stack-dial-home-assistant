@@ -37,6 +37,7 @@ color:
 
 script:
   - id: refresh_cover
+    mode: restart
     then:
       - lambda: |-
           auto *list = (id(cover_page_kind) == 1) ? id(dial_garages_id) : id(dial_covers_id);
@@ -72,14 +73,21 @@ script:
           lv_obj_move_foreground(id(cover_overlay));
 
   - id: cover_apply_snapshot
+    mode: restart
     then:
       - lambda: |-
-          if (id(cover_user_adjusting)) return;
           auto *list = (id(cover_page_kind) == 1) ? id(dial_garages_id) : id(dial_covers_id);
           const int pos = list->active_position();
-          if (pos >= 0)
-            id(cover_position) = pos;
-      - script.execute: refresh_cover
+          if (pos >= 0) {
+            const int local = id(cover_position);
+            const int delta = pos > local ? pos - local : local - pos;
+            if (!id(cover_user_adjusting) || delta > 5) {
+              id(cover_position) = pos;
+              if (delta > 5)
+                id(cover_user_adjusting) = false;
+            }
+          }
+          id(refresh_cover).execute();
 
   - id: open_cover
     then:
@@ -214,7 +222,7 @@ script:
           }
 
 interval:
-  - interval: 300ms
+  - interval: 200ms
     then:
       - if:
           condition:

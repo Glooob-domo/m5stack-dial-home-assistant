@@ -96,7 +96,7 @@ async def make_ha_number(uid_prefix, index, suffix, entity_id, attribute):
         CONF_NAME: f"Dial {uid_prefix} {index} {suffix} num",
         CONF_INTERNAL: True,
         CONF_DISABLED_BY_DEFAULT: True,
-        CONF_FORCE_UPDATE: False,
+        CONF_FORCE_UPDATE: True,
         CONF_ACCURACY_DECIMALS: 0,
     }
     var = cg.new_Pvariable(uid)

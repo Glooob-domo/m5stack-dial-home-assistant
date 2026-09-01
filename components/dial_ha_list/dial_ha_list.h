@@ -54,6 +54,8 @@ class DialHaList : public Component {
   struct NumAttr {
     std::string key;
     sensor::Sensor *sensor{nullptr};
+    float value{0.0f};
+    bool has_value{false};
   };
   struct Entry {
     std::string entity_id;
@@ -63,13 +65,20 @@ class DialHaList : public Component {
     bool state_valid{false};
     std::vector<Attr> attrs;
     std::vector<NumAttr> num_attrs;
+    int cached_position{-1};
+    bool cached_from_attr_{false};
   };
 
   void on_state_(size_t index, const std::string &value);
   void on_attr_(size_t index, size_t attr_index, const std::string &value);
+  void on_num_(size_t index, size_t attr_index, float raw);
+  void note_position_(size_t index, int pos, bool from_attr);
+  int live_position_(size_t index) const;
   static bool value_valid_(const std::string &value);
   static bool sensor_ready_(text_sensor::TextSensor *sensor);
   static bool parse_percent_(const std::string &raw, int &pos);
+  static bool parse_numeric_(float raw, int &pos);
+  static bool is_position_key_(const std::string &key);
 
   std::vector<Entry> entries_;
   size_t active_index_{0};

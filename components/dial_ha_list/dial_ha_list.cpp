@@ -27,6 +27,20 @@ bool DialHaList::sensor_ready_(text_sensor::TextSensor *sensor) {
   return sensor != nullptr && (sensor->has_state() || !sensor->state.empty());
 }
 
+bool DialHaList::is_position_key_(const std::string &key) { return key == "position" || key == "position_alt"; }
+
+bool DialHaList::parse_numeric_(float raw, int &pos) {
+  if (!std::isfinite(raw))
+    return false;
+  int value = static_cast<int>(raw + (raw < 0.0f ? -0.5f : 0.5f));
+  if (value < 0)
+    value = 0;
+  if (value > 100)
+    value = 100;
+  pos = value;
+  return true;
+}
+
 bool DialHaList::parse_percent_(const std::string &raw, int &pos) {
   std::string text = raw;
   while (!text.empty() && std::isspace(static_cast<unsigned char>(text.front())))
@@ -47,13 +61,11 @@ bool DialHaList::parse_percent_(const std::string &raw, int &pos) {
     return false;
   if (!std::isfinite(parsed))
     return false;
-  int value = static_cast<int>(parsed + (parsed < 0.0f ? -0.5f : 0.5f));
-  if (value < 0)
-    value = 0;
-  if (value > 100)
-    value = 100;
-  pos = value;
-  return true;
+  if (parsed > 0.0f && parsed < 1.0f && text.find('.') != std::string::npos) {
+    pos = static_cast<int>(parsed * 100.0f + 0.5f);
+    return true;
+  }
+  return parse_numeric_(parsed, pos);
 }
 
 void DialHaList::add_entity(std::string entity_id, std::string name, text_sensor::TextSensor *state) {
@@ -88,6 +100,23 @@ void DialHaList::add_num_attr(std::string key, sensor::Sensor *sensor) {
   this->entries_.back().num_attrs.push_back(std::move(attr));
 }
 
+void DialHaList::note_position_(size_t index, int pos, bool from_attr) {
+  if (index >= this->entries_.size() || pos < 0)
+    return;
+  auto &entry = this->entries_[index];
+  if (pos > 100)
+    pos = 100;
+  if (entry.cached_position == pos) {
+    if (from_attr)
+      entry.cached_from_attr_ = true;
+    return;
+  }
+  entry.cached_position = pos;
+  if (from_attr)
+    entry.cached_from_attr_ = true;
+  ESP_LOGD(TAG, "%s position=%d attr=%s", entry.entity_id.c_str(), pos, from_attr ? "yes" : "no");
+}
+
 void DialHaList::setup() {
   for (size_t i = 0; i < this->entries_.size(); i++) {
     auto &entry = this->entries_[i];
@@ -104,6 +133,14 @@ void DialHaList::setup() {
       if (attr.sensor->has_state())
         this->on_attr_(i, a, attr.sensor->state);
     }
+    for (size_t n = 0; n < entry.num_attrs.size(); n++) {
+      auto &attr = entry.num_attrs[n];
+      if (attr.sensor == nullptr)
+        continue;
+      attr.sensor->add_on_state_callback([this, i, n](float value) { this->on_num_(i, n, value); });
+      if (attr.sensor->has_state())
+        this->on_num_(i, n, attr.sensor->state);
+    }
   }
 }
 
@@ -116,6 +153,17 @@ void DialHaList::loop() {
       auto &attr = entry.attrs[a];
       if (sensor_ready_(attr.sensor) && attr.sensor->state != attr.value)
         this->on_attr_(i, a, attr.sensor->state);
+    }
+    for (size_t n = 0; n < entry.num_attrs.size(); n++) {
+      auto &attr = entry.num_attrs[n];
+      if (attr.sensor == nullptr || !attr.sensor->has_state())
+        continue;
+      const float raw = attr.sensor->state;
+      if (!std::isfinite(raw))
+        continue;
+      if (attr.has_value && std::fabs(attr.value - raw) < 0.05f)
+        continue;
+      this->on_num_(i, n, raw);
     }
   }
 }
@@ -196,25 +244,9 @@ bool DialHaList::attr_valid_at(size_t index, const char *key) const {
   return false;
 }
 
-int DialHaList::position_at(size_t index) const {
+int DialHaList::live_position_(size_t index) const {
   if (index >= this->entries_.size())
     return -1;
-  const auto &entry = this->entries_[index];
-  for (const auto &attr : entry.num_attrs) {
-    if (attr.sensor == nullptr || !attr.sensor->has_state())
-      continue;
-    if (attr.key != "position" && attr.key != "position_alt")
-      continue;
-    const float raw = attr.sensor->state;
-    if (!std::isfinite(raw))
-      continue;
-    int pos = static_cast<int>(raw + (raw < 0.0f ? -0.5f : 0.5f));
-    if (pos < 0)
-      pos = 0;
-    if (pos > 100)
-      pos = 100;
-    return pos;
-  }
   const char *key = nullptr;
   if (this->attr_valid_at(index, "position"))
     key = "position";
@@ -223,6 +255,14 @@ int DialHaList::position_at(size_t index) const {
   if (key != nullptr) {
     int pos = 0;
     if (parse_percent_(this->attr_at(index, key), pos))
+      return pos;
+  }
+  const auto &entry = this->entries_[index];
+  for (const auto &attr : entry.num_attrs) {
+    if (!is_position_key_(attr.key) || attr.sensor == nullptr || !attr.sensor->has_state())
+      continue;
+    int pos = 0;
+    if (parse_numeric_(attr.sensor->state, pos))
       return pos;
   }
   if (!this->state_valid_at(index))
@@ -240,6 +280,15 @@ int DialHaList::position_at(size_t index) const {
   if (st == "closed" || st == "off")
     return 0;
   return -1;
+}
+
+int DialHaList::position_at(size_t index) const {
+  if (index >= this->entries_.size())
+    return -1;
+  const int cached = this->entries_[index].cached_position;
+  if (cached >= 0)
+    return cached;
+  return this->live_position_(index);
 }
 
 bool DialHaList::cover_is_open_at(size_t index) const {
@@ -267,12 +316,45 @@ void DialHaList::on_state_(size_t index, const std::string &value) {
   entry.state_valid = value_valid_(value);
   ESP_LOGD(TAG, "%s state='%s' valid=%s", entry.entity_id.c_str(), value.c_str(),
            entry.state_valid ? "yes" : "no");
+  int pos = 0;
+  if (parse_percent_(value, pos)) {
+    this->note_position_(index, pos, false);
+    return;
+  }
+  if (!entry.state_valid)
+    return;
+  std::string st = value;
+  for (char &c : st) {
+    if (c >= 'A' && c <= 'Z')
+      c = static_cast<char>(c - 'A' + 'a');
+  }
+  if (st == "closed" || st == "off") {
+    this->note_position_(index, 0, false);
+  } else if ((st == "open" || st == "on") && !entry.cached_from_attr_) {
+    this->note_position_(index, 100, false);
+  }
 }
 
 void DialHaList::on_attr_(size_t index, size_t attr_index, const std::string &value) {
   auto &attr = this->entries_[index].attrs[attr_index];
   attr.value = value;
   attr.valid = value_valid_(value);
+  if (!is_position_key_(attr.key) || !attr.valid)
+    return;
+  int pos = 0;
+  if (parse_percent_(value, pos))
+    this->note_position_(index, pos, true);
+}
+
+void DialHaList::on_num_(size_t index, size_t attr_index, float raw) {
+  auto &attr = this->entries_[index].num_attrs[attr_index];
+  attr.value = raw;
+  attr.has_value = std::isfinite(raw);
+  if (!is_position_key_(attr.key) || !attr.has_value)
+    return;
+  int pos = 0;
+  if (parse_numeric_(raw, pos))
+    this->note_position_(index, pos, true);
 }
 
 }  // namespace dial_ha_list
