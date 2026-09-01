@@ -138,9 +138,6 @@ globals:
   - id: air_btn_power_active
     type: bool
     initial_value: 'true'
-  - id: air_encoder_step_accum
-    type: int
-    initial_value: '0'
   - id: air_hvac_modes_csv
     type: std::string
     initial_value: '""'
@@ -169,7 +166,6 @@ script:
       - globals.set: {id: in_air, value: 'true'}
       - globals.set: {id: in_menu, value: 'false'}
       - globals.set: {id: in_entity_selector, value: 'false'}
-      - globals.set: {id: air_encoder_step_accum, value: '0'}
       - lambda: |-
           id(air_hvac_mode_pending) = "";
           id(air_fan_mode_pending) = "";
@@ -199,7 +195,6 @@ script:
   - id: close_air
     then:
       - globals.set: {id: in_air, value: 'false'}
-      - globals.set: {id: air_encoder_step_accum, value: '0'}
       - if:
           condition:
             lambda: 'return id(dial_climates_id).count() > 1;'
@@ -339,7 +334,6 @@ script:
           } else {
             id(air_control_mode) = 1;
           }
-          id(air_encoder_step_accum) = 0;
       - script.execute: refresh_air
 
   - id: air_toggle_hvac_mode
@@ -350,7 +344,6 @@ script:
           } else {
             id(air_control_mode) = 2;
           }
-          id(air_encoder_step_accum) = 0;
       - script.execute: refresh_air
 
   - id: air_confirm_edit
@@ -360,7 +353,6 @@ script:
             lambda: 'return id(air_control_mode) != 0;'
           then:
             - globals.set: {id: air_control_mode, value: '0'}
-            - globals.set: {id: air_encoder_step_accum, value: '0'}
             - rtttl.play: "b:d=16,o=6,b=200:c"
             - script.execute: refresh_air
 

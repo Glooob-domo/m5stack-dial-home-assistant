@@ -6,9 +6,6 @@ globals:
   - id: entity_selector_kind
     type: int
     initial_value: '0'
-  - id: entity_selector_encoder_accum
-    type: int
-    initial_value: '0'
 
 dial_carousel:
   - id: entity_selector_carousel
@@ -280,7 +277,6 @@ script:
       - globals.set: {id: in_cover, value: 'false'}
       - globals.set: {id: in_switch, value: 'false'}
       - globals.set: {id: in_scene, value: 'false'}
-      - globals.set: {id: entity_selector_encoder_accum, value: '0'}
       - script.execute: refresh_entity_selector
       - lvgl.page.show:
           id: page_entity_selector
@@ -295,7 +291,6 @@ script:
       - globals.set: {id: in_cover, value: 'false'}
       - globals.set: {id: in_switch, value: 'false'}
       - globals.set: {id: in_scene, value: 'false'}
-      - globals.set: {id: entity_selector_encoder_accum, value: '0'}
       - script.execute: refresh_entity_selector
       - lvgl.page.show:
           id: page_entity_selector
@@ -304,7 +299,6 @@ script:
   - id: close_entity_selector
     then:
       - globals.set: {id: in_entity_selector, value: 'false'}
-      - globals.set: {id: entity_selector_encoder_accum, value: '0'}
       - script.execute: open_menu_back
 
   - id: entity_selector_confirm

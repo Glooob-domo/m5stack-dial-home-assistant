@@ -372,7 +372,7 @@ sensor:
     pin_b:
       number: GPIO41
       mode: INPUT_PULLUP
-    resolution: 4
+    resolution: 1
     on_clockwise:
       - script.execute:
           id: dial_register_activity
@@ -384,21 +384,11 @@ sensor:
             - lambda: |-
                 if (id(in_light_selector)) {
                   if (id(selector_carousel).is_animating()) return;
-                  const int before = id(light_selector_encoder_accum);
-                  const int after = before + 1;
-                  id(light_selector_encoder_accum) = after;
-                  if (after < 4) return;
-                  id(light_selector_encoder_accum) = 0;
                   id(light_selector_scroll_down).execute();
                   return;
                 }
                 if (id(in_entity_selector)) {
                   if (id(entity_selector_carousel).is_animating()) return;
-                  const int before = id(entity_selector_encoder_accum);
-                  const int after = before + 1;
-                  id(entity_selector_encoder_accum) = after;
-                  if (after < 4) return;
-                  id(entity_selector_encoder_accum) = 0;
                   id(entity_selector_scroll_down).execute();
                   return;
                 }
@@ -412,14 +402,9 @@ sensor:
                   return;
                 }
                 if (id(in_air) && !id(in_menu)) {
-                  if (id(air_encoder_step_accum) < 0) id(air_encoder_step_accum) = 0;
-                  id(air_encoder_step_accum) += 1;
-                  if (id(air_encoder_step_accum) >= 4) {
-                    id(air_encoder_step_accum) = 0;
-                    if (id(air_control_mode) == 0) id(air_temp_up).execute();
-                    else if (id(air_control_mode) == 1) id(air_fan_step).execute(1);
-                    else id(air_hvac_step).execute(1);
-                  }
+                  if (id(air_control_mode) == 0) id(air_temp_up).execute();
+                  else if (id(air_control_mode) == 1) id(air_fan_step).execute(1);
+                  else id(air_hvac_step).execute(1);
                   return;
                 }
                 if (id(in_music)) {
@@ -448,21 +433,11 @@ sensor:
             - lambda: |-
                 if (id(in_light_selector)) {
                   if (id(selector_carousel).is_animating()) return;
-                  const int before = id(light_selector_encoder_accum);
-                  const int after = before - 1;
-                  id(light_selector_encoder_accum) = after;
-                  if (after > -4) return;
-                  id(light_selector_encoder_accum) = 0;
                   id(light_selector_scroll_up).execute();
                   return;
                 }
                 if (id(in_entity_selector)) {
                   if (id(entity_selector_carousel).is_animating()) return;
-                  const int before = id(entity_selector_encoder_accum);
-                  const int after = before - 1;
-                  id(entity_selector_encoder_accum) = after;
-                  if (after > -4) return;
-                  id(entity_selector_encoder_accum) = 0;
                   id(entity_selector_scroll_up).execute();
                   return;
                 }
@@ -476,14 +451,9 @@ sensor:
                   return;
                 }
                 if (id(in_air) && !id(in_menu)) {
-                  if (id(air_encoder_step_accum) > 0) id(air_encoder_step_accum) = 0;
-                  id(air_encoder_step_accum) -= 1;
-                  if (id(air_encoder_step_accum) <= -4) {
-                    id(air_encoder_step_accum) = 0;
-                    if (id(air_control_mode) == 0) id(air_temp_down).execute();
-                    else if (id(air_control_mode) == 1) id(air_fan_step).execute(-1);
-                    else id(air_hvac_step).execute(-1);
-                  }
+                  if (id(air_control_mode) == 0) id(air_temp_down).execute();
+                  else if (id(air_control_mode) == 1) id(air_fan_step).execute(-1);
+                  else id(air_hvac_step).execute(-1);
                   return;
                 }
                 if (id(in_music)) {
