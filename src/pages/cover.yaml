@@ -16,21 +16,6 @@ globals:
 font:
   - file:
       family: DM+Sans
-      weight: 900
-      type: gfonts
-    id: font_cover_big
-    size: 52
-    bpp: 4
-    glyphs: "0123456789"
-
-  - file: "gfonts://DM+Sans"
-    id: font_cover_pct
-    size: 22
-    bpp: 4
-    glyphs: "%"
-
-  - file:
-      family: DM+Sans
       weight: 700
       type: gfonts
     id: font_cover_btn
@@ -42,11 +27,13 @@ color:
   - id: col_cover_bg
     hex: "000000"
   - id: col_cover_track
-    hex: "1A2A28"
+    hex: "282729"
   - id: col_cover_accent
     hex: "2DD4BF"
   - id: col_cover_btn
     hex: "08201C"
+  - id: col_cover_label_bg
+    hex: "1A2A28"
 
 script:
   - id: refresh_cover
@@ -54,71 +41,56 @@ script:
       - lambda: |-
           auto *list = (id(cover_page_kind) == 1) ? id(dial_garages_id) : id(dial_covers_id);
           const uint32_t accent = (id(cover_page_kind) == 1) ? 0xF97316 : 0x2DD4BF;
-          const uint32_t track = (id(cover_page_kind) == 1) ? 0x2A1A10 : 0x1A2A28;
+          const uint32_t track = 0x282729;
           const uint32_t btn = (id(cover_page_kind) == 1) ? 0x201208 : 0x08201C;
+          const uint32_t pill = (id(cover_page_kind) == 1) ? 0x2A1A10 : 0x1A2A28;
           char buf[8];
           snprintf(buf, sizeof(buf), "%d", id(cover_position));
           lv_label_set_text(id(lbl_cover_num), buf);
+          lv_obj_update_layout(id(lbl_cover_num));
+          lv_coord_t nw = lv_obj_get_width(id(lbl_cover_num));
+          int pct_w = 12, gap = 3;
+          int pair_x = 120 - (nw + gap + pct_w) / 2;
+          lv_obj_set_pos(id(lbl_cover_num), pair_x, 70);
+          lv_obj_set_pos(id(lbl_cover_pct), pair_x + nw + gap, 88);
           if (lv_arc_get_value(id(cover_arc)) != id(cover_position))
             lv_arc_set_value(id(cover_arc), id(cover_position));
           lv_obj_set_style_arc_color(id(cover_arc), lv_color_hex(track), LV_PART_MAIN);
           lv_obj_set_style_arc_color(id(cover_arc), lv_color_hex(accent), LV_PART_INDICATOR);
           lv_obj_set_style_text_color(id(lbl_cover_pct), lv_color_hex(accent), LV_PART_MAIN);
           lv_obj_set_style_text_color(id(lbl_cover_status), lv_color_hex(accent), LV_PART_MAIN);
+          lv_obj_set_style_text_color(id(lbl_cover_title), lv_color_hex(accent), LV_PART_MAIN);
           lv_obj_set_style_text_color(id(lbl_cover_open), lv_color_hex(accent), LV_PART_MAIN);
           lv_obj_set_style_text_color(id(lbl_cover_close), lv_color_hex(accent), LV_PART_MAIN);
+          lv_obj_set_style_bg_color(id(cover_title_pill), lv_color_hex(pill), LV_PART_MAIN);
           lv_obj_set_style_bg_color(id(btn_cover_open), lv_color_hex(btn), LV_PART_MAIN);
           lv_obj_set_style_bg_color(id(btn_cover_stop), lv_color_hex(btn), LV_PART_MAIN);
           lv_obj_set_style_bg_color(id(btn_cover_close), lv_color_hex(btn), LV_PART_MAIN);
-          const std::string &st = list->active_state();
-          const char *status = dial_i18n::unavailable();
-          if (list->active_state_valid()) {
-            if (st == "open") status = dial_i18n::cover_open();
-            else if (st == "closed") status = dial_i18n::cover_closed();
-            else if (st == "opening") status = dial_i18n::cover_opening();
-            else if (st == "closing") status = dial_i18n::cover_closing();
-            else if (st == "stopped") status = dial_i18n::cover_stopped();
-            else status = st.c_str();
-          } else if (id(cover_position) <= 0) {
-            status = dial_i18n::cover_closed();
-          } else if (id(cover_position) >= 100) {
-            status = dial_i18n::cover_open();
-          }
+          const int ha_pos = list->active_position();
+          const int pos = (ha_pos >= 0) ? ha_pos : id(cover_position);
+          char status[40];
+          dial_i18n::cover_status_from(list->active_state(), list->active_state_valid(), pos, true, status,
+                                       sizeof(status));
           lv_label_set_text(id(lbl_cover_status), status);
           lv_label_set_text(id(lbl_cover_title), list->active_name().c_str());
           lv_label_set_text(id(lbl_cover_open), dial_i18n::cover_open_btn());
           lv_label_set_text(id(lbl_cover_stop), dial_i18n::cover_stop_btn());
           lv_label_set_text(id(lbl_cover_close), dial_i18n::cover_close_btn());
-          lv_obj_move_foreground(id(lbl_cover_title));
-          lv_obj_move_foreground(id(lbl_cover_num));
-          lv_obj_move_foreground(id(lbl_cover_pct));
-          lv_obj_move_foreground(id(lbl_cover_status));
-          lv_obj_move_foreground(id(cover_actions));
-          lv_obj_invalidate(id(lbl_cover_title));
-          lv_obj_invalidate(id(lbl_cover_num));
-          lv_obj_invalidate(id(lbl_cover_pct));
-          lv_obj_invalidate(id(lbl_cover_status));
-          lv_obj_invalidate(id(cover_actions));
+          lv_obj_move_foreground(id(cover_overlay));
 
   - id: cover_apply_snapshot
     then:
       - lambda: |-
           if (id(cover_user_adjusting)) return;
           auto *list = (id(cover_page_kind) == 1) ? id(dial_garages_id) : id(dial_covers_id);
-          int pos = id(cover_position);
-          const char *pos_key = nullptr;
-          if (list->active_attr_valid("position")) pos_key = "position";
-          else if (list->active_attr_valid("position_alt")) pos_key = "position_alt";
-          if (pos_key != nullptr) {
-            pos = atoi(list->active_attr(pos_key).c_str());
-            if (pos < 0) pos = 0;
-            if (pos > 100) pos = 100;
+          int pos = list->active_position();
+          if (pos >= 0) {
+            id(cover_position) = pos;
           } else if (list->active_state_valid()) {
             const std::string &st = list->active_state();
-            if (st == "open") pos = 100;
-            else if (st == "closed") pos = 0;
+            if (st == "open" || st == "on") id(cover_position) = 100;
+            else if (st == "closed" || st == "off") id(cover_position) = 0;
           }
-          id(cover_position) = pos;
       - script.execute: refresh_cover
 
   - id: open_cover
@@ -176,9 +148,7 @@ script:
     then:
       - lambda: |-
           auto *list = (id(cover_page_kind) == 1) ? id(dial_garages_id) : id(dial_covers_id);
-          if (id(cover_page_kind) == 1 &&
-              !list->active_attr_valid("position") &&
-              !list->active_attr_valid("position_alt")) {
+          if (id(cover_page_kind) == 1 && list->active_position() < 0) {
             id(cover_open_action).execute();
             return;
           }
@@ -193,9 +163,7 @@ script:
     then:
       - lambda: |-
           auto *list = (id(cover_page_kind) == 1) ? id(dial_garages_id) : id(dial_covers_id);
-          if (id(cover_page_kind) == 1 &&
-              !list->active_attr_valid("position") &&
-              !list->active_attr_valid("position_alt")) {
+          if (id(cover_page_kind) == 1 && list->active_position() < 0) {
             id(cover_close_action).execute();
             return;
           }
@@ -247,14 +215,14 @@ script:
       - lambda: |-
           auto *list = (id(cover_page_kind) == 1) ? id(dial_garages_id) : id(dial_covers_id);
           const std::string &st = list->active_state();
-          ESP_LOGI("cover", "toggle kind=%d state=%s entity=%s", id(cover_page_kind), st.c_str(),
-                   list->active_entity_id().c_str());
+          ESP_LOGI("cover", "toggle kind=%d state=%s pos=%d entity=%s", id(cover_page_kind), st.c_str(),
+                   list->active_position(), list->active_entity_id().c_str());
           if (st == "opening" || st == "closing") {
             id(cover_stop_action).execute();
-          } else if (st == "closed") {
-            id(cover_open_action).execute();
-          } else {
+          } else if (list->cover_is_open_at(list->active_index())) {
             id(cover_close_action).execute();
+          } else {
+            id(cover_open_action).execute();
           }
 
 interval:
@@ -288,10 +256,10 @@ lvgl:
             widgets:
               - arc:
                   id: cover_arc
-                  x: 17
-                  y: 17
-                  width: 205
-                  height: 205
+                  x: 8
+                  y: 8
+                  width: 224
+                  height: 224
                   rotation: 90
                   start_angle: 55
                   end_angle: 305
@@ -299,105 +267,137 @@ lvgl:
                   min_value: 0
                   max_value: 100
                   arc_color: col_cover_track
-                  arc_width: 18
+                  arc_width: 14
+                  arc_opa: COVER
                   arc_rounded: true
                   adjustable: false
                   clickable: false
                   indicator:
                     arc_color: col_cover_accent
-                    arc_width: 18
+                    arc_width: 14
+                    arc_opa: COVER
                     arc_rounded: true
-              - label:
-                  id: lbl_cover_title
-                  align: TOP_MID
-                  y: 28
-                  text_font: font_lbl
-                  text_color: 0x8EA0B8
-                  long_mode: DOT
-                  width: 160
-                  text_align: CENTER
-                  text: ""
-              - label:
-                  id: lbl_cover_num
-                  align: CENTER
-                  y: -18
-                  text_font: font_cover_big
-                  text_color: 0xFFFFFF
-                  text: "0"
-              - label:
-                  id: lbl_cover_pct
-                  align: CENTER
-                  x: 48
-                  y: -8
-                  text_font: font_cover_pct
-                  text_color: col_cover_accent
-                  text: "%"
-              - label:
-                  id: lbl_cover_status
-                  align: CENTER
-                  y: 28
-                  width: 160
-                  text_align: CENTER
-                  text_font: font_menu_sub
-                  text_color: col_cover_accent
-                  text: ""
+                  knob:
+                    bg_color: 0xFFFFFF
+                    bg_opa: COVER
+                    border_width: 0
+                    width: 12
+                    height: 12
+                    radius: 6
               - obj:
-                  id: cover_actions
-                  align: BOTTOM_MID
-                  y: -22
-                  width: 200
-                  height: 36
+                  id: cover_overlay
+                  align: TOP_LEFT
+                  x: 0
+                  y: 0
+                  width: 240
+                  height: 240
                   bg_opa: TRANSP
                   border_width: 0
+                  pad_all: 0
+                  clickable: false
                   widgets:
+                    - label:
+                        id: lbl_cover_num
+                        x: 72
+                        y: 70
+                        text: "0"
+                        text_font: font_light_big
+                        text_color: 0xFFFFFF
+                    - label:
+                        id: lbl_cover_pct
+                        x: 140
+                        y: 88
+                        text: "%"
+                        text_font: font_light_pct
+                        text_color: col_cover_accent
+                    - label:
+                        id: lbl_cover_status
+                        align: TOP_MID
+                        y: 108
+                        width: 160
+                        text_align: CENTER
+                        text_font: font_menu_sub
+                        text_color: col_cover_accent
+                        text: ""
                     - obj:
-                        id: btn_cover_open
-                        align: LEFT_MID
-                        width: 62
-                        height: 32
-                        radius: 16
-                        bg_color: col_cover_btn
-                        clickable: true
-                        on_click:
-                          - script.execute: cover_open_action
+                        id: cover_title_pill
+                        align: TOP_MID
+                        x: 0
+                        y: 128
+                        width: 140
+                        height: 22
+                        radius: 15
+                        bg_color: col_cover_label_bg
+                        bg_opa: COVER
+                        border_width: 0
+                        clickable: false
                         widgets:
                           - label:
-                              id: lbl_cover_open
+                              id: lbl_cover_title
                               align: CENTER
-                              text_font: font_cover_btn
+                              width: 128
+                              text_align: CENTER
+                              long_mode: DOT
+                              text_font: font_menu_item
                               text_color: col_cover_accent
-                              text: "OPEN"
+                              text: ""
                     - obj:
-                        id: btn_cover_stop
-                        align: CENTER
-                        width: 62
-                        height: 32
-                        radius: 16
-                        bg_color: col_cover_btn
-                        clickable: true
-                        on_click:
-                          - script.execute: cover_stop_action
+                        id: cover_actions
+                        align: BOTTOM_MID
+                        y: -22
+                        width: 200
+                        height: 36
+                        bg_opa: TRANSP
+                        border_width: 0
                         widgets:
-                          - label:
-                              id: lbl_cover_stop
+                          - obj:
+                              id: btn_cover_open
+                              align: LEFT_MID
+                              width: 62
+                              height: 32
+                              radius: 16
+                              bg_color: col_cover_btn
+                              clickable: true
+                              on_click:
+                                - script.execute: cover_open_action
+                              widgets:
+                                - label:
+                                    id: lbl_cover_open
+                                    align: CENTER
+                                    text_font: font_cover_btn
+                                    text_color: col_cover_accent
+                                    text: "OPEN"
+                          - obj:
+                              id: btn_cover_stop
                               align: CENTER
-                              text_font: font_cover_btn
-                              text_color: 0xFFFFFF
-                              text: "STOP"
-                    - obj:
-                        id: btn_cover_close
-                        align: RIGHT_MID
-                        width: 62
-                        height: 32
-                        radius: 16
-                        bg_color: col_cover_btn
-                        clickable: true
-                        on_click:
-                          - script.execute: cover_close_action
-                        widgets:
-                          - label:
-                              id: lbl_cover_close
-                              align: CENTER
-                              text_font: font_cover_btn
-                              text_color: col_cover_accent
-                              text: "CLOSE"
+                              width: 62
+                              height: 32
+                              radius: 16
+                              bg_color: col_cover_btn
+                              clickable: true
+                              on_click:
+                                - script.execute: cover_stop_action
+                              widgets:
+                                - label:
+                                    id: lbl_cover_stop
+                                    align: CENTER
+                                    text_font: font_cover_btn
+                                    text_color: 0xFFFFFF
+                                    text: "STOP"
+                          - obj:
+                              id: btn_cover_close
+                              align: RIGHT_MID
+                              width: 62
+                              height: 32
+                              radius: 16
+                              bg_color: col_cover_btn
+                              clickable: true
+                              on_click:
+                                - script.execute: cover_close_action
+                              widgets:
+                                - label:
+                                    id: lbl_cover_close
+                                    align: CENTER
+                                    text_font: font_cover_btn
+                                    text_color: col_cover_accent
+                                    text: "CLOSE"

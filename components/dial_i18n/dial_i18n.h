@@ -94,6 +94,45 @@ inline const char *cover_open_btn() { return DIAL_I18N_PICK("OPEN", "OUVRIR", "A
 inline const char *cover_stop_btn() { return DIAL_I18N_PICK("STOP", "STOP", "STOP", "STOP", "STOP"); }
 inline const char *cover_close_btn() { return DIAL_I18N_PICK("CLOSE", "FERMER", "CERRAR", "ZU", "CHIUDI"); }
 
+inline void cover_status_from(const std::string &raw_state, bool state_valid, int pos, bool pos_valid, char *buf,
+                              size_t len) {
+  if (buf == nullptr || len == 0)
+    return;
+  buf[0] = '\0';
+  std::string st = raw_state;
+  for (char &c : st) {
+    if (c >= 'A' && c <= 'Z')
+      c = static_cast<char>(c - 'A' + 'a');
+  }
+  const char *label = nullptr;
+  if (state_valid) {
+    if (st == "open" || st == "on")
+      label = cover_open();
+    else if (st == "closed" || st == "off")
+      label = cover_closed();
+    else if (st == "opening")
+      label = cover_opening();
+    else if (st == "closing")
+      label = cover_closing();
+    else if (st == "stopped")
+      label = cover_stopped();
+  }
+  if (label == nullptr && pos_valid) {
+    if (pos <= 0)
+      label = cover_closed();
+    else if (pos >= 100)
+      label = cover_open();
+  }
+  if (label != nullptr && pos_valid && pos > 0 && pos < 100)
+    snprintf(buf, len, "%s · %d%%", label, pos);
+  else if (label != nullptr)
+    snprintf(buf, len, "%s", label);
+  else if (pos_valid)
+    snprintf(buf, len, "%d%%", pos);
+  else
+    snprintf(buf, len, "%s", unavailable());
+}
+
 inline const char *climates_n() { return DIAL_I18N_PICK("%d climates", "%d clims", "%d aires", "%d Klimas", "%d climi"); }
 inline const char *players_n() { return DIAL_I18N_PICK("%d players", "%d lecteurs", "%d reprod.", "%d Player", "%d player"); }
 inline const char *scenes_n() { return DIAL_I18N_PICK("%d scenes", "%d scenes", "%d escenas", "%d Szenen", "%d scene"); }

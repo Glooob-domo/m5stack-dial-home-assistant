@@ -119,6 +119,11 @@ script:
               snprintf(buf, len, "%s", dial_i18n::scene_ready());
               return;
             }
+            if (kind == 2 || kind == 3) {
+              const int pos = list->position_at(index);
+              dial_i18n::cover_status_from(list->state_at(index), list->state_valid_at(index), pos, pos >= 0, buf, len);
+              return;
+            }
             if (!list->state_valid_at(index)) {
               snprintf(buf, len, "%s", dial_i18n::unavailable());
               return;
@@ -156,22 +161,7 @@ script:
               snprintf(buf, len, "%s", (st == "on") ? dial_i18n::switch_on() : dial_i18n::switch_off());
               return;
             }
-            if (st == "open")
-              snprintf(buf, len, "%s", dial_i18n::cover_open());
-            else if (st == "closed")
-              snprintf(buf, len, "%s", dial_i18n::cover_closed());
-            else if (st == "opening")
-              snprintf(buf, len, "%s", dial_i18n::cover_opening());
-            else if (st == "closing")
-              snprintf(buf, len, "%s", dial_i18n::cover_closing());
-            else
-              snprintf(buf, len, "%s", st.c_str());
-            if (list->attr_valid_at(index, "position")) {
-              const int p = atoi(list->attr_at(index, "position").c_str());
-              char tmp[32];
-              snprintf(tmp, sizeof(tmp), "%s · %d%%", buf, p);
-              snprintf(buf, len, "%s", tmp);
-            }
+            snprintf(buf, len, "%s", st.c_str());
           };
 
           auto resolve_index = [](size_t count, size_t active, int offset, size_t &idx) -> bool {
