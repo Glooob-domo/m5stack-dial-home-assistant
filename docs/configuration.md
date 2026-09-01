@@ -118,7 +118,7 @@ dial_garages:
     name: Gate
 ```
 
-Same skip-if-one rule as covers. If the entity does not expose a position, the encoder sends open (clockwise) or close (anticlockwise) instead of a percentage.
+Same skip-if-one rule as covers. If the entity does not expose a position, the encoder sends open (clockwise) or close (anticlockwise) instead of a percentage. The control page uses a horizontal sliding-gate visualization (two panels part in the middle) instead of the shutter arc.
 
 ### Outlets
 

@@ -66,7 +66,7 @@ Many thanks to Jason Wen for creating and sharing the foundation of this project
 | Menu | Circular navigation with live subtitles for configured Home Assistant features. |
 | Lights | Controls the Home Assistant light entities declared in `dial_lights`. One light opens the page directly; several open a selector first. |
 | Covers | Controls the Home Assistant cover entities declared in `dial_covers`. Same skip-if-one rule as lights. |
-| Garage | Controls garage / gate covers declared in `dial_garages`. |
+| Garage | Controls garage / gate covers declared in `dial_garages`. Horizontal sliding gate visualization instead of the shutter arc. |
 | Outlets | Toggles `switch` or `input_boolean` entities declared in `dial_switches`. |
 | Scenes | Runs `scene` or `script` entities declared in `dial_scenes`. |
 | Rooms | Shows temperatures from `sensor` or `climate` entities declared in `dial_temperatures`. The encoder steps through rooms. |
@@ -163,7 +163,7 @@ The Dial supports the rotary encoder, the front button and horizontal touch gest
 | Menu | Moves the circular selection | Opens the selected page; Home returns to Clock | Tap a visible menu item to open it. Swipe left confirms; swipe right returns to Clock. |
 | Lights | Changes brightness or the active selector value | Opens/accepts the selected light, according to context | Double press or swipe right goes back. Touch controls power, colour picker and colour confirmation. |
 | Covers | Changes position | Toggles open/close, or stops if moving | Double press or swipe right goes back. Touch sends open, stop and close. |
-| Garage | Changes position, or open/close when the entity has no position | Toggles open/close, or stops if moving | Same touch buttons as Covers. |
+| Garage | Changes position, or open/close when the entity has no position | Toggles open/close, or stops if moving | Two gate panels slide apart horizontally. Same open / stop / close buttons as covers. |
 | Outlets | No action | Toggles the switch | Double press or swipe right goes back. Tap the centre control to toggle. |
 | Scenes | No action | Activates the scene or script | Double press or swipe right goes back. Tap ACTIVATE to run it. |
 | Rooms | Steps through rooms | Goes back | Double press or swipe right goes back. |
