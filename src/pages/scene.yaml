@@ -6,6 +6,16 @@ globals:
     type: uint32_t
     initial_value: '0'
 
+font:
+  - file:
+      family: DM+Sans
+      weight: 700
+      type: gfonts
+    id: font_scene_btn
+    size: 18
+    bpp: 4
+    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZ "
+
 color:
   - id: col_scene_bg
     hex: "000000"
@@ -23,9 +33,11 @@ script:
           const bool flashing = (int32_t)(id(scene_flash_until_ms) - millis()) > 0;
           lv_label_set_text(id(lbl_scene_status),
                             flashing ? dial_i18n::scene_activated() : dial_i18n::scene_ready());
-          lv_obj_set_style_text_color(id(lbl_scene_status),
-                                      lv_color_hex(flashing ? 0xFFFFFF : 0xF472B6), LV_PART_MAIN);
-          lv_obj_set_style_bg_opa(id(btn_scene_go), flashing ? 220 : 255, LV_PART_MAIN);
+          const uint32_t accent = flashing ? 0xFFFFFF : 0xF472B6;
+          lv_obj_set_style_text_color(id(lbl_scene_status), lv_color_hex(accent), LV_PART_MAIN);
+          lv_obj_set_style_text_color(id(lbl_scene_btn), lv_color_hex(accent), LV_PART_MAIN);
+          lv_obj_set_style_bg_color(id(btn_scene_go), lv_color_hex(flashing ? 0x831843 : 0x3B1028), LV_PART_MAIN);
+          lv_obj_set_style_border_color(id(btn_scene_go), lv_color_hex(accent), LV_PART_MAIN);
 
   - id: open_scene
     then:
@@ -106,36 +118,27 @@ lvgl:
             border_width: 0
             pad_all: 0
             widgets:
-              - image:
-                  id: img_scene_page
-                  align: CENTER
-                  y: -28
-                  src: menu_img_scene
               - label:
                   id: lbl_scene_title
-                  align: CENTER
-                  y: 18
-                  width: 180
+                  align: TOP_MID
+                  y: 24
+                  width: 140
                   text_align: CENTER
                   long_mode: DOT
                   text_font: font_menu_item
                   text_color: 0xFFFFFF
                   text: ""
-              - label:
-                  id: lbl_scene_status
-                  align: CENTER
-                  y: 42
-                  text_font: font_menu_sub
-                  text_color: col_scene_accent
-                  text: ""
               - obj:
                   id: btn_scene_go
-                  align: BOTTOM_MID
-                  y: -28
+                  align: CENTER
+                  y: 8
                   width: 140
-                  height: 36
-                  radius: 18
+                  height: 140
+                  radius: 70
                   bg_color: col_scene_btn
+                  border_width: 6
+                  border_color: col_scene_accent
+                  pad_all: 0
                   clickable: true
                   on_click:
                     - script.execute: activate_scene
@@ -143,6 +146,13 @@ lvgl:
                     - label:
                         id: lbl_scene_btn
                         align: CENTER
-                        text_font: font_cover_btn
+                        text_font: font_scene_btn
                         text_color: col_scene_accent
                         text: "ACTIVATE"
+              - label:
+                  id: lbl_scene_status
+                  align: BOTTOM_MID
+                  y: -32
+                  text_font: font_menu_sub
+                  text_color: col_scene_accent
+                  text: ""
