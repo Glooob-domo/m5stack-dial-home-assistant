@@ -21,9 +21,10 @@ inline bool dial_ha_entity_enabled(const char *entity) {
   return true;
 }
 
-// 0 timer, 1 lights, 2 covers, 3 garage, 4 switches, 5 scenes, 6 ac, 7 music, 8 home
-static constexpr int DIAL_MENU_MAX = 9;
+// 0 timer, 1 lights, 2 covers, 3 garage, 4 switches, 5 scenes, 6 ac, 7 music, 8 home, 9 temps
+static constexpr int DIAL_MENU_MAX = 10;
 static constexpr int DIAL_FUNC_HOME = 8;
+static constexpr int DIAL_FUNC_TEMPS = 9;
 
 struct DialMenuCounts {
   size_t lights{0};
@@ -33,6 +34,7 @@ struct DialMenuCounts {
   size_t scenes{0};
   size_t climates{0};
   size_t media{0};
+  size_t temperatures{0};
 };
 
 inline int dial_collect_menu_items(int *items, const char *timer_entity, const DialMenuCounts &c) {
@@ -49,6 +51,8 @@ inline int dial_collect_menu_items(int *items, const char *timer_entity, const D
     items[n++] = 4;
   if (c.scenes > 0)
     items[n++] = 5;
+  if (c.temperatures > 0)
+    items[n++] = DIAL_FUNC_TEMPS;
   if (c.climates > 0)
     items[n++] = 6;
   if (c.media > 0)

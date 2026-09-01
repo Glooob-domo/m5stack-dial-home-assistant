@@ -59,6 +59,7 @@ Unconfigured optional features are hidden from the menu. Fill the matching list 
 | `dial_garages` | Garage | A list of garage / gate cover entities. |
 | `dial_switches` | Outlets | A list of `switch` or `input_boolean` entities. |
 | `dial_scenes` | Scenes | A list of `scene` or `script` entities. |
+| `dial_temperatures` | Rooms | A list of temperature sensors (or climate entities). |
 | `timer_entity` | Timer | `timer.dial_timer` |
 
 ### Lights
@@ -140,6 +141,18 @@ dial_scenes:
 ```
 
 A short press or tap runs `scene.turn_on` or `script.turn_on` according to the entity domain.
+
+### Rooms
+
+```yaml
+dial_temperatures:
+  - entity_id: sensor.living_room_temperature
+    name: Living room
+  - entity_id: sensor.bedroom_temperature
+    name: Bedroom
+```
+
+Each entry needs an `entity_id` and a display `name`. Use a numeric `sensor.*` (the state is the temperature) or a `climate.*` entity (the page shows `current_temperature`). Omit the key, or set `dial_temperatures: []`, to hide the menu entry. One room opens the page directly; several rooms stay on that page and the encoder steps through them.
 
 ### Timer
 

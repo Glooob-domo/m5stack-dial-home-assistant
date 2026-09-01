@@ -167,7 +167,7 @@ script:
                   lambda: |-
                     return !id(in_menu) && !id(in_light_selector) && !id(in_entity_selector) && !id(in_light)
                         && !id(in_air) && !id(in_music) && !id(in_timer) && !id(in_cover)
-                        && !id(in_switch) && !id(in_scene)
+                        && !id(in_switch) && !id(in_scene) && !id(in_temp)
                         && !id(in_colorpicker);
                 then:
                   - script.execute: open_menu
@@ -215,7 +215,7 @@ script:
                   lambda: |-
                     return !id(in_menu) && !id(in_light_selector) && !id(in_entity_selector) && !id(in_light)
                         && !id(in_air) && !id(in_music) && !id(in_timer) && !id(in_cover)
-                        && !id(in_switch) && !id(in_scene)
+                        && !id(in_switch) && !id(in_scene) && !id(in_temp)
                         && !id(in_colorpicker);
                 then:
                   - script.execute: open_menu
@@ -282,7 +282,7 @@ script:
                                                                             else:
                                                                               - if:
                                                                                   condition:
-                                                                                    lambda: 'return id(in_air) || id(in_music);'
+                                                                                    lambda: 'return id(in_air) || id(in_music) || id(in_temp);'
                                                                                   then:
                                                                                     - script.execute: dial_back
 
@@ -331,6 +331,10 @@ script:
                 }
                 if (id(in_scene)) {
                   id(close_scene).execute();
+                  return;
+                }
+                if (id(in_temp)) {
+                  id(close_temp).execute();
                   return;
                 }
                 if (id(in_air)) {
@@ -415,6 +419,10 @@ sensor:
                   id(cover_position_up).execute();
                   return;
                 }
+                if (id(in_temp)) {
+                  id(temp_select_next).execute();
+                  return;
+                }
                 if (id(in_menu)) {
                   id(menu_scroll_down).execute();
                   return;
@@ -462,6 +470,10 @@ sensor:
                 }
                 if (id(in_cover)) {
                   id(cover_position_down).execute();
+                  return;
+                }
+                if (id(in_temp)) {
+                  id(temp_select_previous).execute();
                   return;
                 }
                 if (id(in_menu)) {

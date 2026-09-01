@@ -42,6 +42,7 @@ Many thanks to Jason Wen for creating and sharing the foundation of this project
 - Garage / gate control through `dial_garages`.
 - Outlet / switch control through `dial_switches`.
 - Scene and script activation through `dial_scenes`.
+- Room temperatures through `dial_temperatures`.
 - Media playback, volume and metadata through `dial_media_players`.
 - Home Assistant timer control through a `timer_entity`.
 - Menu subtitles based on live Home Assistant states.
@@ -68,6 +69,7 @@ Many thanks to Jason Wen for creating and sharing the foundation of this project
 | Garage | Controls garage / gate covers declared in `dial_garages`. |
 | Outlets | Toggles `switch` or `input_boolean` entities declared in `dial_switches`. |
 | Scenes | Runs `scene` or `script` entities declared in `dial_scenes`. |
+| Rooms | Shows temperatures from `sensor` or `climate` entities declared in `dial_temperatures`. The encoder steps through rooms. |
 | AC | Controls the Home Assistant climate entities declared in `dial_climates`. Same skip-if-one rule as lights. |
 | Music | Controls the Home Assistant media players declared in `dial_media_players`. Same skip-if-one rule as lights. |
 | Timer | Uses `timer_entity` as the source of truth for a Home Assistant countdown timer. |
@@ -94,7 +96,7 @@ You only add **one file** to ESPHome. ESPHome downloads the firmware from GitHub
 
 1. In the ESPHome dashboard, create a device and paste [`m5-dial.yaml`](m5-dial.yaml).
 2. Put Wi-Fi, `api_encryption_key` and `ota_password` in `secrets.yaml`.
-3. In that same YAML, set `ui_language`, replace `timer_entity` / `weather_entity` / `aqi_entity` when you want those fields, and fill `dial_lights`, `dial_climates`, `dial_media_players`, `dial_covers`, `dial_garages`, `dial_switches` and `dial_scenes` for the pages you want.
+3. In that same YAML, set `ui_language`, replace `timer_entity` / `weather_entity` / `aqi_entity` when you want those fields, and fill `dial_lights`, `dial_climates`, `dial_media_players`, `dial_covers`, `dial_garages`, `dial_switches`, `dial_scenes` and `dial_temperatures` for the pages you want.
 4. Install over USB the first time, then use OTA.
 
 Example of the fields you edit:
@@ -135,6 +137,9 @@ dial_switches: []
 # --- Scène / Scene ---
 dial_scenes: []
 
+# --- Températures par pièce ---
+dial_temperatures: []
+
 packages:
   m5_dial:
     url: https://github.com/Glooob-domo/m5stack-dial-home-assistant
@@ -161,6 +166,7 @@ The Dial supports the rotary encoder, the front button and horizontal touch gest
 | Garage | Changes position, or open/close when the entity has no position | Toggles open/close, or stops if moving | Same touch buttons as Covers. |
 | Outlets | No action | Toggles the switch | Double press or swipe right goes back. Tap the centre control to toggle. |
 | Scenes | No action | Activates the scene or script | Double press or swipe right goes back. Tap ACTIVATE to run it. |
+| Rooms | Steps through rooms | Goes back | Double press or swipe right goes back. |
 | AC | Changes the selected value | Accepts or confirms the current edit | Double press or swipe right goes back. Touch selects controls and toggles power, fan mode or HVAC mode. |
 | Music | Changes volume | Accepts the current action where applicable | Double press or swipe right goes back. Touch controls playback and transport. |
 | Timer | Adjusts the selected duration unit while the timer is idle | Starts, pauses, resumes or clears the finished state | Double press or swipe right goes back. Touch selects hours/minutes/seconds and accesses reset/cancel. |
@@ -192,7 +198,7 @@ An active Home Assistant timer blocks only automatic return to the clock; a paus
 
 ## Live menu status
 
-The Menu is more than a launcher: its current selection shows a live subtitle. Timer shows remaining time or its state; Lights shows a single light's brightness or how many configured lights are on; Covers and Garage show open/closed or how many are open; Outlets show on/off; Scenes show the name or how many are configured; AC shows HVAC mode and target temperature; Music shows title or playback state; and Home shows `Clock`.
+The Menu is more than a launcher: its current selection shows a live subtitle. Timer shows remaining time or its state; Lights shows a single light's brightness or how many configured lights are on; Covers and Garage show open/closed or how many are open; Outlets show on/off; Scenes show the name or how many are configured; Rooms show the temperature or how many rooms are configured; AC shows HVAC mode and target temperature; Music shows title or playback state; and Home shows `Clock`.
 
 ## Feature notes
 
@@ -219,7 +225,7 @@ The package enables GPIO46 at boot for M5Dial V1.1 battery power hold. This keep
 ## Troubleshooting
 
 - **Device does not appear in Home Assistant:** confirm Wi-Fi, API connectivity and a valid `api_encryption_key`.
-- **A menu item is hidden:** add at least one entry to the matching list (`dial_lights`, `dial_climates`, `dial_media_players`, `dial_covers`, `dial_garages`, `dial_switches`, `dial_scenes`), or set `timer_entity` for Timer. Empty lists hide that page.
+- **A menu item is hidden:** add at least one entry to the matching list (`dial_lights`, `dial_climates`, `dial_media_players`, `dial_covers`, `dial_garages`, `dial_switches`, `dial_scenes`, `dial_temperatures`), or set `timer_entity` for Timer. Empty lists hide that page.
 - **AQI shows `--`:** use an existing numeric sensor for `aqi_entity`.
 - **A feature is unavailable:** check that its configured entity exists and is available in Home Assistant.
 - **Music is unavailable:** use the entity that actually plays audio and exposes its media state.

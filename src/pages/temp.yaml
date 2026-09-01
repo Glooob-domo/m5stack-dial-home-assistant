@@ -1,0 +1,149 @@
+globals:
+  - id: in_temp
+    type: bool
+    initial_value: 'false'
+
+font:
+  - file:
+      family: DM+Sans
+      weight: 700
+      type: gfonts
+    id: font_temp_big
+    size: 52
+    bpp: 4
+    glyphs: "0123456789.-\xc2\xb0"
+
+color:
+  - id: col_temp_bg
+    hex: "000000"
+  - id: col_temp_accent
+    hex: "F59E0B"
+  - id: col_temp_pill
+    hex: "2A1A00"
+
+script:
+  - id: refresh_temp
+    then:
+      - lambda: |-
+          auto *list = id(dial_temperatures_id);
+          if (list->count() == 0) {
+            lv_label_set_text(id(lbl_temp_value), "--");
+            lv_label_set_text(id(lbl_temp_room), "");
+            lv_label_set_text(id(lbl_temp_index), "");
+            return;
+          }
+          static char tbuf[16];
+          dial_i18n::format_room_temp(list->active_state(), list->active_state_valid(),
+                                      list->active_attr("current_temperature"),
+                                      list->active_attr_valid("current_temperature"), tbuf, sizeof(tbuf));
+          lv_label_set_text(id(lbl_temp_value), tbuf);
+          lv_label_set_text(id(lbl_temp_room), list->active_name().c_str());
+          if (list->count() > 1) {
+            static char ibuf[12];
+            snprintf(ibuf, sizeof(ibuf), "%d / %d", (int) list->active_index() + 1, (int) list->count());
+            lv_label_set_text(id(lbl_temp_index), ibuf);
+          } else {
+            lv_label_set_text(id(lbl_temp_index), "");
+          }
+
+  - id: open_temp
+    then:
+      - globals.set: {id: in_temp, value: 'true'}
+      - globals.set: {id: in_menu, value: 'false'}
+      - globals.set: {id: in_entity_selector, value: 'false'}
+      - lambda: |-
+          auto hook = []() {
+            if (id(in_temp))
+              id(refresh_temp).execute();
+          };
+          id(dial_temperatures_id).set_on_update(hook);
+      - script.execute: refresh_temp
+      - lvgl.page.show:
+          id: page_temp
+          animation: MOVE_LEFT
+
+  - id: close_temp
+    then:
+      - globals.set: {id: in_temp, value: 'false'}
+      - script.execute: open_menu_back
+
+  - id: temp_select_next
+    then:
+      - lambda: |-
+          if (id(dial_temperatures_id).count() < 2) return;
+          id(dial_temperatures_id).select_next();
+      - script.execute: refresh_temp
+
+  - id: temp_select_previous
+    then:
+      - lambda: |-
+          if (id(dial_temperatures_id).count() < 2) return;
+          id(dial_temperatures_id).select_previous();
+      - script.execute: refresh_temp
+
+interval:
+  - interval: 1s
+    then:
+      - if:
+          condition:
+            lambda: 'return id(in_temp);'
+          then:
+            - script.execute: refresh_temp
+
+lvgl:
+  pages:
+    - id: page_temp
+      bg_color: col_temp_bg
+      bg_opa: COVER
+      scrollbar_mode: "OFF"
+      on_load:
+        - script.execute: refresh_temp
+      widgets:
+        - obj:
+            align: TOP_LEFT
+            width: 240
+            height: 240
+            radius: 120
+            clip_corner: true
+            bg_color: col_temp_bg
+            bg_opa: COVER
+            border_width: 0
+            pad_all: 0
+            widgets:
+              - label:
+                  id: lbl_temp_value
+                  align: CENTER
+                  y: -18
+                  text_font: font_temp_big
+                  text_color: 0xFFFFFF
+                  text: "--"
+              - obj:
+                  id: temp_room_pill
+                  align: CENTER
+                  y: 42
+                  width: 150
+                  height: 32
+                  radius: 16
+                  bg_color: col_temp_pill
+                  bg_opa: COVER
+                  border_width: 0
+                  pad_all: 0
+                  clip_corner: true
+                  clickable: false
+                  widgets:
+                    - label:
+                        id: lbl_temp_room
+                        align: CENTER
+                        width: 134
+                        text_align: CENTER
+                        long_mode: DOT
+                        text_font: font_menu_item
+                        text_color: col_temp_accent
+                        text: ""
+              - label:
+                  id: lbl_temp_index
+                  align: BOTTOM_MID
+                  y: -28
+                  text_font: font_menu_sub
+                  text_color: col_temp_accent
+                  text: ""

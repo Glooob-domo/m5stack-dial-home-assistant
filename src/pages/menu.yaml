@@ -69,6 +69,12 @@ image:
     transparency: alpha_channel
     resize: 34x34
   - platform: file
+    file: ${asset_url}src/assets/images/temp.png
+    id: menu_img_temp
+    type: RGB565
+    transparency: alpha_channel
+    resize: 34x34
+  - platform: file
     file: ${asset_url}src/assets/images/ac_logo.png
     id: menu_img_ac
     type: RGB565
@@ -148,6 +154,7 @@ script:
           counts.scenes = id(dial_scenes_id).count();
           counts.climates = id(dial_climates_id).count();
           counts.media = id(dial_media_players_id).count();
+          counts.temperatures = id(dial_temperatures_id).count();
           int items[DIAL_MENU_MAX];
           const int n = dial_collect_menu_items(
               items, "${timer_entity}", counts);
@@ -210,6 +217,7 @@ script:
                   counts.scenes = id(dial_scenes_id).count();
                   counts.climates = id(dial_climates_id).count();
                   counts.media = id(dial_media_players_id).count();
+                  counts.temperatures = id(dial_temperatures_id).count();
                   int local_items[DIAL_MENU_MAX];
                   const int local_n = dial_collect_menu_items(
                       local_items, "${timer_entity}", counts);
@@ -243,6 +251,7 @@ script:
                   counts.scenes = id(dial_scenes_id).count();
                   counts.climates = id(dial_climates_id).count();
                   counts.media = id(dial_media_players_id).count();
+                  counts.temperatures = id(dial_temperatures_id).count();
                   int local_items[DIAL_MENU_MAX];
                   const int local_n = dial_collect_menu_items(
                       local_items, "${timer_entity}", counts);
@@ -334,6 +343,13 @@ script:
                 id(open_music).execute();
               }
               break;
+            case 9:
+              if (id(dial_temperatures_id).count() == 0) {
+                ESP_LOGW("menu", "Rooms selected but dial_temperatures is empty");
+              } else {
+                id(open_temp).execute();
+              }
+              break;
             case 8:
             default:
               id(close_menu).execute();
@@ -352,8 +368,8 @@ script:
     then:
       - lambda: |-
           static char subbuf[64];
-          const uint32_t ACCENT_COLORS[9] = {
-            0xFB923C, 0xFDC003, 0x2DD4BF, 0xF97316, 0x4ADE80, 0xF472B6, 0x5ABBFD, 0xA792E8, 0x576BFE
+          const uint32_t ACCENT_COLORS[10] = {
+            0xFB923C, 0xFDC003, 0x2DD4BF, 0xF97316, 0x4ADE80, 0xF472B6, 0x5ABBFD, 0xA792E8, 0x576BFE, 0xF59E0B
           };
 
           auto format_time_short = [](int seconds, char *buf, size_t len) {
@@ -615,6 +631,21 @@ script:
               }
               break;
             }
+            case 9: {
+              const size_t count = id(dial_temperatures_id).count();
+              if (count == 0) {
+                snprintf(subbuf, sizeof(subbuf), "%s", dial_i18n::unavailable());
+              } else if (count == 1) {
+                dial_i18n::format_room_temp(id(dial_temperatures_id).state_at(0),
+                                            id(dial_temperatures_id).state_valid_at(0),
+                                            id(dial_temperatures_id).attr_at(0, "current_temperature"),
+                                            id(dial_temperatures_id).attr_valid_at(0, "current_temperature"),
+                                            subbuf, sizeof(subbuf));
+              } else {
+                snprintf(subbuf, sizeof(subbuf), dial_i18n::temps_n(), (int) count);
+              }
+              break;
+            }
             case 8:
             default:
               snprintf(subbuf, sizeof(subbuf), "%s", dial_i18n::menu_clock());
@@ -640,6 +671,7 @@ script:
           counts.scenes = id(dial_scenes_id).count();
           counts.climates = id(dial_climates_id).count();
           counts.media = id(dial_media_players_id).count();
+          counts.temperatures = id(dial_temperatures_id).count();
           int items[DIAL_MENU_MAX];
           const int n = dial_collect_menu_items(
               items, "${timer_entity}", counts);
@@ -694,6 +726,7 @@ script:
           counts.scenes = id(dial_scenes_id).count();
           counts.climates = id(dial_climates_id).count();
           counts.media = id(dial_media_players_id).count();
+          counts.temperatures = id(dial_temperatures_id).count();
           int items[DIAL_MENU_MAX];
           const int n = dial_collect_menu_items(
               items, "${timer_entity}", counts);
@@ -713,12 +746,13 @@ script:
             id(slot_near_dn), id(slot_far_dn)
           };
 
-          const char* TITLES[9] = {
+          const char* TITLES[10] = {
             dial_i18n::menu_timer(), dial_i18n::menu_lights(), dial_i18n::menu_covers(),
             dial_i18n::menu_garage(), dial_i18n::menu_switches(), dial_i18n::menu_scenes(),
-            dial_i18n::menu_ac(), dial_i18n::menu_music(), dial_i18n::menu_home()
+            dial_i18n::menu_ac(), dial_i18n::menu_music(), dial_i18n::menu_home(),
+            dial_i18n::menu_temps()
           };
-          const lv_img_dsc_t* IMGS[9] = {
+          const lv_img_dsc_t* IMGS[10] = {
             id(menu_img_timer)->get_lv_image_dsc(),
             id(menu_img_light)->get_lv_image_dsc(),
             id(menu_img_cover)->get_lv_image_dsc(),
@@ -727,13 +761,14 @@ script:
             id(menu_img_scene)->get_lv_image_dsc(),
             id(menu_img_ac)->get_lv_image_dsc(),
             id(menu_img_music)->get_lv_image_dsc(),
-            id(menu_img_home)->get_lv_image_dsc()
+            id(menu_img_home)->get_lv_image_dsc(),
+            id(menu_img_temp)->get_lv_image_dsc()
           };
-          const uint32_t ACCENT_COLORS[9] = {
-            0xFB923C, 0xFDC003, 0x2DD4BF, 0xF97316, 0x4ADE80, 0xF472B6, 0x5ABBFD, 0xA792E8, 0x576BFE
+          const uint32_t ACCENT_COLORS[10] = {
+            0xFB923C, 0xFDC003, 0x2DD4BF, 0xF97316, 0x4ADE80, 0xF472B6, 0x5ABBFD, 0xA792E8, 0x576BFE, 0xF59E0B
           };
-          const uint32_t PILL_COLORS[9] = {
-            0x2A1200, 0x2A1E00, 0x04201A, 0x2A1200, 0x052010, 0x2A0A18, 0x001A2A, 0x150A2A, 0x0D1537
+          const uint32_t PILL_COLORS[10] = {
+            0x2A1200, 0x2A1E00, 0x04201A, 0x2A1200, 0x052010, 0x2A0A18, 0x001A2A, 0x150A2A, 0x0D1537, 0x2A1A00
           };
 
           const int sel = id(menu_sel);

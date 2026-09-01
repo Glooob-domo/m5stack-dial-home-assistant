@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cctype>
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <string>
@@ -51,6 +53,7 @@ inline const char *menu_covers() { return DIAL_I18N_PICK("Covers", "Volets", "Pe
 inline const char *menu_garage() { return DIAL_I18N_PICK("Garage", "Portail", "Porton", "Tor", "Cancello"); }
 inline const char *menu_switches() { return DIAL_I18N_PICK("Outlets", "Prises", "Enchufes", "Steckdosen", "Prese"); }
 inline const char *menu_scenes() { return DIAL_I18N_PICK("Scenes", "Scenes", "Escenas", "Szenen", "Scene"); }
+inline const char *menu_temps() { return DIAL_I18N_PICK("Rooms", "Pièces", "Estancias", "Zimmer", "Stanze"); }
 inline const char *menu_ac() { return DIAL_I18N_PICK("AC", "Clim", "Aire", "Klima", "Clima"); }
 inline const char *menu_music() { return DIAL_I18N_PICK("Music", "Musique", "Musica", "Musik", "Musica"); }
 inline const char *menu_home() { return DIAL_I18N_PICK("Home", "Accueil", "Inicio", "Start", "Home"); }
@@ -153,6 +156,49 @@ inline void cover_status_from(const std::string &raw_state, bool state_valid, in
 inline const char *climates_n() { return DIAL_I18N_PICK("%d climates", "%d clims", "%d aires", "%d Klimas", "%d climi"); }
 inline const char *players_n() { return DIAL_I18N_PICK("%d players", "%d lecteurs", "%d reprod.", "%d Player", "%d player"); }
 inline const char *scenes_n() { return DIAL_I18N_PICK("%d scenes", "%d scenes", "%d escenas", "%d Szenen", "%d scene"); }
+inline const char *temps_n() { return DIAL_I18N_PICK("%d rooms", "%d pièces", "%d estanc.", "%d Zimmer", "%d stanze"); }
+
+inline bool parse_ha_float(const std::string &raw, float &out) {
+  if (raw.empty())
+    return false;
+  std::string lower = raw;
+  for (char &c : lower)
+    c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+  if (lower == "unknown" || lower == "unavailable" || lower == "none" || lower == "null")
+    return false;
+  char *end = nullptr;
+  const float parsed = strtof(raw.c_str(), &end);
+  if (end == raw.c_str())
+    return false;
+  while (end != nullptr && *end != '\0' && (*end == ' ' || *end == '\xc2' || *end == '\xb0' || *end == 'C' || *end == 'F'))
+    end++;
+  if (end != nullptr && *end != '\0')
+    return false;
+  if (!std::isfinite(parsed))
+    return false;
+  out = parsed;
+  return true;
+}
+
+inline void format_room_temp(const std::string &state, bool state_valid, const std::string &attr, bool attr_valid,
+                             char *buf, size_t len) {
+  if (buf == nullptr || len == 0)
+    return;
+  float t = NAN;
+  if (attr_valid)
+    parse_ha_float(attr, t);
+  if (!std::isfinite(t) && state_valid)
+    parse_ha_float(state, t);
+  if (!std::isfinite(t)) {
+    snprintf(buf, len, "--");
+    return;
+  }
+  const float rounded = roundf(t);
+  if (fabsf(t - rounded) > 0.05f)
+    snprintf(buf, len, "%.1f\xc2\xb0", t);
+  else
+    snprintf(buf, len, "%.0f\xc2\xb0", t);
+}
 
 inline const char *switch_off() { return DIAL_I18N_PICK("Off", "Off", "Off", "Aus", "Off"); }
 inline const char *switch_on() { return DIAL_I18N_PICK("On", "On", "On", "An", "On"); }

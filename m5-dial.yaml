@@ -75,6 +75,14 @@ dial_switches: []
 #     name: Tout off
 dial_scenes: []
 
+# --- Températures par pièce ---
+# dial_temperatures:
+#   - entity_id: sensor.temperature_salon
+#     name: Salon
+#   - entity_id: sensor.temperature_chambre
+#     name: Chambre
+dial_temperatures: []
+
 packages:
   m5_dial:
     url: https://github.com/Glooob-domo/m5stack-dial-home-assistant

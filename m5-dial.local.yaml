@@ -28,13 +28,14 @@ dial_covers: []
 dial_garages: []
 dial_switches: []
 dial_scenes: []
+dial_temperatures: []
 
 # Local components while iterating; m5-dial.yaml (GitHub package) uses github:// instead.
 external_components:
   - source:
       type: local
       path: components
-    components: [dial_lights, dial_ha_list, dial_climates, dial_media_players, dial_covers, dial_garages, dial_switches, dial_scenes, dial_carousel, dial_i18n, generic_image, media_source, sendspin]
+    components: [dial_lights, dial_ha_list, dial_climates, dial_media_players, dial_covers, dial_garages, dial_switches, dial_scenes, dial_temperatures, dial_carousel, dial_i18n, generic_image, media_source, sendspin]
 
 packages:
   firmware: !include dial.yaml

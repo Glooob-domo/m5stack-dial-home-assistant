@@ -277,6 +277,7 @@ script:
       - globals.set: {id: in_cover, value: 'false'}
       - globals.set: {id: in_switch, value: 'false'}
       - globals.set: {id: in_scene, value: 'false'}
+      - globals.set: {id: in_temp, value: 'false'}
       - script.execute: refresh_entity_selector
       - lvgl.page.show:
           id: page_entity_selector
@@ -291,6 +292,7 @@ script:
       - globals.set: {id: in_cover, value: 'false'}
       - globals.set: {id: in_switch, value: 'false'}
       - globals.set: {id: in_scene, value: 'false'}
+      - globals.set: {id: in_temp, value: 'false'}
       - script.execute: refresh_entity_selector
       - lvgl.page.show:
           id: page_entity_selector

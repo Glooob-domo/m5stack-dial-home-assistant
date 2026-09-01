@@ -170,6 +170,7 @@ script:
           id(in_cover) = false;
           id(in_switch) = false;
           id(in_scene) = false;
+          id(in_temp) = false;
           id(in_timer) = false;
 
   - id: dial_idle_return_to_clock
@@ -178,7 +179,7 @@ script:
           condition:
             lambda: |-
               if (id(in_menu) || id(in_light_selector) || id(in_entity_selector) || id(in_light) || id(in_colorpicker) ||
-                  id(in_air) || id(in_music) || id(in_cover) || id(in_switch) || id(in_scene))
+                  id(in_air) || id(in_music) || id(in_cover) || id(in_switch) || id(in_scene) || id(in_temp))
                 return true;
               if (id(in_timer)) return true;
               return false;
