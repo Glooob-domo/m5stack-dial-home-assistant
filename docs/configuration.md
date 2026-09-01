@@ -39,13 +39,19 @@ Leave `weather.disabled` or `sensor.disabled` in `m5-dial.yaml` to keep `--` on 
 
 ## Optional menu features
 
-Unconfigured optional features are hidden from the menu. Set a real Home Assistant entity ID to show the page. Leave `climate.disabled`, `media_player.disabled` or `timer.disabled` to hide it. Lights is hidden when `dial_lights` has no entries.
+Unconfigured optional features are hidden from the menu. Set a real Home Assistant entity ID, or fill the matching list, to show the page. Leave `climate.disabled`, `media_player.disabled` or `timer.disabled` (and an empty list) to hide it. Lights, Covers, Garage, Outlets and Scenes are hidden when their lists have no entries.
 
 | Field | Enables | Example |
 | --- | --- | --- |
 | `dial_lights` | Lights | A list of Home Assistant light entities. |
-| `climate_entity` | AC | `climate.living_room` |
-| `music_player_entity` | Music | `media_player.living_room` |
+| `dial_climates` | AC | A list of climate entities. If omitted, `climate_entity` still works for a single AC. |
+| `dial_media_players` | Music | A list of media players. If omitted, `music_player_entity` still works for a single player. |
+| `dial_covers` | Covers | A list of cover / shutter entities. |
+| `dial_garages` | Garage | A list of garage / gate cover entities. |
+| `dial_switches` | Outlets | A list of `switch` or `input_boolean` entities. |
+| `dial_scenes` | Scenes | A list of `scene` or `script` entities. |
+| `climate_entity` | AC (legacy single) | `climate.living_room` |
+| `music_player_entity` | Music (legacy single) | `media_player.living_room` |
 | `timer_entity` | Timer | `timer.dial_timer` |
 
 ### Lights
@@ -58,25 +64,75 @@ dial_lights:
     name: Escritorio
 ```
 
-Each entry needs an `entity_id` and a display `name`. Omit the key, or set `dial_lights: []`, to disable Lights and hide its menu entry.
+Each entry needs an `entity_id` and a display `name`. Omit the key, or set `dial_lights: []`, to disable Lights and hide its menu entry. One light opens the control page directly; two or more open a selector first.
 
 ### Climate
 
 ```yaml
-substitutions:
-  climate_entity: climate.living_room
+dial_climates:
+  - entity_id: climate.living_room
+    name: Living room
+  - entity_id: climate.bedroom
+    name: Bedroom
 ```
+
+Same rule as lights: one climate opens the page directly, several open a selector. `climate_entity` remains valid when `dial_climates` is empty.
 
 The page supports target temperature and uses modes advertised by the entity. HVAC mode, fan mode and swing-related capabilities vary between Home Assistant integrations, so only controls supported by the entity should be expected.
 
 ### Music
 
 ```yaml
-substitutions:
-  music_player_entity: media_player.living_room
+dial_media_players:
+  - entity_id: media_player.living_room
+    name: Living room
 ```
 
-Select the entity that actually plays the audio. Home Assistant supplies player state, transport actions, volume and available metadata, including `media_title`, `media_artist`, `media_duration` and `media_position`. SendSpin is optional and currently supplies only 100 × 100 album artwork when a compatible SendSpin source is available.
+`music_player_entity` remains valid when `dial_media_players` is empty. Select the entity that actually plays the audio. Home Assistant supplies player state, transport actions, volume and available metadata, including `media_title`, `media_artist`, `media_duration` and `media_position`. SendSpin is optional and currently supplies only 100 × 100 album artwork when a compatible SendSpin source is available.
+
+### Covers
+
+```yaml
+dial_covers:
+  - entity_id: cover.living_room
+    name: Living room
+  - entity_id: cover.bedroom
+    name: Bedroom
+```
+
+The encoder sets position. A short press toggles open/close (or stop if the cover is moving). Touch buttons send open, stop and close.
+
+### Garage
+
+```yaml
+dial_garages:
+  - entity_id: cover.gate
+    name: Gate
+```
+
+Same skip-if-one rule as covers. If the entity does not expose a position, the encoder sends open (clockwise) or close (anticlockwise) instead of a percentage.
+
+### Outlets
+
+```yaml
+dial_switches:
+  - entity_id: switch.living_room
+    name: Living room
+```
+
+A short press or tap toggles the switch. `input_boolean.*` helpers are accepted in the same list.
+
+### Scenes
+
+```yaml
+dial_scenes:
+  - entity_id: scene.movie
+    name: Movie
+  - entity_id: script.all_off
+    name: All off
+```
+
+A short press or tap runs `scene.turn_on` or `script.turn_on` according to the entity domain.
 
 ### Timer
 

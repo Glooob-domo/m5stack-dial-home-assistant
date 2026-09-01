@@ -1,0 +1,378 @@
+globals:
+  - id: in_cover
+    type: bool
+    initial_value: 'false'
+  # 0 = shutters (dial_covers), 1 = garage / gate (dial_garages)
+  - id: cover_page_kind
+    type: int
+    initial_value: '0'
+  - id: cover_position
+    type: int
+    initial_value: '0'
+  - id: cover_user_adjusting
+    type: bool
+    initial_value: 'false'
+
+font:
+  - file:
+      family: DM+Sans
+      weight: 900
+      type: gfonts
+    id: font_cover_big
+    size: 52
+    bpp: 4
+    glyphs: "0123456789"
+
+  - file: "gfonts://DM+Sans"
+    id: font_cover_pct
+    size: 22
+    bpp: 4
+    glyphs: "%"
+
+  - file:
+      family: DM+Sans
+      weight: 700
+      type: gfonts
+    id: font_cover_btn
+    size: 12
+    bpp: 4
+    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZ "
+
+color:
+  - id: col_cover_bg
+    hex: "000000"
+  - id: col_cover_track
+    hex: "1A2A28"
+  - id: col_cover_accent
+    hex: "2DD4BF"
+  - id: col_cover_btn
+    hex: "08201C"
+
+script:
+  - id: refresh_cover
+    then:
+      - lambda: |-
+          auto &list = (id(cover_page_kind) == 1) ? id(dial_garages_id) : id(dial_covers_id);
+          const uint32_t accent = (id(cover_page_kind) == 1) ? 0xF97316 : 0x2DD4BF;
+          const uint32_t track = (id(cover_page_kind) == 1) ? 0x2A1A10 : 0x1A2A28;
+          const uint32_t btn = (id(cover_page_kind) == 1) ? 0x201208 : 0x08201C;
+          char buf[8];
+          snprintf(buf, sizeof(buf), "%d", id(cover_position));
+          lv_label_set_text(id(lbl_cover_num), buf);
+          lv_arc_set_value(id(cover_arc), id(cover_position));
+          lv_obj_set_style_arc_color(id(cover_arc), lv_color_hex(track), LV_PART_MAIN);
+          lv_obj_set_style_arc_color(id(cover_arc), lv_color_hex(accent), LV_PART_INDICATOR);
+          lv_obj_set_style_text_color(id(lbl_cover_pct), lv_color_hex(accent), LV_PART_MAIN);
+          lv_obj_set_style_text_color(id(lbl_cover_status), lv_color_hex(accent), LV_PART_MAIN);
+          lv_obj_set_style_text_color(id(lbl_cover_open), lv_color_hex(accent), LV_PART_MAIN);
+          lv_obj_set_style_text_color(id(lbl_cover_close), lv_color_hex(accent), LV_PART_MAIN);
+          lv_obj_set_style_bg_color(id(btn_cover_open), lv_color_hex(btn), LV_PART_MAIN);
+          lv_obj_set_style_bg_color(id(btn_cover_stop), lv_color_hex(btn), LV_PART_MAIN);
+          lv_obj_set_style_bg_color(id(btn_cover_close), lv_color_hex(btn), LV_PART_MAIN);
+          const std::string &st = list.active_state();
+          const char *status = dial_i18n::unavailable();
+          if (list.active_state_valid()) {
+            if (st == "open") status = dial_i18n::cover_open();
+            else if (st == "closed") status = dial_i18n::cover_closed();
+            else if (st == "opening") status = dial_i18n::cover_opening();
+            else if (st == "closing") status = dial_i18n::cover_closing();
+            else if (st == "stopped") status = dial_i18n::cover_stopped();
+            else status = st.c_str();
+          }
+          lv_label_set_text(id(lbl_cover_status), status);
+          lv_label_set_text(id(lbl_cover_title), list.active_name().c_str());
+          lv_label_set_text(id(lbl_cover_open), dial_i18n::cover_open_btn());
+          lv_label_set_text(id(lbl_cover_stop), dial_i18n::cover_stop_btn());
+          lv_label_set_text(id(lbl_cover_close), dial_i18n::cover_close_btn());
+
+  - id: cover_apply_snapshot
+    then:
+      - lambda: |-
+          if (id(cover_user_adjusting)) return;
+          auto &list = (id(cover_page_kind) == 1) ? id(dial_garages_id) : id(dial_covers_id);
+          int pos = id(cover_position);
+          if (list.active_attr_valid("position")) {
+            pos = atoi(list.active_attr("position").c_str());
+            if (pos < 0) pos = 0;
+            if (pos > 100) pos = 100;
+          } else if (list.active_state_valid()) {
+            const std::string &st = list.active_state();
+            if (st == "open") pos = 100;
+            else if (st == "closed") pos = 0;
+          }
+          id(cover_position) = pos;
+      - script.execute: refresh_cover
+
+  - id: open_cover
+    then:
+      - globals.set: {id: in_cover, value: 'true'}
+      - globals.set: {id: in_menu, value: 'false'}
+      - globals.set: {id: in_entity_selector, value: 'false'}
+      - globals.set: {id: cover_user_adjusting, value: 'false'}
+      - script.execute: cover_apply_snapshot
+      - lvgl.page.show:
+          id: page_cover
+          animation: MOVE_LEFT
+
+  - id: open_garage
+    then:
+      - globals.set: {id: cover_page_kind, value: '1'}
+      - script.execute: open_cover
+
+  - id: close_cover
+    then:
+      - globals.set: {id: in_cover, value: 'false'}
+      - lambda: |-
+          const bool garage = id(cover_page_kind) == 1;
+          const size_t n = garage ? id(dial_garages_id).count() : id(dial_covers_id).count();
+          if (n > 1) {
+            id(entity_selector_kind) = garage ? 3 : 2;
+            id(open_entity_selector_back).execute();
+          } else {
+            id(open_menu_back).execute();
+          }
+
+  - id: send_cover_position
+    then:
+      - homeassistant.action:
+          action: cover.set_cover_position
+          data_template:
+            entity_id: "{{ target_entity }}"
+            position: "{{ pos }}"
+          variables:
+            target_entity: !lambda |-
+              if (id(cover_page_kind) == 1)
+                return id(dial_garages_id).active_entity_id();
+              return id(dial_covers_id).active_entity_id();
+            pos: !lambda "return id(cover_position);"
+
+  - id: queue_cover_position
+    mode: restart
+    then:
+      - delay: 200ms
+      - script.execute: send_cover_position
+      - delay: 400ms
+      - globals.set: {id: cover_user_adjusting, value: 'false'}
+
+  - id: cover_position_up
+    then:
+      - lambda: |-
+          auto &list = (id(cover_page_kind) == 1) ? id(dial_garages_id) : id(dial_covers_id);
+          if (id(cover_page_kind) == 1 && !list.active_attr_valid("position")) {
+            id(cover_open_action).execute();
+            return;
+          }
+          int v = id(cover_position) + 5;
+          if (v > 100) v = 100;
+          id(cover_position) = v;
+          id(cover_user_adjusting) = true;
+          id(refresh_cover).execute();
+          id(queue_cover_position).execute();
+
+  - id: cover_position_down
+    then:
+      - lambda: |-
+          auto &list = (id(cover_page_kind) == 1) ? id(dial_garages_id) : id(dial_covers_id);
+          if (id(cover_page_kind) == 1 && !list.active_attr_valid("position")) {
+            id(cover_close_action).execute();
+            return;
+          }
+          int v = id(cover_position) - 5;
+          if (v < 0) v = 0;
+          id(cover_position) = v;
+          id(cover_user_adjusting) = true;
+          id(refresh_cover).execute();
+          id(queue_cover_position).execute();
+
+  - id: cover_open_action
+    then:
+      - homeassistant.action:
+          action: cover.open_cover
+          data_template:
+            entity_id: "{{ target_entity }}"
+          variables:
+            target_entity: !lambda |-
+              if (id(cover_page_kind) == 1)
+                return id(dial_garages_id).active_entity_id();
+              return id(dial_covers_id).active_entity_id();
+
+  - id: cover_close_action
+    then:
+      - homeassistant.action:
+          action: cover.close_cover
+          data_template:
+            entity_id: "{{ target_entity }}"
+          variables:
+            target_entity: !lambda |-
+              if (id(cover_page_kind) == 1)
+                return id(dial_garages_id).active_entity_id();
+              return id(dial_covers_id).active_entity_id();
+
+  - id: cover_stop_action
+    then:
+      - homeassistant.action:
+          action: cover.stop_cover
+          data_template:
+            entity_id: "{{ target_entity }}"
+          variables:
+            target_entity: !lambda |-
+              if (id(cover_page_kind) == 1)
+                return id(dial_garages_id).active_entity_id();
+              return id(dial_covers_id).active_entity_id();
+
+  - id: toggle_cover
+    then:
+      - lambda: |-
+          auto &list = (id(cover_page_kind) == 1) ? id(dial_garages_id) : id(dial_covers_id);
+          const std::string &st = list.active_state();
+          ESP_LOGI("cover", "toggle kind=%d state=%s entity=%s", id(cover_page_kind), st.c_str(),
+                   list.active_entity_id().c_str());
+          if (st == "opening" || st == "closing") {
+            id(cover_stop_action).execute();
+          } else if (st == "closed") {
+            id(cover_open_action).execute();
+          } else {
+            id(cover_close_action).execute();
+          }
+
+interval:
+  - interval: 500ms
+    then:
+      - if:
+          condition:
+            lambda: 'return id(in_cover);'
+          then:
+            - script.execute: cover_apply_snapshot
+
+lvgl:
+  pages:
+    - id: page_cover
+      bg_color: col_cover_bg
+      bg_opa: COVER
+      scrollbar_mode: "OFF"
+      on_load:
+        - script.execute: refresh_cover
+      widgets:
+        - obj:
+            align: TOP_LEFT
+            width: 240
+            height: 240
+            radius: 120
+            clip_corner: true
+            bg_color: col_cover_bg
+            bg_opa: COVER
+            border_width: 0
+            pad_all: 0
+            widgets:
+              - arc:
+                  id: cover_arc
+                  x: 17
+                  y: 17
+                  width: 205
+                  height: 205
+                  rotation: 90
+                  start_angle: 55
+                  end_angle: 305
+                  value: 0
+                  min_value: 0
+                  max_value: 100
+                  arc_color: col_cover_track
+                  arc_width: 18
+                  arc_rounded: true
+                  adjustable: false
+                  clickable: false
+                  indicator:
+                    arc_color: col_cover_accent
+                    arc_width: 18
+                    arc_rounded: true
+              - label:
+                  id: lbl_cover_title
+                  align: TOP_MID
+                  y: 28
+                  text_font: font_lbl
+                  text_color: 0x8EA0B8
+                  long_mode: DOT
+                  width: 160
+                  text_align: CENTER
+                  text: ""
+              - label:
+                  id: lbl_cover_num
+                  align: CENTER
+                  y: -18
+                  text_font: font_cover_big
+                  text_color: 0xFFFFFF
+                  text: "0"
+              - label:
+                  id: lbl_cover_pct
+                  align: CENTER
+                  x: 48
+                  y: -8
+                  text_font: font_cover_pct
+                  text_color: col_cover_accent
+                  text: "%"
+              - label:
+                  id: lbl_cover_status
+                  align: CENTER
+                  y: 28
+                  text_font: font_menu_sub
+                  text_color: col_cover_accent
+                  text: ""
+              - obj:
+                  align: BOTTOM_MID
+                  y: -22
+                  width: 200
+                  height: 36
+                  bg_opa: TRANSP
+                  border_width: 0
+                  widgets:
+                    - obj:
+                        id: btn_cover_open
+                        align: LEFT_MID
+                        width: 62
+                        height: 32
+                        radius: 16
+                        bg_color: col_cover_btn
+                        clickable: true
+                        on_click:
+                          - script.execute: cover_open_action
+                        widgets:
+                          - label:
+                              id: lbl_cover_open
+                              align: CENTER
+                              text_font: font_cover_btn
+                              text_color: col_cover_accent
+                              text: "OPEN"
+                    - obj:
+                        id: btn_cover_stop
+                        align: CENTER
+                        width: 62
+                        height: 32
+                        radius: 16
+                        bg_color: col_cover_btn
+                        clickable: true
+                        on_click:
+                          - script.execute: cover_stop_action
+                        widgets:
+                          - label:
+                              id: lbl_cover_stop
+                              align: CENTER
+                              text_font: font_cover_btn
+                              text_color: 0xFFFFFF
+                              text: "STOP"
+                    - obj:
+                        id: btn_cover_close
+                        align: RIGHT_MID
+                        width: 62
+                        height: 32
+                        radius: 16
+                        bg_color: col_cover_btn
+                        clickable: true
+                        on_click:
+                          - script.execute: cover_close_action
+                        widgets:
+                          - label:
+                              id: lbl_cover_close
+                              align: CENTER
+                              text_font: font_cover_btn
+                              text_color: col_cover_accent
+                              text: "CLOSE"

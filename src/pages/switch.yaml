@@ -1,0 +1,157 @@
+globals:
+  - id: in_switch
+    type: bool
+    initial_value: 'false'
+
+font:
+  - file:
+      family: DM+Sans
+      weight: 700
+      type: gfonts
+    id: font_switch_state
+    size: 36
+    bpp: 4
+    glyphs: "ONFAUS"
+
+color:
+  - id: col_switch_bg
+    hex: "000000"
+  - id: col_switch_on
+    hex: "4ADE80"
+  - id: col_switch_off
+    hex: "334155"
+  - id: col_switch_ring
+    hex: "14532D"
+
+script:
+  - id: refresh_switch
+    then:
+      - lambda: |-
+          lv_label_set_text(id(lbl_switch_title), id(dial_switches_id).active_name().c_str());
+          const bool on = id(dial_switches_id).active_state_valid() &&
+                          id(dial_switches_id).active_state() == "on";
+          const uint32_t accent = on ? 0x4ADE80 : 0x64748B;
+          lv_label_set_text(id(lbl_switch_state), on ? dial_i18n::on() : dial_i18n::off());
+          lv_obj_set_style_text_color(id(lbl_switch_state), lv_color_hex(accent), LV_PART_MAIN);
+          lv_obj_set_style_bg_color(id(btn_switch_power), lv_color_hex(on ? 0x14532D : 0x1E293B), LV_PART_MAIN);
+          lv_obj_set_style_border_color(id(btn_switch_power), lv_color_hex(accent), LV_PART_MAIN);
+          if (id(dial_switches_id).active_state_valid()) {
+            lv_label_set_text(id(lbl_switch_status), on ? dial_i18n::switch_on() : dial_i18n::switch_off());
+          } else {
+            lv_label_set_text(id(lbl_switch_status), dial_i18n::unavailable());
+          }
+          lv_obj_set_style_text_color(id(lbl_switch_status), lv_color_hex(accent), LV_PART_MAIN);
+
+  - id: open_switch
+    then:
+      - globals.set: {id: in_switch, value: 'true'}
+      - globals.set: {id: in_menu, value: 'false'}
+      - globals.set: {id: in_entity_selector, value: 'false'}
+      - script.execute: refresh_switch
+      - lvgl.page.show:
+          id: page_switch
+          animation: MOVE_LEFT
+
+  - id: close_switch
+    then:
+      - globals.set: {id: in_switch, value: 'false'}
+      - if:
+          condition:
+            lambda: 'return id(dial_switches_id).count() > 1;'
+          then:
+            - globals.set: {id: entity_selector_kind, value: '4'}
+            - script.execute: open_entity_selector_back
+          else:
+            - script.execute: open_menu_back
+
+  - id: toggle_switch
+    then:
+      - if:
+          condition:
+            lambda: |-
+              const std::string &eid = id(dial_switches_id).active_entity_id();
+              return eid.rfind("input_boolean.", 0) == 0;
+          then:
+            - homeassistant.action:
+                action: input_boolean.toggle
+                data_template:
+                  entity_id: "{{ target_entity }}"
+                variables:
+                  target_entity: !lambda "return id(dial_switches_id).active_entity_id();"
+          else:
+            - homeassistant.action:
+                action: switch.toggle
+                data_template:
+                  entity_id: "{{ target_entity }}"
+                variables:
+                  target_entity: !lambda "return id(dial_switches_id).active_entity_id();"
+      - lambda: |-
+          ESP_LOGI("switch", "toggle %s", id(dial_switches_id).active_entity_id().c_str());
+      - rtttl.play: "b:d=16,o=6,b=200:c"
+
+interval:
+  - interval: 400ms
+    then:
+      - if:
+          condition:
+            lambda: 'return id(in_switch);'
+          then:
+            - script.execute: refresh_switch
+
+lvgl:
+  pages:
+    - id: page_switch
+      bg_color: col_switch_bg
+      bg_opa: COVER
+      scrollbar_mode: "OFF"
+      on_load:
+        - script.execute: refresh_switch
+      widgets:
+        - obj:
+            align: TOP_LEFT
+            width: 240
+            height: 240
+            radius: 120
+            clip_corner: true
+            bg_color: col_switch_bg
+            bg_opa: COVER
+            border_width: 0
+            pad_all: 0
+            widgets:
+              - obj:
+                  id: btn_switch_power
+                  align: CENTER
+                  y: -8
+                  width: 132
+                  height: 132
+                  radius: 66
+                  bg_color: 0x1E293B
+                  border_width: 6
+                  border_color: col_switch_off
+                  clickable: true
+                  on_click:
+                    - script.execute: toggle_switch
+                  widgets:
+                    - label:
+                        id: lbl_switch_state
+                        align: CENTER
+                        text_font: font_switch_state
+                        text_color: 0xFFFFFF
+                        text: "OFF"
+              - label:
+                  id: lbl_switch_title
+                  align: TOP_MID
+                  y: 28
+                  width: 180
+                  text_align: CENTER
+                  long_mode: DOT
+                  text_font: font_lbl
+                  text_color: 0x8EA0B8
+                  text: ""
+              - label:
+                  id: lbl_switch_status
+                  align: BOTTOM_MID
+                  y: -36
+                  text_font: font_menu_sub
+                  text_color: col_switch_on
+                  text: ""

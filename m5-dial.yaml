@@ -24,15 +24,13 @@ substitutions:
   aqi_entity: sensor.disabled
 
   # --- Clim ---
-  # Exemple : climate.salon
+  # Exemple : climate.salon  (une seule clim, toujours possible)
   climate_entity: climate.disabled
 
   # --- Musique ---
-  # Exemple : media_player.salon
   music_player_entity: media_player.disabled
 
   # --- Timer ---
-  # Exemple : timer.dial
   timer_entity: timer.disabled
 
 # --- Lumières ---
@@ -40,6 +38,35 @@ substitutions:
 #   - entity_id: light.salon
 #     name: Salon
 dial_lights: []
+
+# --- Plusieurs clims / lecteurs / volets ---
+# Une seule entrée = ouverture directe. Plusieurs = sélecteur, comme les lumières.
+# dial_climates:
+#   - entity_id: climate.salon
+#     name: Salon
+dial_climates: []
+# dial_media_players:
+#   - entity_id: media_player.salon
+#     name: Salon
+dial_media_players: []
+# dial_covers:
+#   - entity_id: cover.volet_salon
+#     name: Salon
+dial_covers: []
+# dial_garages:
+#   - entity_id: cover.portail
+#     name: Portail
+dial_garages: []
+# dial_switches:
+#   - entity_id: switch.prise_salon
+#     name: Salon
+dial_switches: []
+# dial_scenes:
+#   - entity_id: scene.cinema
+#     name: Cinema
+#   - entity_id: script.tout_eteindre
+#     name: Tout off
+dial_scenes: []
 
 packages:
   m5_dial:

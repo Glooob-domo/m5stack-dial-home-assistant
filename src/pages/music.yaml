@@ -275,6 +275,15 @@ script:
     then:
       - globals.set: {id: in_music, value: 'true'}
       - globals.set: {id: in_menu, value: 'false'}
+      - globals.set: {id: in_entity_selector, value: 'false'}
+      - lambda: |-
+          if (id(dial_media_players_id).count() == 0) return;
+          if (id(dial_media_players_id).active_attr_valid("volume")) {
+            int v = (int)(atof(id(dial_media_players_id).active_attr("volume").c_str()) * 100.0f + 0.5f);
+            if (v < 0) v = 0;
+            if (v > 100) v = 100;
+            id(music_volume) = v;
+          }
       - script.execute: refresh_music_volume
       - script.execute: refresh_music_metadata
       - lvgl.page.show:
@@ -284,9 +293,14 @@ script:
   - id: close_music
     then:
       - globals.set: {id: in_music, value: 'false'}
-      - lvgl.page.show:
-          id: page_clock
-          animation: MOVE_RIGHT
+      - if:
+          condition:
+            lambda: 'return id(dial_media_players_id).count() > 1;'
+          then:
+            - globals.set: {id: entity_selector_kind, value: '1'}
+            - script.execute: open_entity_selector_back
+          else:
+            - script.execute: open_menu_back
 
   - id: refresh_music_metadata
     then:
@@ -296,10 +310,18 @@ script:
             if (!ss.empty()) return ss;
             return "";
           };
-          std::string title = pick(id(ha_media_title).state, id(track_title).state);
+          std::string title;
+          std::string artist;
+          if (id(dial_media_players_id).count() > 0) {
+            if (id(dial_media_players_id).active_attr_valid("title"))
+              title = id(dial_media_players_id).active_attr("title");
+            if (id(dial_media_players_id).active_attr_valid("artist"))
+              artist = id(dial_media_players_id).active_attr("artist");
+          }
+          if (title.empty()) title = pick(id(ha_media_title).state, id(track_title).state);
           if (title.empty()) title = dial_i18n::ready_to_play();
           lv_label_set_text(id(lbl_music_title), title.c_str());
-          std::string artist = pick(id(ha_media_artist).state, id(track_artist).state);
+          if (artist.empty()) artist = pick(id(ha_media_artist).state, id(track_artist).state);
           lv_label_set_text(id(lbl_music_artist), artist.c_str());
 
   - id: music_transport_feedback
@@ -342,7 +364,7 @@ script:
     then:
       - if:
           condition:
-            lambda: 'return id(in_music) && dial_ha_entity_enabled("${music_player_entity}");'
+            lambda: 'return id(in_music) && (id(dial_media_players_id).count() > 0 || dial_ha_entity_enabled("${music_player_entity}"));'
           then:
             - lambda: 'id(music_feedback_btn) = 2;'
             - script.execute:
@@ -353,13 +375,16 @@ script:
             - homeassistant.action:
                 action: media_player.media_next_track
                 data:
-                  entity_id: ${music_player_entity}
+                  entity_id: !lambda |-
+                    if (id(dial_media_players_id).count() > 0)
+                      return id(dial_media_players_id).active_entity_id();
+                    return std::string("${music_player_entity}");
 
   - id: play_prev
     then:
       - if:
           condition:
-            lambda: 'return id(in_music) && dial_ha_entity_enabled("${music_player_entity}");'
+            lambda: 'return id(in_music) && (id(dial_media_players_id).count() > 0 || dial_ha_entity_enabled("${music_player_entity}"));'
           then:
             - lambda: 'id(music_feedback_btn) = 0;'
             - script.execute:
@@ -370,22 +395,31 @@ script:
             - homeassistant.action:
                 action: media_player.media_previous_track
                 data:
-                  entity_id: ${music_player_entity}
+                  entity_id: !lambda |-
+                    if (id(dial_media_players_id).count() > 0)
+                      return id(dial_media_players_id).active_entity_id();
+                    return std::string("${music_player_entity}");
 
   - id: play_toggle
     then:
       - if:
           condition:
-            lambda: 'return id(in_music) && dial_ha_entity_enabled("${music_player_entity}");'
+            lambda: 'return id(in_music) && (id(dial_media_players_id).count() > 0 || dial_ha_entity_enabled("${music_player_entity}"));'
           then:
             - lambda: 'id(music_feedback_btn) = 1;'
             - script.execute:
                 id: music_transport_feedback
                 wait_for_finish: false
             - lambda: |-
-                bool current_playing = id(sendspin_playback_state).state == "playing" ||
-                                       id(media_player_status).state == "playing" ||
-                                       id(media_player_status).state == "buffering";
+                bool current_playing = id(sendspin_playback_state).state == "playing";
+                if (id(dial_media_players_id).count() > 0 && id(dial_media_players_id).active_state_valid()) {
+                  const std::string &st = id(dial_media_players_id).active_state();
+                  current_playing = current_playing || st == "playing" || st == "buffering";
+                } else {
+                  current_playing = current_playing ||
+                      id(media_player_status).state == "playing" ||
+                      id(media_player_status).state == "buffering";
+                }
                 bool will_play = !current_playing;
                 id(music_playing) = will_play;
                 id(music_state_override_until_ms) = millis() + 2500;
@@ -398,7 +432,10 @@ script:
             - homeassistant.action:
                 action: media_player.media_play_pause
                 data:
-                  entity_id: ${music_player_entity}
+                  entity_id: !lambda |-
+                    if (id(dial_media_players_id).count() > 0)
+                      return id(dial_media_players_id).active_entity_id();
+                    return std::string("${music_player_entity}");
   - id: music_volume_up
     then:
       - lambda: |-
@@ -416,7 +453,10 @@ script:
       - homeassistant.action:
           action: media_player.volume_set
           data:
-            entity_id: ${music_player_entity}
+            entity_id: !lambda |-
+              if (id(dial_media_players_id).count() > 0)
+                return id(dial_media_players_id).active_entity_id();
+              return std::string("${music_player_entity}");
           data_template:
             volume_level: !lambda |-
               char buf[8];
@@ -441,7 +481,10 @@ script:
       - homeassistant.action:
           action: media_player.volume_set
           data:
-            entity_id: ${music_player_entity}
+            entity_id: !lambda |-
+              if (id(dial_media_players_id).count() > 0)
+                return id(dial_media_players_id).active_entity_id();
+              return std::string("${music_player_entity}");
           data_template:
             volume_level: !lambda |-
               char buf[8];
@@ -677,9 +720,40 @@ interval:
     then:
       - lambda: |-
           uint32_t now_ms = millis();
-          bool server_playing = id(sendspin_playback_state).state == "playing" ||
-                                id(media_player_status).state == "playing" ||
-                                id(media_player_status).state == "buffering";
+          bool server_playing = id(sendspin_playback_state).state == "playing";
+          if (id(dial_media_players_id).count() > 0 && id(dial_media_players_id).active_state_valid()) {
+            const std::string &st = id(dial_media_players_id).active_state();
+            server_playing = server_playing || st == "playing" || st == "buffering";
+            if (id(in_music) && (int32_t)(id(music_volume_override_until_ms) - now_ms) <= 0 &&
+                id(dial_media_players_id).active_attr_valid("volume")) {
+              int v = (int)(atof(id(dial_media_players_id).active_attr("volume").c_str()) * 100.0f + 0.5f);
+              if (v < 0) v = 0;
+              if (v > 100) v = 100;
+              if (v != id(music_volume)) {
+                id(music_volume) = v;
+                id(refresh_music_volume).execute();
+              }
+            }
+            if (id(in_music)) {
+              if (id(dial_media_players_id).active_attr_valid("duration")) {
+                const float d = atof(id(dial_media_players_id).active_attr("duration").c_str());
+                if (d > 0) id(local_duration_ms) = (int)(d * 1000.0f + 0.5f);
+              }
+              if ((int32_t)(id(music_state_override_until_ms) - now_ms) <= 0 &&
+                  id(dial_media_players_id).active_attr_valid("position")) {
+                const float p = atof(id(dial_media_players_id).active_attr("position").c_str());
+                if (p >= 0) {
+                  id(local_progress_ms) = (int)(p * 1000.0f + 0.5f);
+                  id(local_progress_sync_ms) = now_ms;
+                }
+              }
+              id(refresh_music_metadata).execute();
+            }
+          } else {
+            server_playing = server_playing ||
+                id(media_player_status).state == "playing" ||
+                id(media_player_status).state == "buffering";
+          }
           bool use_local_state = (int32_t)(id(music_state_override_until_ms) - now_ms) > 0;
           bool playing = use_local_state ? id(music_playing) : server_playing;
           id(music_playing) = playing;

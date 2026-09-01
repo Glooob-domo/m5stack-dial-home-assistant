@@ -1,3 +1,8 @@
-# Default empty lights list so the Lights page stays hidden until
-# m5-dial.yaml lists real entities.
+# Default empty lists so those pages stay hidden until m5-dial.yaml lists entities.
 dial_lights: []
+dial_climates: []
+dial_media_players: []
+dial_covers: []
+dial_garages: []
+dial_switches: []
+dial_scenes: []

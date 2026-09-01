@@ -8,8 +8,12 @@ packages:
   menu_page:   !include src/pages/menu.yaml
   light_page:  !include src/pages/light.yaml
   light_selector_page: !include src/pages/light_selector.yaml
+  entity_selector_page: !include src/pages/entity_selector.yaml
   air_page:    !include src/pages/air.yaml
   music_page:  !include src/pages/music.yaml
+  cover_page:  !include src/pages/cover.yaml
+  switch_page: !include src/pages/switch.yaml
+  scene_page:  !include src/pages/scene.yaml
   timer_page:  !include src/pages/timer.yaml
   idle:        !include src/main/idle.yaml
 
@@ -17,7 +21,7 @@ external_components:
   # GitHub, not type: local — ESPHome resolves local paths against the
   # user's /config/esphome folder, not this package.
   - source: github://Glooob-domo/m5stack-dial-home-assistant@main
-    components: [dial_lights, dial_carousel, dial_i18n, generic_image, media_source, sendspin]
+    components: [dial_lights, dial_ha_list, dial_climates, dial_media_players, dial_covers, dial_garages, dial_switches, dial_scenes, dial_carousel, dial_i18n, generic_image, media_source, sendspin]
     refresh: 0s
 
 substitutions:

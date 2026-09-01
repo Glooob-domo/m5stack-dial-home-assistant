@@ -14,10 +14,10 @@
 
 - `src/main/hardware.yaml`: M5Stack Dial hardware drivers and pins.
 - `src/main/entities.yaml`: Home Assistant entity bindings.
-- `src/pages/*.yaml`: one LVGL page per feature.
+- `src/pages/*.yaml`: one LVGL page per feature (`entity_selector.yaml` is shared by climates, media players, covers, garages, switches and scenes).
 - `src/assets/fonts/`: local fonts.
 - `src/assets/images/`: small embedded image assets.
-- `components/`: local ESPHome external components.
+- `components/`: local ESPHome external components (`dial_lights`, `dial_ha_list`, `dial_climates`, `dial_media_players`, `dial_covers`, `dial_carousel`, `dial_i18n`, SendSpin).
 
 ## ID conventions
 

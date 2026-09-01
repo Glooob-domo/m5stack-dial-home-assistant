@@ -27,7 +27,7 @@ This project is based on the original [**Smart Home Button** project](https://gi
 
 The original project provided the M5Stack Dial hardware configuration, ESPHome and LVGL foundation, and the initial Clock, Light, Climate, Music and Timer interfaces.
 
-This derivative adds configurable Home Assistant light entities through `dial_lights`, optional menu pages, live menu status, AQI support, improved navigation, configurable screen-idle management and other Home Assistant-focused improvements.
+This derivative adds configurable Home Assistant light, climate, media-player and cover lists, optional menu pages, live menu status, AQI support, improved navigation, configurable screen-idle management and other Home Assistant-focused improvements.
 
 Many thanks to Jason Wen for creating and sharing the foundation of this project.
 
@@ -37,8 +37,12 @@ Many thanks to Jason Wen for creating and sharing the foundation of this project
 - Air-quality index (AQI) from a Home Assistant sensor.
 - Circular menu navigation with the encoder, touch gestures and front button.
 - Configurable Home Assistant lights through `dial_lights`.
-- Climate control through a `climate_entity`.
-- Media playback, volume and metadata through a `music_player_entity`.
+- Climate control through `dial_climates` (or a single `climate_entity`).
+- Cover / shutter control through `dial_covers`.
+- Garage / gate control through `dial_garages`.
+- Outlet / switch control through `dial_switches`.
+- Scene and script activation through `dial_scenes`.
+- Media playback, volume and metadata through `dial_media_players` (or a single `music_player_entity`).
 - Home Assistant timer control through a `timer_entity`.
 - Menu subtitles based on live Home Assistant states.
 - Automatic return to the clock after inactivity.
@@ -59,9 +63,13 @@ Many thanks to Jason Wen for creating and sharing the foundation of this project
 | --- | --- |
 | Clock | Shows the time, date, weather and AQI information from Home Assistant. |
 | Menu | Circular navigation with live subtitles for configured Home Assistant features. |
-| Lights | Controls the Home Assistant light entities declared in `dial_lights`. |
-| AC | Shows the state of `climate_entity` and changes its target temperature and power. |
-| Music | Controls `music_player_entity`, including playback, volume and available metadata. |
+| Lights | Controls the Home Assistant light entities declared in `dial_lights`. One light opens the page directly; several open a selector first. |
+| Covers | Controls the Home Assistant cover entities declared in `dial_covers`. Same skip-if-one rule as lights. |
+| Garage | Controls garage / gate covers declared in `dial_garages`. |
+| Outlets | Toggles `switch` or `input_boolean` entities declared in `dial_switches`. |
+| Scenes | Runs `scene` or `script` entities declared in `dial_scenes`. |
+| AC | Controls `dial_climates`, or a single `climate_entity` when the list is empty. |
+| Music | Controls `dial_media_players`, or a single `music_player_entity` when the list is empty. |
 | Timer | Uses `timer_entity` as the source of truth for a Home Assistant countdown timer. |
 
 ## Hardware
@@ -78,7 +86,7 @@ M5Stack Dial V1.1 is the tested target. GPIO46 power hold is configured for V1.1
 - Wi-Fi access for the Dial.
 - Home Assistant entities only for the features and information you want to enable.
 
-Weather and AQI are optional: leave them as `weather.disabled` / `sensor.disabled` (or point at unavailable entities) and Clock shows `--`. Timer, AC, Music and Lights are also optional; those menu entries disappear when the matching line in `m5-dial.yaml` stays `*.disabled` or, for Lights, when `dial_lights` is empty.
+Weather and AQI are optional: leave them as `weather.disabled` / `sensor.disabled` (or point at unavailable entities) and Clock shows `--`. Timer, AC, Music, Lights and Covers are also optional; those menu entries disappear when the matching line in `m5-dial.yaml` stays `*.disabled` or, for list-based pages, when the list is empty.
 
 ## Quick installation
 
@@ -86,7 +94,7 @@ You only add **one file** to ESPHome. ESPHome downloads the firmware from GitHub
 
 1. In the ESPHome dashboard, create a device and paste [`m5-dial.yaml`](m5-dial.yaml).
 2. Put Wi-Fi, `api_encryption_key` and `ota_password` in `secrets.yaml`.
-3. In that same YAML, set `ui_language`, replace `*.disabled` with your Home Assistant entity IDs, and fill `dial_lights` if you want the Lights page.
+3. In that same YAML, set `ui_language`, replace `*.disabled` with your Home Assistant entity IDs, and fill `dial_lights`, `dial_climates`, `dial_media_players`, `dial_covers`, `dial_garages`, `dial_switches` and `dial_scenes` for the pages you want.
 4. Install over USB the first time, then use OTA.
 
 Example of the fields you edit:
@@ -104,6 +112,12 @@ substitutions:
 dial_lights:
   - entity_id: light.salon
     name: Salon
+dial_climates: []
+dial_media_players: []
+dial_covers: []
+dial_garages: []
+dial_switches: []
+dial_scenes: []
 
 packages:
   m5_dial:
@@ -127,6 +141,10 @@ The Dial supports the rotary encoder, the front button and horizontal touch gest
 | Clock (Home) | No action | Opens Menu | Long press: no action. Swipe left or right opens Menu. |
 | Menu | Moves the circular selection | Opens the selected page; Home returns to Clock | Tap a visible menu item to open it. Swipe left confirms; swipe right returns to Clock. |
 | Lights | Changes brightness or the active selector value | Opens/accepts the selected light, according to context | Double press or swipe right goes back. Touch controls power, colour picker and colour confirmation. |
+| Covers | Changes position | Toggles open/close, or stops if moving | Double press or swipe right goes back. Touch sends open, stop and close. |
+| Garage | Changes position, or open/close when the entity has no position | Toggles open/close, or stops if moving | Same touch buttons as Covers. |
+| Outlets | No action | Toggles the switch | Double press or swipe right goes back. Tap the centre control to toggle. |
+| Scenes | No action | Activates the scene or script | Double press or swipe right goes back. Tap ACTIVATE to run it. |
 | AC | Changes the selected value | Accepts or confirms the current edit | Double press or swipe right goes back. Touch selects controls and toggles power, fan mode or HVAC mode. |
 | Music | Changes volume | Accepts the current action where applicable | Double press or swipe right goes back. Touch controls playback and transport. |
 | Timer | Adjusts the selected duration unit while the timer is idle | Starts, pauses, resumes or clears the finished state | Double press or swipe right goes back. Touch selects hours/minutes/seconds and accesses reset/cancel. |
@@ -151,17 +169,21 @@ An active Home Assistant timer blocks only automatic return to the clock; a paus
 
 ## Live menu status
 
-The Menu is more than a launcher: its current selection shows a live subtitle. Timer shows remaining time or its state; Lights shows a single light's brightness or how many configured lights are on; AC shows HVAC mode and target temperature; Music shows title or playback state; and Home shows `Clock`.
+The Menu is more than a launcher: its current selection shows a live subtitle. Timer shows remaining time or its state; Lights shows a single light's brightness or how many configured lights are on; Covers and Garage show open/closed or how many are open; Outlets show on/off; Scenes show the name or how many are configured; AC shows HVAC mode and target temperature; Music shows title or playback state; and Home shows `Clock`.
 
 ## Feature notes
 
 ### Music
 
-The Music page is controlled through `music_player_entity`. Home Assistant provides playback state, play/pause and transport actions, volume, title and metadata, plus duration and position when available. SendSpin is optional and is currently used only to provide 100 × 100 album artwork when a compatible SendSpin source is available. Album art is intentionally kept small for the Dial's memory budget.
+The Music page is controlled through `dial_media_players`, or `music_player_entity` when that list is empty. Home Assistant provides playback state, play/pause and transport actions, volume, title and metadata, plus duration and position when available. SendSpin is optional and is currently used only to provide 100 × 100 album artwork when a compatible SendSpin source is available. Album art is intentionally kept small for the Dial's memory budget.
 
 ### Climate
 
-Available climate controls depend on `climate_entity`. The page reads and changes target temperature, and uses the entity's advertised HVAC and fan modes when available. Do not expect a control that the selected Home Assistant climate integration does not expose.
+Available climate controls depend on the selected entity. The page reads and changes target temperature, and uses the entity's advertised HVAC and fan modes when available. Do not expect a control that the selected Home Assistant climate integration does not expose.
+
+### Covers
+
+The encoder sets position in 5% steps. A short press toggles open/close, or stops if the cover is already moving. Touch buttons send open, stop and close.
 
 ### Timer
 
@@ -174,7 +196,7 @@ The package enables GPIO46 at boot for M5Dial V1.1 battery power hold. This keep
 ## Troubleshooting
 
 - **Device does not appear in Home Assistant:** confirm Wi-Fi, API connectivity and a valid `api_encryption_key`.
-- **A menu item is hidden:** configure its matching entity, or add at least one entry to `dial_lights`; `dial_lights: []` intentionally hides Lights.
+- **A menu item is hidden:** configure its matching entity, or add at least one entry to the matching list (`dial_lights`, `dial_climates`, `dial_media_players`, `dial_covers`). Empty lists intentionally hide that page.
 - **AQI shows `--`:** use an existing numeric sensor for `aqi_entity`.
 - **A feature is unavailable:** check that its configured entity exists and is available in Home Assistant.
 - **Music is unavailable:** use the entity that actually plays audio and exposes its media state.

@@ -46,6 +46,10 @@ inline const char *home_assistant() { return "Home Assistant"; }
 
 inline const char *menu_timer() { return DIAL_I18N_PICK("Timer", "Minuteur", "Temporiz.", "Timer", "Timer"); }
 inline const char *menu_lights() { return DIAL_I18N_PICK("Lights", "Lumières", "Luces", "Licht", "Luci"); }
+inline const char *menu_covers() { return DIAL_I18N_PICK("Covers", "Volets", "Persianas", "Rolladen", "Tapparelle"); }
+inline const char *menu_garage() { return DIAL_I18N_PICK("Garage", "Portail", "Porton", "Tor", "Cancello"); }
+inline const char *menu_switches() { return DIAL_I18N_PICK("Outlets", "Prises", "Enchufes", "Steckdosen", "Prese"); }
+inline const char *menu_scenes() { return DIAL_I18N_PICK("Scenes", "Scenes", "Escenas", "Szenen", "Scene"); }
 inline const char *menu_ac() { return DIAL_I18N_PICK("AC", "Clim", "Aire", "Klima", "Clima"); }
 inline const char *menu_music() { return DIAL_I18N_PICK("Music", "Musique", "Musica", "Musik", "Musica"); }
 inline const char *menu_home() { return DIAL_I18N_PICK("Home", "Accueil", "Inicio", "Start", "Home"); }
@@ -77,6 +81,32 @@ inline const char *media_off() { return DIAL_I18N_PICK("Off", "Off", "Off", "Aus
 inline const char *media_idle() { return DIAL_I18N_PICK("No playback", "À l'arrêt", "Sin audio", "Kein Titel", "Fermo"); }
 inline const char *media_paused() { return DIAL_I18N_PICK("Paused", "Pause", "Pausa", "Pause", "Pausa"); }
 inline const char *media_playing() { return DIAL_I18N_PICK("Playing", "Lecture", "Reprod.", "Wiedergabe", "In play"); }
+
+inline const char *cover_closed() { return DIAL_I18N_PICK("Closed", "Fermé", "Cerrado", "Zu", "Chiuso"); }
+inline const char *cover_open() { return DIAL_I18N_PICK("Open", "Ouvert", "Abierto", "Offen", "Aperto"); }
+inline const char *cover_opening() { return DIAL_I18N_PICK("Opening", "Ouverture", "Abriendo", "Oeffnen", "Apro"); }
+inline const char *cover_closing() { return DIAL_I18N_PICK("Closing", "Fermeture", "Cerrando", "Schliessen", "Chiudo"); }
+inline const char *cover_stopped() { return DIAL_I18N_PICK("Stopped", "Stop", "Stop", "Stopp", "Stop"); }
+inline const char *covers_n_open() { return DIAL_I18N_PICK("%d of %d open", "%d/%d ouv.", "%d/%d ab.", "%d/%d offen", "%d/%d ap."); }
+inline const char *covers_all_closed() { return DIAL_I18N_PICK("All closed", "Tous fermés", "Todas cerr.", "Alle zu", "Tutte chiuse"); }
+inline const char *covers_all_open() { return DIAL_I18N_PICK("All open", "Tous ouverts", "Todas ab.", "Alle offen", "Tutte aperte"); }
+inline const char *cover_open_btn() { return DIAL_I18N_PICK("OPEN", "OUVRIR", "ABRIR", "AUF", "APRI"); }
+inline const char *cover_stop_btn() { return DIAL_I18N_PICK("STOP", "STOP", "STOP", "STOP", "STOP"); }
+inline const char *cover_close_btn() { return DIAL_I18N_PICK("CLOSE", "FERMER", "CERRAR", "ZU", "CHIUDI"); }
+
+inline const char *climates_n() { return DIAL_I18N_PICK("%d climates", "%d clims", "%d aires", "%d Klimas", "%d climi"); }
+inline const char *players_n() { return DIAL_I18N_PICK("%d players", "%d lecteurs", "%d reprod.", "%d Player", "%d player"); }
+inline const char *scenes_n() { return DIAL_I18N_PICK("%d scenes", "%d scenes", "%d escenas", "%d Szenen", "%d scene"); }
+
+inline const char *switch_off() { return DIAL_I18N_PICK("Off", "Off", "Off", "Aus", "Off"); }
+inline const char *switch_on() { return DIAL_I18N_PICK("On", "On", "On", "An", "On"); }
+inline const char *switches_all_off() { return DIAL_I18N_PICK("All off", "Toutes off", "Todas off", "Alle aus", "Tutte off"); }
+inline const char *switches_all_on() { return DIAL_I18N_PICK("All on", "Toutes on", "Todas on", "Alle an", "Tutte on"); }
+inline const char *switches_n_on() { return DIAL_I18N_PICK("%d of %d on", "%d/%d on", "%d/%d on", "%d/%d an", "%d/%d on"); }
+
+inline const char *scene_ready() { return DIAL_I18N_PICK("Ready", "Pret", "Lista", "Bereit", "Pronta"); }
+inline const char *scene_activated() { return DIAL_I18N_PICK("Activated", "Lancee", "Activada", "Aktiv", "Attiva"); }
+inline const char *scene_activate_btn() { return DIAL_I18N_PICK("ACTIVATE", "ACTIVER", "ACTIVAR", "START", "AVVIA"); }
 
 inline const char *ready_to_play() {
   return DIAL_I18N_PICK("Ready to Play", "Prêt à jouer", "Listo", "Bereit", "Pronto");

@@ -21,7 +21,7 @@ font:
     id: font_light_selector_near
     size: 16
     bpp: 4
-    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzáí0123456789 .-_%/"
+    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÁÉÍÓÚÜÑáéíóúüñàèêëîïôùûçÀÈÊ0123456789 .-_%/"
 
 color:
   - id: col_menu_bg
@@ -41,6 +41,30 @@ image:
   - platform: file
     file: ${asset_url}src/assets/images/bulb.png
     id: menu_img_light
+    type: RGB565
+    transparency: alpha_channel
+    resize: 34x34
+  - platform: file
+    file: ${asset_url}src/assets/images/cover.png
+    id: menu_img_cover
+    type: RGB565
+    transparency: alpha_channel
+    resize: 34x34
+  - platform: file
+    file: ${asset_url}src/assets/images/garage.png
+    id: menu_img_garage
+    type: RGB565
+    transparency: alpha_channel
+    resize: 34x34
+  - platform: file
+    file: ${asset_url}src/assets/images/switch.png
+    id: menu_img_switch
+    type: RGB565
+    transparency: alpha_channel
+    resize: 34x34
+  - platform: file
+    file: ${asset_url}src/assets/images/scene.png
+    id: menu_img_scene
     type: RGB565
     transparency: alpha_channel
     resize: 34x34
@@ -74,7 +98,7 @@ globals:
     initial_value: '0'
   - id: menu_func
     type: int
-    initial_value: '4'
+    initial_value: '8'
   - id: in_menu
     type: bool
     initial_value: 'false'
@@ -116,17 +140,17 @@ script:
   - id: menu_sync_selection
     then:
       - lambda: |-
-          int items[5];
-          int n = 0;
-          if (dial_ha_entity_enabled("${timer_entity}"))
-            items[n++] = 0;
-          if (id(dial_lights_id).light_count() > 0)
-            items[n++] = 1;
-          if (dial_ha_entity_enabled("${climate_entity}"))
-            items[n++] = 2;
-          if (dial_ha_entity_enabled("${music_player_entity}"))
-            items[n++] = 3;
-          items[n++] = 4;
+          DialMenuCounts counts;
+          counts.lights = id(dial_lights_id).light_count();
+          counts.covers = id(dial_covers_id).count();
+          counts.garages = id(dial_garages_id).count();
+          counts.switches = id(dial_switches_id).count();
+          counts.scenes = id(dial_scenes_id).count();
+          counts.climates = id(dial_climates_id).count();
+          counts.media = id(dial_media_players_id).count();
+          int items[DIAL_MENU_MAX];
+          const int n = dial_collect_menu_items(
+              items, "${timer_entity}", "${climate_entity}", "${music_player_entity}", counts);
 
           const int home_idx = n - 1;
           bool found = false;
@@ -138,7 +162,7 @@ script:
             }
           }
           if (!found) {
-            id(menu_func) = 4;
+            id(menu_func) = DIAL_FUNC_HOME;
             id(menu_sel) = home_idx;
           }
 
@@ -178,17 +202,17 @@ script:
                 lv_obj_add_flag(id(menu_arrow), LV_OBJ_FLAG_HIDDEN);
 
                 auto on_ready = +[](void *ctx) {
-                  int local_items[5];
-                  int local_n = 0;
-                  if (dial_ha_entity_enabled("${timer_entity}"))
-                    local_items[local_n++] = 0;
-                  if (id(dial_lights_id).light_count() > 0)
-                    local_items[local_n++] = 1;
-                  if (dial_ha_entity_enabled("${climate_entity}"))
-                    local_items[local_n++] = 2;
-                  if (dial_ha_entity_enabled("${music_player_entity}"))
-                    local_items[local_n++] = 3;
-                  local_items[local_n++] = 4;
+                  DialMenuCounts counts;
+                  counts.lights = id(dial_lights_id).light_count();
+                  counts.covers = id(dial_covers_id).count();
+                  counts.garages = id(dial_garages_id).count();
+                  counts.switches = id(dial_switches_id).count();
+                  counts.scenes = id(dial_scenes_id).count();
+                  counts.climates = id(dial_climates_id).count();
+                  counts.media = id(dial_media_players_id).count();
+                  int local_items[DIAL_MENU_MAX];
+                  const int local_n = dial_collect_menu_items(
+                      local_items, "${timer_entity}", "${climate_entity}", "${music_player_entity}", counts);
 
                   id(menu_sel) = ((id(menu_sel) - 1) % local_n + local_n) % local_n;
                   id(menu_func) = local_items[id(menu_sel)];
@@ -211,17 +235,17 @@ script:
                 lv_obj_add_flag(id(menu_arrow), LV_OBJ_FLAG_HIDDEN);
 
                 auto on_ready = +[](void *ctx) {
-                  int local_items[5];
-                  int local_n = 0;
-                  if (dial_ha_entity_enabled("${timer_entity}"))
-                    local_items[local_n++] = 0;
-                  if (id(dial_lights_id).light_count() > 0)
-                    local_items[local_n++] = 1;
-                  if (dial_ha_entity_enabled("${climate_entity}"))
-                    local_items[local_n++] = 2;
-                  if (dial_ha_entity_enabled("${music_player_entity}"))
-                    local_items[local_n++] = 3;
-                  local_items[local_n++] = 4;
+                  DialMenuCounts counts;
+                  counts.lights = id(dial_lights_id).light_count();
+                  counts.covers = id(dial_covers_id).count();
+                  counts.garages = id(dial_garages_id).count();
+                  counts.switches = id(dial_switches_id).count();
+                  counts.scenes = id(dial_scenes_id).count();
+                  counts.climates = id(dial_climates_id).count();
+                  counts.media = id(dial_media_players_id).count();
+                  int local_items[DIAL_MENU_MAX];
+                  const int local_n = dial_collect_menu_items(
+                      local_items, "${timer_entity}", "${climate_entity}", "${music_player_entity}", counts);
 
                   id(menu_sel) = (id(menu_sel) + 1) % local_n;
                   id(menu_func) = local_items[id(menu_sel)];
@@ -252,12 +276,65 @@ script:
               }
               break;
             case 2:
-              id(open_air).execute();
+              id(cover_page_kind) = 0;
+              if (id(dial_covers_id).count() == 1) {
+                id(dial_covers_id).select(0);
+                id(open_cover).execute();
+              } else if (id(dial_covers_id).count() > 1) {
+                id(entity_selector_kind) = 2;
+                id(open_entity_selector).execute();
+              }
               break;
             case 3:
-              id(open_music).execute();
+              if (id(dial_garages_id).count() == 1) {
+                id(dial_garages_id).select(0);
+                id(open_garage).execute();
+              } else if (id(dial_garages_id).count() > 1) {
+                id(entity_selector_kind) = 3;
+                id(open_entity_selector).execute();
+              }
               break;
             case 4:
+              if (id(dial_switches_id).count() == 1) {
+                id(dial_switches_id).select(0);
+                id(open_switch).execute();
+              } else if (id(dial_switches_id).count() > 1) {
+                id(entity_selector_kind) = 4;
+                id(open_entity_selector).execute();
+              }
+              break;
+            case 5:
+              if (id(dial_scenes_id).count() == 1) {
+                id(dial_scenes_id).select(0);
+                id(open_scene).execute();
+              } else if (id(dial_scenes_id).count() > 1) {
+                id(entity_selector_kind) = 5;
+                id(open_entity_selector).execute();
+              }
+              break;
+            case 6:
+              if (id(dial_climates_id).count() == 1) {
+                id(dial_climates_id).select(0);
+                id(open_air).execute();
+              } else if (id(dial_climates_id).count() > 1) {
+                id(entity_selector_kind) = 0;
+                id(open_entity_selector).execute();
+              } else {
+                id(open_air).execute();
+              }
+              break;
+            case 7:
+              if (id(dial_media_players_id).count() == 1) {
+                id(dial_media_players_id).select(0);
+                id(open_music).execute();
+              } else if (id(dial_media_players_id).count() > 1) {
+                id(entity_selector_kind) = 1;
+                id(open_entity_selector).execute();
+              } else {
+                id(open_music).execute();
+              }
+              break;
+            case 8:
             default:
               id(close_menu).execute();
               break;
@@ -275,8 +352,8 @@ script:
     then:
       - lambda: |-
           static char subbuf[64];
-          const uint32_t ACCENT_COLORS[5] = {
-            0xFB923C, 0xFDC003, 0x5ABBFD, 0xA792E8, 0x576BFE
+          const uint32_t ACCENT_COLORS[9] = {
+            0xFB923C, 0xFDC003, 0x2DD4BF, 0xF97316, 0x4ADE80, 0xF472B6, 0x5ABBFD, 0xA792E8, 0x576BFE
           };
 
           auto format_time_short = [](int seconds, char *buf, size_t len) {
@@ -362,6 +439,114 @@ script:
               break;
             }
             case 2: {
+              const size_t count = id(dial_covers_id).count();
+              if (count == 0) {
+                snprintf(subbuf, sizeof(subbuf), "%s", dial_i18n::unavailable());
+                break;
+              }
+              if (count == 1) {
+                if (!id(dial_covers_id).state_valid_at(0)) {
+                  snprintf(subbuf, sizeof(subbuf), "%s", dial_i18n::unavailable());
+                } else {
+                  const std::string &st = id(dial_covers_id).state_at(0);
+                  if (st == "open") snprintf(subbuf, sizeof(subbuf), "%s", dial_i18n::cover_open());
+                  else if (st == "closed") snprintf(subbuf, sizeof(subbuf), "%s", dial_i18n::cover_closed());
+                  else if (st == "opening") snprintf(subbuf, sizeof(subbuf), "%s", dial_i18n::cover_opening());
+                  else if (st == "closing") snprintf(subbuf, sizeof(subbuf), "%s", dial_i18n::cover_closing());
+                  else snprintf(subbuf, sizeof(subbuf), "%s", st.c_str());
+                }
+                break;
+              }
+              size_t open_count = 0;
+              bool any_valid = false;
+              for (size_t i = 0; i < count; i++) {
+                if (id(dial_covers_id).state_valid_at(i)) {
+                  any_valid = true;
+                  const std::string &st = id(dial_covers_id).state_at(i);
+                  if (st == "open" || st == "opening") open_count++;
+                }
+              }
+              if (!any_valid) snprintf(subbuf, sizeof(subbuf), "%s", dial_i18n::unavailable());
+              else if (open_count == 0) snprintf(subbuf, sizeof(subbuf), "%s", dial_i18n::covers_all_closed());
+              else if (open_count == count) snprintf(subbuf, sizeof(subbuf), "%s", dial_i18n::covers_all_open());
+              else snprintf(subbuf, sizeof(subbuf), dial_i18n::covers_n_open(), (int) open_count, (int) count);
+              break;
+            }
+            case 3: {
+              auto &list = id(dial_garages_id);
+              const size_t count = list.count();
+              if (count == 0) {
+                snprintf(subbuf, sizeof(subbuf), "%s", dial_i18n::unavailable());
+                break;
+              }
+              if (count == 1) {
+                if (!list.state_valid_at(0)) {
+                  snprintf(subbuf, sizeof(subbuf), "%s", dial_i18n::unavailable());
+                } else {
+                  const std::string &st = list.state_at(0);
+                  if (st == "open") snprintf(subbuf, sizeof(subbuf), "%s", dial_i18n::cover_open());
+                  else if (st == "closed") snprintf(subbuf, sizeof(subbuf), "%s", dial_i18n::cover_closed());
+                  else if (st == "opening") snprintf(subbuf, sizeof(subbuf), "%s", dial_i18n::cover_opening());
+                  else if (st == "closing") snprintf(subbuf, sizeof(subbuf), "%s", dial_i18n::cover_closing());
+                  else snprintf(subbuf, sizeof(subbuf), "%s", st.c_str());
+                }
+                break;
+              }
+              size_t open_count = 0;
+              bool any_valid = false;
+              for (size_t i = 0; i < count; i++) {
+                if (list.state_valid_at(i)) {
+                  any_valid = true;
+                  const std::string &st = list.state_at(i);
+                  if (st == "open" || st == "opening") open_count++;
+                }
+              }
+              if (!any_valid) snprintf(subbuf, sizeof(subbuf), "%s", dial_i18n::unavailable());
+              else if (open_count == 0) snprintf(subbuf, sizeof(subbuf), "%s", dial_i18n::covers_all_closed());
+              else if (open_count == count) snprintf(subbuf, sizeof(subbuf), "%s", dial_i18n::covers_all_open());
+              else snprintf(subbuf, sizeof(subbuf), dial_i18n::covers_n_open(), (int) open_count, (int) count);
+              break;
+            }
+            case 4: {
+              const size_t count = id(dial_switches_id).count();
+              if (count == 0) {
+                snprintf(subbuf, sizeof(subbuf), "%s", dial_i18n::unavailable());
+                break;
+              }
+              if (count == 1) {
+                if (!id(dial_switches_id).state_valid_at(0))
+                  snprintf(subbuf, sizeof(subbuf), "%s", dial_i18n::unavailable());
+                else if (id(dial_switches_id).state_at(0) == "on")
+                  snprintf(subbuf, sizeof(subbuf), "%s", dial_i18n::switch_on());
+                else
+                  snprintf(subbuf, sizeof(subbuf), "%s", dial_i18n::switch_off());
+                break;
+              }
+              size_t on_count = 0;
+              bool any_valid = false;
+              for (size_t i = 0; i < count; i++) {
+                if (id(dial_switches_id).state_valid_at(i)) {
+                  any_valid = true;
+                  if (id(dial_switches_id).state_at(i) == "on") on_count++;
+                }
+              }
+              if (!any_valid) snprintf(subbuf, sizeof(subbuf), "%s", dial_i18n::unavailable());
+              else if (on_count == 0) snprintf(subbuf, sizeof(subbuf), "%s", dial_i18n::switches_all_off());
+              else if (on_count == count) snprintf(subbuf, sizeof(subbuf), "%s", dial_i18n::switches_all_on());
+              else snprintf(subbuf, sizeof(subbuf), dial_i18n::switches_n_on(), (int) on_count, (int) count);
+              break;
+            }
+            case 5: {
+              const size_t count = id(dial_scenes_id).count();
+              if (count == 0)
+                snprintf(subbuf, sizeof(subbuf), "%s", dial_i18n::unavailable());
+              else if (count == 1)
+                snprintf(subbuf, sizeof(subbuf), "%s", id(dial_scenes_id).name_at(0).c_str());
+              else
+                snprintf(subbuf, sizeof(subbuf), dial_i18n::scenes_n(), (int) count);
+              break;
+            }
+            case 6: {
               auto format_setpoint = [](float t, char *buf, size_t len) -> bool {
                 if (isnan(t)) return false;
                 const float rounded = roundf(t);
@@ -376,14 +561,26 @@ script:
                 return dial_i18n::hvac_menu(mode, buf, len);
               };
 
-              char statebuf[24] = "";
-              bool has_state = false;
-              if (id(ha_air_hvac_mode).has_state() && !is_invalid_state(id(ha_air_hvac_mode).state)) {
-                has_state = hvac_label(id(ha_air_hvac_mode).state, statebuf, sizeof(statebuf));
+              if (id(dial_climates_id).count() > 1) {
+                snprintf(subbuf, sizeof(subbuf), dial_i18n::climates_n(), (int) id(dial_climates_id).count());
+                break;
               }
 
+              char statebuf[24] = "";
+              bool has_state = false;
+              std::string mode;
+              if (id(dial_climates_id).count() == 1 && id(dial_climates_id).state_valid_at(0)) {
+                mode = id(dial_climates_id).state_at(0);
+              } else if (id(ha_air_hvac_mode).has_state() && !is_invalid_state(id(ha_air_hvac_mode).state)) {
+                mode = id(ha_air_hvac_mode).state;
+              }
+              if (!mode.empty())
+                has_state = hvac_label(mode, statebuf, sizeof(statebuf));
+
               float setpoint = NAN;
-              if (id(ha_air_target_temp).has_state()) {
+              if (id(dial_climates_id).count() == 1 && id(dial_climates_id).attr_valid_at(0, "temperature")) {
+                setpoint = atof(id(dial_climates_id).attr_at(0, "temperature").c_str());
+              } else if (id(ha_air_target_temp).has_state()) {
                 const float target = id(ha_air_target_temp).state;
                 if (!isnan(target)) setpoint = target;
               }
@@ -409,12 +606,21 @@ script:
                 snprintf(subbuf, sizeof(subbuf), "%s", dial_i18n::unavailable());
               break;
             }
-            case 3: {
-              if (!id(media_player_status).has_state() || is_invalid_state(id(media_player_status).state)) {
+            case 7: {
+              if (id(dial_media_players_id).count() > 1) {
+                snprintf(subbuf, sizeof(subbuf), dial_i18n::players_n(), (int) id(dial_media_players_id).count());
+                break;
+              }
+              std::string status;
+              if (id(dial_media_players_id).count() == 1 && id(dial_media_players_id).state_valid_at(0)) {
+                status = id(dial_media_players_id).state_at(0);
+              } else if (id(media_player_status).has_state() && !is_invalid_state(id(media_player_status).state)) {
+                status = id(media_player_status).state;
+              }
+              if (status.empty()) {
                 snprintf(subbuf, sizeof(subbuf), "%s", dial_i18n::unavailable());
                 break;
               }
-              const std::string &status = id(media_player_status).state;
               if (status == "off") {
                 snprintf(subbuf, sizeof(subbuf), "%s", dial_i18n::media_off());
               } else if (status == "idle") {
@@ -422,7 +628,10 @@ script:
               } else if (status == "paused") {
                 snprintf(subbuf, sizeof(subbuf), "%s", dial_i18n::media_paused());
               } else if (status == "playing" || status == "buffering") {
-                std::string title = id(ha_media_title).state;
+                std::string title;
+                if (id(dial_media_players_id).count() == 1 && id(dial_media_players_id).attr_valid_at(0, "title"))
+                  title = id(dial_media_players_id).attr_at(0, "title");
+                if (title.empty() && id(ha_media_title).has_state()) title = id(ha_media_title).state;
                 if (title.empty()) title = id(track_title).state;
                 if (!title.empty())
                   snprintf(subbuf, sizeof(subbuf), "%s", title.c_str());
@@ -433,7 +642,7 @@ script:
               }
               break;
             }
-            case 4:
+            case 8:
             default:
               snprintf(subbuf, sizeof(subbuf), "%s", dial_i18n::menu_clock());
               break;
@@ -450,17 +659,17 @@ script:
       - lambda: |-
           static constexpr int OFFSETS[5] = {-2, -1, 0, 1, 2};
 
-          int items[5];
-          int n = 0;
-          if (dial_ha_entity_enabled("${timer_entity}"))
-            items[n++] = 0;
-          if (id(dial_lights_id).light_count() > 0)
-            items[n++] = 1;
-          if (dial_ha_entity_enabled("${climate_entity}"))
-            items[n++] = 2;
-          if (dial_ha_entity_enabled("${music_player_entity}"))
-            items[n++] = 3;
-          items[n++] = 4;
+          DialMenuCounts counts;
+          counts.lights = id(dial_lights_id).light_count();
+          counts.covers = id(dial_covers_id).count();
+          counts.garages = id(dial_garages_id).count();
+          counts.switches = id(dial_switches_id).count();
+          counts.scenes = id(dial_scenes_id).count();
+          counts.climates = id(dial_climates_id).count();
+          counts.media = id(dial_media_players_id).count();
+          int items[DIAL_MENU_MAX];
+          const int n = dial_collect_menu_items(
+              items, "${timer_entity}", "${climate_entity}", "${music_player_entity}", counts);
 
           int slot = -1;
           for (int s = 0; s < 5; s++) {
@@ -475,7 +684,7 @@ script:
           const int sel = id(menu_sel);
           const int idx = ((sel + slot_offset) % n + n) % n;
 
-          int best_slot_for_index[5];
+          int best_slot_for_index[DIAL_MENU_MAX];
           for (int i = 0; i < n; i++)
             best_slot_for_index[i] = -1;
           for (int s = 0; s < 5; s++) {
@@ -504,17 +713,17 @@ script:
           static constexpr int SLOT_N = 5;
           static constexpr int OFFSETS[5] = {-2, -1, 0, 1, 2};
 
-          int items[5];
-          int n = 0;
-          if (dial_ha_entity_enabled("${timer_entity}"))
-            items[n++] = 0;
-          if (id(dial_lights_id).light_count() > 0)
-            items[n++] = 1;
-          if (dial_ha_entity_enabled("${climate_entity}"))
-            items[n++] = 2;
-          if (dial_ha_entity_enabled("${music_player_entity}"))
-            items[n++] = 3;
-          items[n++] = 4;
+          DialMenuCounts counts;
+          counts.lights = id(dial_lights_id).light_count();
+          counts.covers = id(dial_covers_id).count();
+          counts.garages = id(dial_garages_id).count();
+          counts.switches = id(dial_switches_id).count();
+          counts.scenes = id(dial_scenes_id).count();
+          counts.climates = id(dial_climates_id).count();
+          counts.media = id(dial_media_players_id).count();
+          int items[DIAL_MENU_MAX];
+          const int n = dial_collect_menu_items(
+              items, "${timer_entity}", "${climate_entity}", "${music_player_entity}", counts);
 
           lv_obj_t* icons[5] = {
             id(slot_far_up_img),  id(slot_near_up_img),
@@ -531,36 +740,33 @@ script:
             id(slot_near_dn), id(slot_far_dn)
           };
 
-          const char* TITLES[5] = {
-            dial_i18n::menu_timer(), dial_i18n::menu_lights(), dial_i18n::menu_ac(),
-            dial_i18n::menu_music(), dial_i18n::menu_home()
+          const char* TITLES[9] = {
+            dial_i18n::menu_timer(), dial_i18n::menu_lights(), dial_i18n::menu_covers(),
+            dial_i18n::menu_garage(), dial_i18n::menu_switches(), dial_i18n::menu_scenes(),
+            dial_i18n::menu_ac(), dial_i18n::menu_music(), dial_i18n::menu_home()
           };
-          const lv_img_dsc_t* IMGS[5] = {
+          const lv_img_dsc_t* IMGS[9] = {
             id(menu_img_timer)->get_lv_image_dsc(),
             id(menu_img_light)->get_lv_image_dsc(),
+            id(menu_img_cover)->get_lv_image_dsc(),
+            id(menu_img_garage)->get_lv_image_dsc(),
+            id(menu_img_switch)->get_lv_image_dsc(),
+            id(menu_img_scene)->get_lv_image_dsc(),
             id(menu_img_ac)->get_lv_image_dsc(),
             id(menu_img_music)->get_lv_image_dsc(),
             id(menu_img_home)->get_lv_image_dsc()
           };
-          const uint32_t ACCENT_COLORS[5] = {
-            0xFB923C,
-            0xFDC003,
-            0x5ABBFD,
-            0xA792E8,
-            0x576BFE
+          const uint32_t ACCENT_COLORS[9] = {
+            0xFB923C, 0xFDC003, 0x2DD4BF, 0xF97316, 0x4ADE80, 0xF472B6, 0x5ABBFD, 0xA792E8, 0x576BFE
           };
-          const uint32_t PILL_COLORS[5] = {
-            0x2A1200,
-            0x2A1E00,
-            0x001A2A,
-            0x150A2A,
-            0x0D1537
+          const uint32_t PILL_COLORS[9] = {
+            0x2A1200, 0x2A1E00, 0x04201A, 0x2A1200, 0x052010, 0x2A0A18, 0x001A2A, 0x150A2A, 0x0D1537
           };
 
           const int sel = id(menu_sel);
           id(menu_func) = items[sel];
 
-          int best_slot_for_index[5];
+          int best_slot_for_index[DIAL_MENU_MAX];
           for (int i = 0; i < n; i++)
             best_slot_for_index[i] = -1;
           for (int s = 0; s < SLOT_N; s++) {
@@ -637,25 +843,32 @@ script:
           lv_obj_t* sdots[5] = {
             id(sdot_0), id(sdot_1), id(sdot_2), id(sdot_3), id(sdot_4)
           };
-          for (int d = 0; d < SLOT_N; d++) {
-            if (d >= n) {
-              lv_obj_add_flag(sdots[d], LV_OBJ_FLAG_HIDDEN);
-              continue;
+          const uint32_t sel_accent = ACCENT_COLORS[items[sel]];
+          if (n <= 5) {
+            for (int d = 0; d < SLOT_N; d++) {
+              if (d >= n) {
+                lv_obj_add_flag(sdots[d], LV_OBJ_FLAG_HIDDEN);
+                continue;
+              }
+              lv_obj_clear_flag(sdots[d], LV_OBJ_FLAG_HIDDEN);
+              const int func = items[d];
+              const bool selected = (d == sel);
+              lv_obj_set_style_bg_color(sdots[d], lv_color_hex(selected ? ACCENT_COLORS[func] : 0x2A3348), LV_PART_MAIN);
+              lv_obj_set_style_opa(sdots[d], selected ? 255 : 180, LV_PART_MAIN);
+              lv_obj_set_size(sdots[d], selected ? 8 : 4, selected ? 8 : 4);
+              lv_obj_set_style_radius(sdots[d], selected ? 0 : 2, LV_PART_MAIN);
+              lv_obj_set_style_transform_angle(sdots[d], selected ? 450 : 0, LV_PART_MAIN);
             }
-            lv_obj_clear_flag(sdots[d], LV_OBJ_FLAG_HIDDEN);
-            const int func = items[d];
-            if (d == sel) {
-              lv_obj_set_style_bg_color(sdots[d], lv_color_hex(ACCENT_COLORS[func]), LV_PART_MAIN);
-              lv_obj_set_style_opa(sdots[d], 255, LV_PART_MAIN);
-              lv_obj_set_size(sdots[d], 8, 8);
-              lv_obj_set_style_radius(sdots[d], 0, LV_PART_MAIN);
-              lv_obj_set_style_transform_angle(sdots[d], 450, LV_PART_MAIN);
-            } else {
-              lv_obj_set_style_bg_color(sdots[d], lv_color_hex(0x2A3348), LV_PART_MAIN);
-              lv_obj_set_style_opa(sdots[d], 180, LV_PART_MAIN);
-              lv_obj_set_size(sdots[d], 4, 4);
-              lv_obj_set_style_radius(sdots[d], 2, LV_PART_MAIN);
-              lv_obj_set_style_transform_angle(sdots[d], 0, LV_PART_MAIN);
+          } else {
+            const int sel_dot = (n > 1) ? (sel * 4 / (n - 1)) : 0;
+            for (int d = 0; d < SLOT_N; d++) {
+              lv_obj_clear_flag(sdots[d], LV_OBJ_FLAG_HIDDEN);
+              const bool selected = (d == sel_dot);
+              lv_obj_set_style_bg_color(sdots[d], lv_color_hex(selected ? sel_accent : 0x2A3348), LV_PART_MAIN);
+              lv_obj_set_style_opa(sdots[d], selected ? 255 : 180, LV_PART_MAIN);
+              lv_obj_set_size(sdots[d], selected ? 8 : 4, selected ? 8 : 4);
+              lv_obj_set_style_radius(sdots[d], selected ? 0 : 2, LV_PART_MAIN);
+              lv_obj_set_style_transform_angle(sdots[d], selected ? 450 : 0, LV_PART_MAIN);
             }
           }
 

@@ -1,0 +1,656 @@
+globals:
+  - id: in_entity_selector
+    type: bool
+    initial_value: 'false'
+  # 0=climate, 1=media, 2=cover, 3=garage, 4=switch, 5=scene
+  - id: entity_selector_kind
+    type: int
+    initial_value: '0'
+  - id: entity_selector_encoder_accum
+    type: int
+    initial_value: '0'
+
+dial_carousel:
+  - id: entity_selector_carousel
+    lateral_title_opa_max: 120
+    titles_are_overlays: true
+    slots:
+      - container: es_slot_far_up
+        icon: es_slot_far_up_img
+        title: es_overlay_far_up_lbl
+      - container: es_slot_near_up
+        icon: es_slot_near_up_img
+        title: es_overlay_near_up_lbl
+      - container: es_slot_center
+        icon: es_slot_center_img
+        title: es_slot_center_lbl
+      - container: es_slot_near_dn
+        icon: es_slot_near_dn_img
+        title: es_overlay_near_dn_lbl
+      - container: es_slot_far_dn
+        icon: es_slot_far_dn_img
+        title: es_overlay_far_dn_lbl
+    center_bar: es_slot_center_bar
+    center_sub: es_slot_center_sub
+
+script:
+  - id: entity_selector_scroll_up
+    then:
+      - if:
+          condition:
+            lambda: 'return !id(entity_selector_carousel).is_animating();'
+          then:
+            - lambda: |-
+                auto on_ready = +[](void *ctx) {
+                  const int k = id(entity_selector_kind);
+                  if (k == 0) id(dial_climates_id).select_previous();
+                  else if (k == 1) id(dial_media_players_id).select_previous();
+                  else if (k == 2) id(dial_covers_id).select_previous();
+                  else if (k == 3) id(dial_garages_id).select_previous();
+                  else if (k == 4) id(dial_switches_id).select_previous();
+                  else id(dial_scenes_id).select_previous();
+                  id(refresh_entity_selector).execute();
+                };
+                if (!id(entity_selector_carousel).start_animation(
+                        esphome::dial_carousel::CarouselDirection::UP, 54, on_ready, nullptr)) {
+                  return;
+                }
+
+  - id: entity_selector_scroll_down
+    then:
+      - if:
+          condition:
+            lambda: 'return !id(entity_selector_carousel).is_animating();'
+          then:
+            - lambda: |-
+                auto on_ready = +[](void *ctx) {
+                  const int k = id(entity_selector_kind);
+                  if (k == 0) id(dial_climates_id).select_next();
+                  else if (k == 1) id(dial_media_players_id).select_next();
+                  else if (k == 2) id(dial_covers_id).select_next();
+                  else if (k == 3) id(dial_garages_id).select_next();
+                  else if (k == 4) id(dial_switches_id).select_next();
+                  else id(dial_scenes_id).select_next();
+                  id(refresh_entity_selector).execute();
+                };
+                if (!id(entity_selector_carousel).start_animation(
+                        esphome::dial_carousel::CarouselDirection::DOWN, 64, on_ready, nullptr)) {
+                  return;
+                }
+
+  - id: refresh_entity_selector
+    then:
+      - lambda: |-
+          auto *list = &id(dial_covers_id);
+          uint32_t accent = 0x2DD4BF;
+          uint32_t pill = 0x04201A;
+          const lv_img_dsc_t *icon = id(menu_img_cover)->get_lv_image_dsc();
+          const int kind = id(entity_selector_kind);
+          if (kind == 0) {
+            list = &id(dial_climates_id);
+            accent = 0x5ABBFD;
+            pill = 0x001A2A;
+            icon = id(menu_img_ac)->get_lv_image_dsc();
+          } else if (kind == 1) {
+            list = &id(dial_media_players_id);
+            accent = 0xA792E8;
+            pill = 0x150A2A;
+            icon = id(menu_img_music)->get_lv_image_dsc();
+          } else if (kind == 3) {
+            list = &id(dial_garages_id);
+            accent = 0xF97316;
+            pill = 0x2A1200;
+            icon = id(menu_img_garage)->get_lv_image_dsc();
+          } else if (kind == 4) {
+            list = &id(dial_switches_id);
+            accent = 0x4ADE80;
+            pill = 0x052010;
+            icon = id(menu_img_switch)->get_lv_image_dsc();
+          } else if (kind == 5) {
+            list = &id(dial_scenes_id);
+            accent = 0xF472B6;
+            pill = 0x2A0A18;
+            icon = id(menu_img_scene)->get_lv_image_dsc();
+          }
+
+          auto subtitle_at = [&](size_t index, char *buf, size_t len) {
+            buf[0] = '\0';
+            if (kind == 5) {
+              snprintf(buf, len, "%s", dial_i18n::scene_ready());
+              return;
+            }
+            if (!list->state_valid_at(index)) {
+              snprintf(buf, len, "%s", dial_i18n::unavailable());
+              return;
+            }
+            const std::string &st = list->state_at(index);
+            if (kind == 0) {
+              if (!dial_i18n::hvac_menu(st, buf, len))
+                snprintf(buf, len, "%s", st.c_str());
+              if (list->attr_valid_at(index, "temperature")) {
+                const int t = atoi(list->attr_at(index, "temperature").c_str());
+                char tmp[32];
+                snprintf(tmp, sizeof(tmp), "%s · %d°", buf, t);
+                snprintf(buf, len, "%s", tmp);
+              }
+              return;
+            }
+            if (kind == 1) {
+              if (st == "playing" || st == "buffering") {
+                if (list->attr_valid_at(index, "title"))
+                  snprintf(buf, len, "%s", list->attr_at(index, "title").c_str());
+                else
+                  snprintf(buf, len, "%s", dial_i18n::media_playing());
+              } else if (st == "paused") {
+                snprintf(buf, len, "%s", dial_i18n::media_paused());
+              } else if (st == "idle") {
+                snprintf(buf, len, "%s", dial_i18n::media_idle());
+              } else if (st == "off") {
+                snprintf(buf, len, "%s", dial_i18n::media_off());
+              } else {
+                snprintf(buf, len, "%s", st.c_str());
+              }
+              return;
+            }
+            if (kind == 4) {
+              snprintf(buf, len, "%s", (st == "on") ? dial_i18n::switch_on() : dial_i18n::switch_off());
+              return;
+            }
+            if (st == "open")
+              snprintf(buf, len, "%s", dial_i18n::cover_open());
+            else if (st == "closed")
+              snprintf(buf, len, "%s", dial_i18n::cover_closed());
+            else if (st == "opening")
+              snprintf(buf, len, "%s", dial_i18n::cover_opening());
+            else if (st == "closing")
+              snprintf(buf, len, "%s", dial_i18n::cover_closing());
+            else
+              snprintf(buf, len, "%s", st.c_str());
+            if (list->attr_valid_at(index, "position")) {
+              const int p = atoi(list->attr_at(index, "position").c_str());
+              char tmp[32];
+              snprintf(tmp, sizeof(tmp), "%s · %d%%", buf, p);
+              snprintf(buf, len, "%s", tmp);
+            }
+          };
+
+          auto resolve_index = [](size_t count, size_t active, int offset, size_t &idx) -> bool {
+            if (count == 0) return false;
+            if (count == 1) {
+              if (offset == 0) { idx = 0; return true; }
+              return false;
+            }
+            if (count == 2) {
+              if (offset == 0) { idx = active; return true; }
+              const size_t other = (active + 1) % 2;
+              if (offset == -1 && active == 1) { idx = other; return true; }
+              if (offset == 1 && active == 0) { idx = other; return true; }
+              return false;
+            }
+            idx = (static_cast<int>(active) + offset + static_cast<int>(count)) % static_cast<int>(count);
+            return true;
+          };
+
+          auto style_dot = [](lv_obj_t *dot, bool selected, uint32_t col) {
+            if (selected) {
+              lv_obj_set_style_bg_color(dot, lv_color_hex(col), LV_PART_MAIN);
+              lv_obj_set_style_opa(dot, 255, LV_PART_MAIN);
+              lv_obj_set_size(dot, 8, 8);
+              lv_obj_set_style_radius(dot, 0, LV_PART_MAIN);
+              lv_obj_set_style_transform_angle(dot, 450, LV_PART_MAIN);
+            } else {
+              lv_obj_set_style_bg_color(dot, lv_color_hex(0x2A3348), LV_PART_MAIN);
+              lv_obj_set_style_opa(dot, 180, LV_PART_MAIN);
+              lv_obj_set_size(dot, 4, 4);
+              lv_obj_set_style_radius(dot, 2, LV_PART_MAIN);
+              lv_obj_set_style_transform_angle(dot, 0, LV_PART_MAIN);
+            }
+          };
+
+          const size_t count = list->count();
+          const size_t active = list->active_index();
+          const int OFFSETS[5] = {-2, -1, 0, 1, 2};
+          lv_obj_t *slots[5] = {
+            id(es_slot_far_up), id(es_slot_near_up), id(es_slot_center),
+            id(es_slot_near_dn), id(es_slot_far_dn)
+          };
+          lv_obj_t *icons[5] = {
+            id(es_slot_far_up_img), id(es_slot_near_up_img), id(es_slot_center_img),
+            id(es_slot_near_dn_img), id(es_slot_far_dn_img)
+          };
+          lv_obj_t *title_lbls[5] = {
+            id(es_overlay_far_up_lbl), id(es_overlay_near_up_lbl), id(es_slot_center_lbl),
+            id(es_overlay_near_dn_lbl), id(es_overlay_far_dn_lbl)
+          };
+          lv_obj_t *dots[5] = {id(es_dot_0), id(es_dot_1), id(es_dot_2), id(es_dot_3), id(es_dot_4)};
+
+          for (int slot = 0; slot < 5; slot++) {
+            lv_img_set_src(icons[slot], icon);
+            const auto layout = id(entity_selector_carousel).compute_static_layout(slot, 54);
+            id(entity_selector_carousel).apply_container_geometry(slot, layout);
+            size_t idx = 0;
+            if (count > 0 && resolve_index(count, active, OFFSETS[slot], idx)) {
+              lv_label_set_text(title_lbls[slot], list->name_at(idx).c_str());
+              lv_obj_set_style_opa(icons[slot], slot == 2 ? 255 : layout.opa_icon, LV_PART_MAIN);
+              lv_obj_set_style_img_recolor(icons[slot], lv_color_hex(accent), LV_PART_MAIN);
+              lv_obj_set_style_img_recolor_opa(icons[slot], 255, LV_PART_MAIN);
+              if (slot == 2) {
+                char subbuf[40];
+                subtitle_at(idx, subbuf, sizeof(subbuf));
+                lv_label_set_text(id(es_slot_center_sub), subbuf);
+                lv_obj_set_style_text_color(id(es_slot_center_lbl), lv_color_hex(accent), LV_PART_MAIN);
+                lv_obj_set_style_text_color(id(es_slot_center_sub), lv_color_hex(accent), LV_PART_MAIN);
+                lv_obj_set_style_bg_color(id(es_slot_center), lv_color_hex(pill), LV_PART_MAIN);
+                lv_obj_set_style_bg_opa(id(es_slot_center), 128, LV_PART_MAIN);
+                lv_obj_set_style_border_color(id(es_slot_center), lv_color_hex(accent), LV_PART_MAIN);
+                lv_obj_set_style_border_width(id(es_slot_center), 2, LV_PART_MAIN);
+                lv_obj_set_pos(id(es_slot_center_bar), layout.x - 10, layout.y + 12);
+                lv_obj_set_style_bg_color(id(es_slot_center_bar), lv_color_hex(accent), LV_PART_MAIN);
+                lv_obj_set_style_opa(id(es_slot_center_bar), 255, LV_PART_MAIN);
+              } else {
+                lv_obj_set_style_text_color(title_lbls[slot], lv_color_hex(0x6B7FCC), LV_PART_MAIN);
+                lv_obj_set_style_bg_opa(slots[slot], layout.opa_bg, LV_PART_MAIN);
+                lv_obj_set_style_border_width(slots[slot], 0, LV_PART_MAIN);
+              }
+            } else {
+              lv_label_set_text(title_lbls[slot], "");
+              lv_obj_set_style_opa(icons[slot], 0, LV_PART_MAIN);
+              if (slot == 2) {
+                lv_label_set_text(id(es_slot_center_sub), "");
+                lv_obj_set_style_opa(id(es_slot_center_bar), 0, LV_PART_MAIN);
+              }
+            }
+            id(entity_selector_carousel).apply_title_layout(slot, layout);
+          }
+
+          if (count <= 5) {
+            for (int d = 0; d < 5; d++) {
+              if (d < static_cast<int>(count)) {
+                lv_obj_clear_flag(dots[d], LV_OBJ_FLAG_HIDDEN);
+                style_dot(dots[d], d == static_cast<int>(active), accent);
+              } else {
+                lv_obj_add_flag(dots[d], LV_OBJ_FLAG_HIDDEN);
+              }
+            }
+          } else {
+            const int sel_dot = (count > 1) ? static_cast<int>(active * 4 / (count - 1)) : 0;
+            for (int d = 0; d < 5; d++) {
+              lv_obj_clear_flag(dots[d], LV_OBJ_FLAG_HIDDEN);
+              style_dot(dots[d], d == sel_dot, accent);
+            }
+          }
+
+  - id: open_entity_selector
+    then:
+      - globals.set: {id: in_entity_selector, value: 'true'}
+      - globals.set: {id: in_menu, value: 'false'}
+      - globals.set: {id: in_air, value: 'false'}
+      - globals.set: {id: in_music, value: 'false'}
+      - globals.set: {id: in_cover, value: 'false'}
+      - globals.set: {id: in_switch, value: 'false'}
+      - globals.set: {id: in_scene, value: 'false'}
+      - globals.set: {id: entity_selector_encoder_accum, value: '0'}
+      - script.execute: refresh_entity_selector
+      - lvgl.page.show:
+          id: page_entity_selector
+          animation: MOVE_LEFT
+
+  - id: open_entity_selector_back
+    then:
+      - globals.set: {id: in_entity_selector, value: 'true'}
+      - globals.set: {id: in_menu, value: 'false'}
+      - globals.set: {id: in_air, value: 'false'}
+      - globals.set: {id: in_music, value: 'false'}
+      - globals.set: {id: in_cover, value: 'false'}
+      - globals.set: {id: in_switch, value: 'false'}
+      - globals.set: {id: in_scene, value: 'false'}
+      - globals.set: {id: entity_selector_encoder_accum, value: '0'}
+      - script.execute: refresh_entity_selector
+      - lvgl.page.show:
+          id: page_entity_selector
+          animation: MOVE_RIGHT
+
+  - id: close_entity_selector
+    then:
+      - globals.set: {id: in_entity_selector, value: 'false'}
+      - globals.set: {id: entity_selector_encoder_accum, value: '0'}
+      - script.execute: open_menu_back
+
+  - id: entity_selector_confirm
+    then:
+      - lambda: |-
+          const int k = id(entity_selector_kind);
+          if (k == 0) {
+            if (id(dial_climates_id).count() == 0) return;
+            id(open_air).execute();
+          } else if (k == 1) {
+            if (id(dial_media_players_id).count() == 0) return;
+            id(open_music).execute();
+          } else if (k == 2) {
+            if (id(dial_covers_id).count() == 0) return;
+            id(cover_page_kind) = 0;
+            id(open_cover).execute();
+          } else if (k == 3) {
+            if (id(dial_garages_id).count() == 0) return;
+            id(open_garage).execute();
+          } else if (k == 4) {
+            if (id(dial_switches_id).count() == 0) return;
+            id(open_switch).execute();
+          } else {
+            if (id(dial_scenes_id).count() == 0) return;
+            id(open_scene).execute();
+          }
+
+  - id: entity_selector_touch_slot
+    parameters:
+      slot_offset: int
+    then:
+      - if:
+          condition:
+            lambda: 'return !id(entity_selector_carousel).is_animating();'
+          then:
+            - lambda: |-
+                auto *list = &id(dial_covers_id);
+                const int k = id(entity_selector_kind);
+                if (k == 0) list = &id(dial_climates_id);
+                else if (k == 1) list = &id(dial_media_players_id);
+                else if (k == 3) list = &id(dial_garages_id);
+                else if (k == 4) list = &id(dial_switches_id);
+                else if (k == 5) list = &id(dial_scenes_id);
+                const size_t count = list->count();
+                const size_t active = list->active_index();
+                size_t idx = 0;
+                bool ok = false;
+                if (count == 1) {
+                  ok = (slot_offset == 0);
+                  idx = 0;
+                } else if (count == 2) {
+                  if (slot_offset == 0) { idx = active; ok = true; }
+                  else {
+                    const size_t other = (active + 1) % 2;
+                    if (slot_offset == -1 && active == 1) { idx = other; ok = true; }
+                    else if (slot_offset == 1 && active == 0) { idx = other; ok = true; }
+                  }
+                } else if (count > 2) {
+                  idx = (static_cast<int>(active) + slot_offset + static_cast<int>(count)) % static_cast<int>(count);
+                  ok = true;
+                }
+                if (!ok) return;
+                list->select(idx);
+            - script.execute: entity_selector_confirm
+
+interval:
+  - interval: 1s
+    then:
+      - if:
+          condition:
+            lambda: 'return id(in_entity_selector) && !id(entity_selector_carousel).is_animating();'
+          then:
+            - script.execute: refresh_entity_selector
+
+lvgl:
+  pages:
+    - id: page_entity_selector
+      bg_color: col_menu_bg
+      bg_opa: COVER
+      scrollbar_mode: "OFF"
+      on_load:
+        - lambda: |-
+            lv_obj_clear_flag(id(entity_selector_root), LV_OBJ_FLAG_SCROLLABLE);
+            lv_obj_move_foreground(id(es_overlay_far_up_lbl));
+            lv_obj_move_foreground(id(es_overlay_near_up_lbl));
+            lv_obj_move_foreground(id(es_overlay_near_dn_lbl));
+            lv_obj_move_foreground(id(es_overlay_far_dn_lbl));
+        - script.execute: refresh_entity_selector
+      widgets:
+        - obj:
+            id: entity_selector_root
+            align: CENTER
+            width: 240
+            height: 240
+            radius: 120
+            clip_corner: true
+            bg_color: col_menu_bg
+            bg_opa: COVER
+            border_width: 0
+            scrollbar_mode: "OFF"
+            pad_all: 0
+            widgets:
+              - obj:
+                  id: es_stack
+                  align: TOP_LEFT
+                  x: 0
+                  y: 0
+                  width: 240
+                  height: 240
+                  bg_opa: TRANSP
+                  border_width: 0
+                  scrollbar_mode: "OFF"
+                  pad_all: 0
+                  clickable: false
+                  widgets:
+                    - obj:
+                        id: es_slot_far_up
+                        align: TOP_MID
+                        y: 6
+                        width: 180
+                        height: 40
+                        bg_opa: TRANSP
+                        border_width: 0
+                        pad_all: 0
+                        clickable: true
+                        on_click:
+                          - lambda: 'id(entity_selector_touch_slot).execute(-2);'
+                        widgets:
+                          - image:
+                              id: es_slot_far_up_img
+                              align: LEFT_MID
+                              x: 2
+                              src: menu_img_ac
+                    - obj:
+                        id: es_slot_near_up
+                        align: TOP_MID
+                        y: 42
+                        width: 180
+                        height: 40
+                        bg_opa: TRANSP
+                        border_width: 0
+                        pad_all: 0
+                        clickable: true
+                        on_click:
+                          - lambda: 'id(entity_selector_touch_slot).execute(-1);'
+                        widgets:
+                          - image:
+                              id: es_slot_near_up_img
+                              align: LEFT_MID
+                              x: 2
+                              src: menu_img_ac
+                    - obj:
+                        id: es_slot_center_bar
+                        align: TOP_MID
+                        y: 108
+                        x: -96
+                        width: 6
+                        height: 32
+                        radius: 3
+                        bg_color: col_menu_accent
+                        bg_opa: TRANSP
+                        border_width: 0
+                        clickable: false
+                    - obj:
+                        id: es_slot_center
+                        align: TOP_MID
+                        y: 102
+                        width: 168
+                        height: 56
+                        radius: 28
+                        bg_color: col_menu_pill
+                        bg_opa: COVER
+                        border_width: 0
+                        pad_all: 0
+                        clickable: true
+                        on_click:
+                          - lambda: 'id(entity_selector_touch_slot).execute(0);'
+                        widgets:
+                          - image:
+                              id: es_slot_center_img
+                              align: LEFT_MID
+                              x: 14
+                              src: menu_img_ac
+                          - label:
+                              id: es_slot_center_lbl
+                              x: 54
+                              y: 6
+                              width: 106
+                              long_mode: DOT
+                              text_font: font_menu_item
+                              text_color: col_text_pri
+                              text: ""
+                          - label:
+                              id: es_slot_center_sub
+                              x: 54
+                              y: 30
+                              width: 106
+                              long_mode: DOT
+                              text_font: font_menu_sub
+                              text_color: col_menu_val
+                              text: ""
+                    - obj:
+                        id: es_slot_near_dn
+                        align: TOP_MID
+                        y: 162
+                        width: 180
+                        height: 40
+                        bg_opa: TRANSP
+                        border_width: 0
+                        pad_all: 0
+                        clickable: true
+                        on_click:
+                          - lambda: 'id(entity_selector_touch_slot).execute(1);'
+                        widgets:
+                          - image:
+                              id: es_slot_near_dn_img
+                              align: LEFT_MID
+                              x: 2
+                              src: menu_img_ac
+                    - obj:
+                        id: es_slot_far_dn
+                        align: TOP_MID
+                        y: 198
+                        width: 180
+                        height: 40
+                        bg_opa: TRANSP
+                        border_width: 0
+                        pad_all: 0
+                        clickable: true
+                        on_click:
+                          - lambda: 'id(entity_selector_touch_slot).execute(2);'
+                        widgets:
+                          - image:
+                              id: es_slot_far_dn_img
+                              align: LEFT_MID
+                              x: 2
+                              src: menu_img_ac
+              - label:
+                  id: es_overlay_far_up_lbl
+                  align: TOP_LEFT
+                  width: 118
+                  height: 16
+                  text_font: font_light_selector_near
+                  text_color: 0x6B7FCC
+                  long_mode: DOT
+                  clickable: true
+                  on_click:
+                    - lambda: 'id(entity_selector_touch_slot).execute(-2);'
+                  text: ""
+              - label:
+                  id: es_overlay_near_up_lbl
+                  align: TOP_LEFT
+                  width: 118
+                  height: 16
+                  text_font: font_light_selector_near
+                  text_color: 0x6B7FCC
+                  long_mode: DOT
+                  clickable: true
+                  on_click:
+                    - lambda: 'id(entity_selector_touch_slot).execute(-1);'
+                  text: ""
+              - label:
+                  id: es_overlay_near_dn_lbl
+                  align: TOP_LEFT
+                  width: 118
+                  height: 16
+                  text_font: font_light_selector_near
+                  text_color: 0x6B7FCC
+                  long_mode: DOT
+                  clickable: true
+                  on_click:
+                    - lambda: 'id(entity_selector_touch_slot).execute(1);'
+                  text: ""
+              - label:
+                  id: es_overlay_far_dn_lbl
+                  align: TOP_LEFT
+                  width: 118
+                  height: 16
+                  text_font: font_light_selector_near
+                  text_color: 0x6B7FCC
+                  long_mode: DOT
+                  clickable: true
+                  on_click:
+                    - lambda: 'id(entity_selector_touch_slot).execute(2);'
+                  text: ""
+              - obj:
+                  id: es_dot_0
+                  align: RIGHT_MID
+                  x: -10
+                  y: -28
+                  width: 5
+                  height: 5
+                  radius: 3
+                  bg_color: col_menu_sdot_dim
+                  border_width: 0
+                  clickable: false
+              - obj:
+                  id: es_dot_1
+                  align: RIGHT_MID
+                  x: -10
+                  y: -14
+                  width: 5
+                  height: 5
+                  radius: 3
+                  bg_color: col_menu_sdot_dim
+                  border_width: 0
+                  clickable: false
+              - obj:
+                  id: es_dot_2
+                  align: RIGHT_MID
+                  x: -10
+                  y: 0
+                  width: 5
+                  height: 5
+                  radius: 3
+                  bg_color: col_menu_accent
+                  border_width: 0
+                  clickable: false
+              - obj:
+                  id: es_dot_3
+                  align: RIGHT_MID
+                  x: -10
+                  y: 14
+                  width: 5
+                  height: 5
+                  radius: 3
+                  bg_color: col_menu_sdot_dim
+                  border_width: 0
+                  clickable: false
+              - obj:
+                  id: es_dot_4
+                  align: RIGHT_MID
+                  x: -10
+                  y: 28
+                  width: 5
+                  height: 5
+                  radius: 3
+                  bg_color: col_menu_sdot_dim
+                  border_width: 0
+                  clickable: false

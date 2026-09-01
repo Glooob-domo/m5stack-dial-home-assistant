@@ -1,0 +1,148 @@
+globals:
+  - id: in_scene
+    type: bool
+    initial_value: 'false'
+  - id: scene_flash_until_ms
+    type: uint32_t
+    initial_value: '0'
+
+color:
+  - id: col_scene_bg
+    hex: "000000"
+  - id: col_scene_accent
+    hex: "F472B6"
+  - id: col_scene_btn
+    hex: "3B1028"
+
+script:
+  - id: refresh_scene
+    then:
+      - lambda: |-
+          lv_label_set_text(id(lbl_scene_title), id(dial_scenes_id).active_name().c_str());
+          lv_label_set_text(id(lbl_scene_btn), dial_i18n::scene_activate_btn());
+          const bool flashing = (int32_t)(id(scene_flash_until_ms) - millis()) > 0;
+          lv_label_set_text(id(lbl_scene_status),
+                            flashing ? dial_i18n::scene_activated() : dial_i18n::scene_ready());
+          lv_obj_set_style_text_color(id(lbl_scene_status),
+                                      lv_color_hex(flashing ? 0xFFFFFF : 0xF472B6), LV_PART_MAIN);
+          lv_obj_set_style_bg_opa(id(btn_scene_go), flashing ? 220 : 255, LV_PART_MAIN);
+
+  - id: open_scene
+    then:
+      - globals.set: {id: in_scene, value: 'true'}
+      - globals.set: {id: in_menu, value: 'false'}
+      - globals.set: {id: in_entity_selector, value: 'false'}
+      - globals.set: {id: scene_flash_until_ms, value: '0'}
+      - script.execute: refresh_scene
+      - lvgl.page.show:
+          id: page_scene
+          animation: MOVE_LEFT
+
+  - id: close_scene
+    then:
+      - globals.set: {id: in_scene, value: 'false'}
+      - if:
+          condition:
+            lambda: 'return id(dial_scenes_id).count() > 1;'
+          then:
+            - globals.set: {id: entity_selector_kind, value: '5'}
+            - script.execute: open_entity_selector_back
+          else:
+            - script.execute: open_menu_back
+
+  - id: activate_scene
+    then:
+      - if:
+          condition:
+            lambda: |-
+              const std::string &eid = id(dial_scenes_id).active_entity_id();
+              return eid.rfind("script.", 0) == 0;
+          then:
+            - homeassistant.action:
+                action: script.turn_on
+                data_template:
+                  entity_id: "{{ target_entity }}"
+                variables:
+                  target_entity: !lambda "return id(dial_scenes_id).active_entity_id();"
+          else:
+            - homeassistant.action:
+                action: scene.turn_on
+                data_template:
+                  entity_id: "{{ target_entity }}"
+                variables:
+                  target_entity: !lambda "return id(dial_scenes_id).active_entity_id();"
+      - lambda: |-
+          id(scene_flash_until_ms) = millis() + 1400;
+          ESP_LOGI("scene", "activate %s", id(dial_scenes_id).active_entity_id().c_str());
+      - rtttl.play: "b:d=16,o=6,b=180:c,e,g"
+      - script.execute: refresh_scene
+
+interval:
+  - interval: 300ms
+    then:
+      - if:
+          condition:
+            lambda: 'return id(in_scene);'
+          then:
+            - script.execute: refresh_scene
+
+lvgl:
+  pages:
+    - id: page_scene
+      bg_color: col_scene_bg
+      bg_opa: COVER
+      scrollbar_mode: "OFF"
+      on_load:
+        - script.execute: refresh_scene
+      widgets:
+        - obj:
+            align: TOP_LEFT
+            width: 240
+            height: 240
+            radius: 120
+            clip_corner: true
+            bg_color: col_scene_bg
+            bg_opa: COVER
+            border_width: 0
+            pad_all: 0
+            widgets:
+              - image:
+                  id: img_scene_page
+                  align: CENTER
+                  y: -28
+                  src: menu_img_scene
+              - label:
+                  id: lbl_scene_title
+                  align: CENTER
+                  y: 18
+                  width: 180
+                  text_align: CENTER
+                  long_mode: DOT
+                  text_font: font_menu_item
+                  text_color: 0xFFFFFF
+                  text: ""
+              - label:
+                  id: lbl_scene_status
+                  align: CENTER
+                  y: 42
+                  text_font: font_menu_sub
+                  text_color: col_scene_accent
+                  text: ""
+              - obj:
+                  id: btn_scene_go
+                  align: BOTTOM_MID
+                  y: -28
+                  width: 140
+                  height: 36
+                  radius: 18
+                  bg_color: col_scene_btn
+                  clickable: true
+                  on_click:
+                    - script.execute: activate_scene
+                  widgets:
+                    - label:
+                        id: lbl_scene_btn
+                        align: CENTER
+                        text_font: font_cover_btn
+                        text_color: col_scene_accent
+                        text: "ACTIVATE"
