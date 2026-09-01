@@ -48,7 +48,7 @@ Leave `weather.disabled` or `sensor.disabled` in `m5-dial.yaml` to keep `--` on 
 
 ## Optional menu features
 
-Unconfigured optional features are hidden from the menu. Fill the matching list to show a page, or set `timer_entity` for Timer. Leave a list empty (`[]`) to hide it. Leave `timer.disabled` to hide Timer. Clock weather/AQI stay on the clock page and show `--` when left as `*.disabled`.
+Unconfigured optional features are hidden from the menu. Fill the matching list to show a page, or set `timer_entity` for Timer. Omit a list key to hide that page (the package defaults to an empty list). Leave `timer.disabled` to hide Timer. Clock weather/AQI stay on the clock page and show `--` when left as `*.disabled`.
 
 | Field | Enables | Example |
 | --- | --- | --- |
@@ -72,7 +72,7 @@ dial_lights:
     name: Escritorio
 ```
 
-Each entry needs an `entity_id` and a display `name`. Omit the key, or set `dial_lights: []`, to disable Lights and hide its menu entry. One light opens the control page directly; two or more open a selector first.
+Each entry needs an `entity_id` and a display `name`. Omit `dial_lights` to hide Lights from the menu. One light opens the control page directly; two or more open a selector first.
 
 ### Climate
 
@@ -152,7 +152,7 @@ dial_temperatures:
     name: Bedroom
 ```
 
-Each entry needs an `entity_id` and a display `name`. Use a numeric `sensor.*` (the state is the temperature) or a `climate.*` entity (the page shows `current_temperature`). Omit the key, or set `dial_temperatures: []`, to hide the menu entry. One room opens the page directly; several rooms stay on that page and the encoder steps through them.
+Each entry needs an `entity_id` and a display `name`. Use a numeric `sensor.*` (the state is the temperature) or a `climate.*` entity (the page shows `current_temperature`). Omit `dial_temperatures` to hide the menu entry. One room opens the page directly; several rooms stay on that page and the encoder steps through them.
 
 ### Timer
 

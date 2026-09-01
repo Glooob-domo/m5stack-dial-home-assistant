@@ -125,20 +125,8 @@ dial_media_players:
   - entity_id: media_player.salon
     name: Salon
 
-# --- Ouverture / Cover ---
-dial_covers: []
-
-# --- Garage ---
-dial_garages: []
-
-# --- Interrupteur / Switch ---
-dial_switches: []
-
-# --- Scène / Scene ---
-dial_scenes: []
-
-# --- Températures par pièce ---
-dial_temperatures: []
+# Pages optionnelles : ajoutez seulement les listes dont vous avez besoin.
+# Sans dial_covers, dial_garages, etc., la page reste masquée.
 
 packages:
   m5_dial:
