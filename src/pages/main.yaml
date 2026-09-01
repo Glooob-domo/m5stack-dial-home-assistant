@@ -90,9 +90,11 @@ time:
                 const char* day = dial_i18n::weekday(t.day_of_week);
                 sprintf(buf, "%s  %02d/%02d", day, t.month, t.day_of_month);
                 return buf;
+      - seconds: /5
+        then:
           - lvgl.arc.update:
-              id: arc_minute
-              value: !lambda "return id(rtctime).now().minute;"
+              id: arc_second
+              value: !lambda "return id(rtctime).now().second;"
 
   - platform: homeassistant
     id: esptime
@@ -596,6 +598,10 @@ lvgl:
       bg_color: col_bg
       bg_opa: COVER
       scrollbar_mode: "OFF"
+      on_load:
+        - lvgl.arc.update:
+            id: arc_second
+            value: !lambda "return id(rtctime).now().second;"
       widgets:
 
         - arc:
@@ -623,7 +629,7 @@ lvgl:
               height: 0
 
         - arc:
-            id: arc_minute
+            id: arc_second
             align: CENTER
             width: 228
             height: 228
@@ -639,7 +645,7 @@ lvgl:
               arc_rounded: true
             start_angle: 0
             end_angle: 360
-            value: 24
+            value: 0
             min_value: 0
             max_value: 60
             adjustable: false
