@@ -115,6 +115,16 @@ void DialHaList::note_position_(size_t index, int pos, bool from_attr) {
   if (from_attr)
     entry.cached_from_attr_ = true;
   ESP_LOGD(TAG, "%s position=%d attr=%s", entry.entity_id.c_str(), pos, from_attr ? "yes" : "no");
+  this->notify_update_();
+}
+
+void DialHaList::notify_update_() {
+  if (this->on_update_ == nullptr)
+    return;
+  this->defer([this]() {
+    if (this->on_update_ != nullptr)
+      this->on_update_();
+  });
 }
 
 void DialHaList::setup() {
@@ -283,12 +293,12 @@ int DialHaList::live_position_(size_t index) const {
 }
 
 int DialHaList::position_at(size_t index) const {
+  const int live = this->live_position_(index);
+  if (live >= 0)
+    return live;
   if (index >= this->entries_.size())
     return -1;
-  const int cached = this->entries_[index].cached_position;
-  if (cached >= 0)
-    return cached;
-  return this->live_position_(index);
+  return this->entries_[index].cached_position;
 }
 
 bool DialHaList::cover_is_open_at(size_t index) const {

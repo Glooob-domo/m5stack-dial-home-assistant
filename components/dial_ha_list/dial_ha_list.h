@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <functional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -43,6 +44,7 @@ class DialHaList : public Component {
   const std::string &active_attr(const char *key) const { return this->attr_at(this->active_index_, key); }
   bool active_attr_valid(const char *key) const { return this->attr_valid_at(this->active_index_, key); }
   int active_position() const { return this->position_at(this->active_index_); }
+  void set_on_update(std::function<void()> cb) { this->on_update_ = std::move(cb); }
 
  protected:
   struct Attr {
@@ -73,6 +75,7 @@ class DialHaList : public Component {
   void on_attr_(size_t index, size_t attr_index, const std::string &value);
   void on_num_(size_t index, size_t attr_index, float raw);
   void note_position_(size_t index, int pos, bool from_attr);
+  void notify_update_();
   int live_position_(size_t index) const;
   static bool value_valid_(const std::string &value);
   static bool sensor_ready_(text_sensor::TextSensor *sensor);
@@ -82,6 +85,7 @@ class DialHaList : public Component {
 
   std::vector<Entry> entries_;
   size_t active_index_{0};
+  std::function<void()> on_update_;
 };
 
 }  // namespace dial_ha_list
