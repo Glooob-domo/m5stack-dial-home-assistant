@@ -41,25 +41,6 @@ spi:
   mosi_pin: GPIO5
   clk_pin: GPIO6
 
-# sensor:
-#   - platform: mpu6886
-#     i2c_id: internal_i2c
-#     address: 0x68
-#     accel_x:
-#       name: "MPU6886 Accel X"
-#     accel_y:
-#       name: "MPU6886 Accel Y"
-#     accel_z:
-#       name: "MPU6886 Accel Z"
-#     gyro_x:
-#       name: "MPU6886 Gyro X"
-#     gyro_y:
-#       name: "MPU6886 Gyro Y"
-#     gyro_z:
-#       name: "MPU6886 Gyro Z"
-#     temperature:
-#       name: "MPU6886 Temperature"
-
 display:
   - platform: mipi_spi
     id: round_display

@@ -1,4 +1,5 @@
-# Compile ce dossier sans GitHub. Les utilisateurs n'ont besoin que de m5-dial.yaml.
+# Développement uniquement : compile CE clone (components/ + src/) sans GitHub.
+# Le dashboard ESPHome utilise m5-dial.yaml (package GitHub), pas ce fichier.
 
 substitutions:
   device_name: m5stack-dial

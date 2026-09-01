@@ -1,4 +1,20 @@
-# Default empty lists so those pages stay hidden until m5-dial.yaml lists entities.
+# Fallbacks if a key is missing from m5-dial.yaml. Hidden on the Dial.
+substitutions:
+  timezone: Europe/Paris
+  weather_entity: weather.disabled
+  aqi_entity: sensor.disabled
+  climate_entity: climate.disabled
+  music_player_entity: media_player.disabled
+  timer_entity: timer.disabled
+  light_entity: light.disabled
+  # Prefix for fonts/images. GitHub raw URL when this file is used as a
+  # remote package (ESPHome looks up file: paths in /config/esphome/).
+  # Override with "" in m5-dial.local.yaml to use files from this clone.
+  asset_url: "https://raw.githubusercontent.com/Glooob-domo/m5stack-dial-home-assistant/main/"
+  # Clock, menu and page labels. en, fr, es, de, it
+  ui_language: en
+
+# Empty lists hide those pages until m5-dial.yaml lists entities.
 dial_lights: []
 dial_climates: []
 dial_media_players: []

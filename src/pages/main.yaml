@@ -606,44 +606,7 @@ binary_sensor:
           id(dial_button_decide).execute();
     on_release:
       - lambda: 'ESP_LOGI("button", "release");'
-  # M5Dial V1.1 uses GPIO46 as HOLD for battery power retention.
-  # Keep this old back-button mapping commented; enabling it will conflict with
-  # src/main/hardware.yaml:power_hold and battery-only boot will turn off again.
-  # - platform: gpio
-  #   name: Hold Button
-  #   id: hold_button
-  #   pin:
-  #     number: GPIO46
-  #     inverted: false
-  #     mode:
-  #       input: true
-  #       pullup: false
-  #   on_press:
-  #     - if:
-  #         condition:
-  #           lambda: 'return id(in_menu);'
-  #         then:
-  #           - script.execute: close_menu
-  #     - if:
-  #         condition:
-  #           lambda: 'return id(in_light) || id(in_colorpicker);'
-  #         then:
-  #           - script.execute: close_light
-  #     - if:
-  #         condition:
-  #           lambda: 'return id(in_air);'
-  #         then:
-  #           - script.execute: close_air
-  #     - if:
-  #         condition:
-  #           lambda: 'return id(in_music);'
-  #         then:
-  #           - script.execute: close_music
-  #     - if:
-  #         condition:
-  #           lambda: 'return id(in_timer);'
-  #         then:
-  #           - script.execute: close_timer
+  # GPIO46 is power_hold (hardware.yaml), not a back button.
 
 lvgl:
   pages:

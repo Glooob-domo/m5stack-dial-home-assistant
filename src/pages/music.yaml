@@ -707,15 +707,6 @@ lvgl:
                         align: CENTER
 
 interval:
-  - interval: 20s
-    then:
-      - lambda: |-
-          static bool logged = false;
-          if (!logged) {
-            logged = true;
-            ESP_LOGI("firmware_diag", "MUSIC_YAML_DIAG_C0D6A0B ACTIVE");
-          }
-
   - interval: 200ms
     then:
       - lambda: |-

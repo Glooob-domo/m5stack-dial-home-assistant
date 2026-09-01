@@ -210,12 +210,12 @@ The package enables GPIO46 at boot for M5Dial V1.1 battery power hold. This keep
 ```text
 m5stack-dial-home-assistant/
 ├── m5-dial.yaml               # Single ESPHome device file (GitHub package + entities)
-├── m5-dial.local.yaml         # Same, compiling this clone instead of GitHub
+├── m5-dial.local.yaml         # Compile this clone (not used in the ESPHome dashboard)
 ├── dial.yaml                 # Firmware package (pulled from GitHub)
 ├── secrets.example.yaml      # Example credentials for local development
 ├── requirements.txt          # ESPHome version used by this project
 ├── src/
-│   ├── main/                 # Hardware, entities, idle logic and light sensors
+│   ├── main/                 # Hardware, defaults, idle logic
 │   ├── pages/                # LVGL pages for clock, menu and features
 │   └── assets/               # Fonts and embedded images
 ├── components/               # Local ESPHome components, including SendSpin
@@ -227,7 +227,7 @@ m5stack-dial-home-assistant/
 
 ## Development and customisation
 
-This section is for people changing the firmware. Create a local `secrets.yaml` from `secrets.example.yaml`, edit entities in `m5-dial.local.yaml`, then compile **this clone**:
+This section is for people changing the firmware. Create a local `secrets.yaml` from `secrets.example.yaml`, then compile **this clone** (the ESPHome dashboard uses `m5-dial.yaml` + GitHub instead):
 
 ```bash
 python -m venv .venv

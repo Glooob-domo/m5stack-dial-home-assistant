@@ -11,10 +11,6 @@ Files under `components/sendspin/` are SendSpin-related ESPHome components. Some
 
 The SendSpin-derived parts remain under the Apache License 2.0 where indicated by their source files.
 
-## Material Design Icons font
-
-`src/assets/fonts/materialdesignicons-webfont.ttf` is a Material Design Icons webfont asset. Material Design Icons is a third-party icon set and is commonly distributed under the Apache License 2.0.
-
 ## Google Fonts
 
 The ESPHome configuration downloads these fonts through `gfonts://` during the first build:

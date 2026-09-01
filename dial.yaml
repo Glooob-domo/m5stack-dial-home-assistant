@@ -1,8 +1,6 @@
 packages:
   defaults:    !include src/main/defaults.yaml
   hardware:    !include src/main/hardware.yaml
-  entities:      !include src/main/entities.yaml
-  entities_demo: !include src/main/entities_demo.yaml
   load_page:   !include src/pages/load.yaml
   clock_page:  !include src/pages/main.yaml
   menu_page:   !include src/pages/menu.yaml
@@ -25,7 +23,6 @@ external_components:
     refresh: 0s
 
 substitutions:
-  light_entity: light.disabled
   # Remote packages cannot resolve !secret themselves. Set these from the
   # consumer configuration (usually with !secret values in that local file).
   device_name: m5stack-dialv1
@@ -115,48 +112,6 @@ image:
     type: RGB565
     transparency: alpha_channel
     resize: 72x72
-  - platform: file
-    file: ${asset_url}src/assets/images/scene.png
-    id: img_scene
-    type: RGB565
-    transparency: alpha_channel
-    resize: 24x24
-  - platform: file
-    file: ${asset_url}src/assets/images/bulb.png
-    id: img_light
-    type: RGB565
-    transparency: alpha_channel
-    resize: 24x24
-  - platform: file
-    file: ${asset_url}src/assets/images/ac.png
-    id: img_ac
-    type: RGB565
-    transparency: alpha_channel
-    resize: 24x24
-  - platform: file
-    file: ${asset_url}src/assets/images/music.png
-    id: img_music
-    type: RGB565
-    transparency: alpha_channel
-    resize: 24x24
-  - platform: file
-    file: ${asset_url}src/assets/images/palette.png
-    id: img_palette
-    type: RGB565
-    transparency: alpha_channel
-    resize: 24x24
-  - platform: file
-    file: ${asset_url}src/assets/images/brightness.png
-    id: img_brightness
-    type: RGB565
-    transparency: alpha_channel
-    resize: 24x24
-  - platform: file
-    file: ${asset_url}src/assets/images/light.png
-    id: img_dengguang
-    type: RGB565
-    transparency: alpha_channel
-    resize: 24x24
 
 color:
   - id: col_bg

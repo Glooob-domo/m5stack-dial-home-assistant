@@ -196,4 +196,4 @@ Use USB for the initial installation if the device is not on Wi-Fi; later update
 
 ## Development-only customisation
 
-Clone the repository when you need to change the firmware itself. Edit entity IDs in `m5-dial.yaml` (or `m5-dial.local.yaml` when compiling this clone). `src/pages/` contains the LVGL pages; `src/main/` contains hardware, idle logic and default entity fallbacks. Install `requirements.txt`, copy `secrets.example.yaml` to a local `secrets.yaml`, and run `esphome config m5-dial.local.yaml` before compiling.
+Clone the repository when you need to change the firmware itself. Entity IDs belong in `m5-dial.yaml` (dashboard). To compile this clone without GitHub, use `m5-dial.local.yaml`. `src/pages/` contains the LVGL pages; `src/main/` contains hardware, idle logic and default fallbacks. Install `requirements.txt`, copy `secrets.example.yaml` to a local `secrets.yaml`, and run `esphome config m5-dial.local.yaml` before compiling.
