@@ -87,8 +87,7 @@ time:
               text: !lambda |-
                 static char buf[20];
                 auto t = id(rtctime).now();
-                const char* day = dial_i18n::weekday(t.day_of_week);
-                sprintf(buf, "%s  %02d/%02d", day, t.month, t.day_of_month);
+                dial_i18n::format_clock_date(t.day_of_week, t.day_of_month, t.month, buf, sizeof(buf));
                 return buf;
       - seconds: /5
         then:

@@ -262,6 +262,15 @@ inline const char *weekday(int day_of_week) {
   }
 }
 
+inline void format_clock_date(int day_of_week, int day, int month, char *buf, size_t len) {
+  const char *dow = weekday(day_of_week);
+#if DIAL_UI_LANG == 0
+  snprintf(buf, len, "%s  %02d/%02d", dow, month, day);
+#else
+  snprintf(buf, len, "%s  %02d/%02d", dow, day, month);
+#endif
+}
+
 inline const char *hvac_short(const std::string &mode) {
   if (mode == "auto")
     return mode_auto();
