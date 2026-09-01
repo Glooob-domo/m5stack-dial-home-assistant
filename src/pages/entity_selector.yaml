@@ -81,33 +81,33 @@ script:
   - id: refresh_entity_selector
     then:
       - lambda: |-
-          auto *list = &id(dial_covers_id);
+          auto *list = id(dial_covers_id);
           uint32_t accent = 0x2DD4BF;
           uint32_t pill = 0x04201A;
           const lv_img_dsc_t *icon = id(menu_img_cover)->get_lv_image_dsc();
           const int kind = id(entity_selector_kind);
           if (kind == 0) {
-            list = &id(dial_climates_id);
+            list = id(dial_climates_id);
             accent = 0x5ABBFD;
             pill = 0x001A2A;
             icon = id(menu_img_ac)->get_lv_image_dsc();
           } else if (kind == 1) {
-            list = &id(dial_media_players_id);
+            list = id(dial_media_players_id);
             accent = 0xA792E8;
             pill = 0x150A2A;
             icon = id(menu_img_music)->get_lv_image_dsc();
           } else if (kind == 3) {
-            list = &id(dial_garages_id);
+            list = id(dial_garages_id);
             accent = 0xF97316;
             pill = 0x2A1200;
             icon = id(menu_img_garage)->get_lv_image_dsc();
           } else if (kind == 4) {
-            list = &id(dial_switches_id);
+            list = id(dial_switches_id);
             accent = 0x4ADE80;
             pill = 0x052010;
             icon = id(menu_img_switch)->get_lv_image_dsc();
           } else if (kind == 5) {
-            list = &id(dial_scenes_id);
+            list = id(dial_scenes_id);
             accent = 0xF472B6;
             pill = 0x2A0A18;
             icon = id(menu_img_scene)->get_lv_image_dsc();
@@ -350,13 +350,13 @@ script:
             lambda: 'return !id(entity_selector_carousel).is_animating();'
           then:
             - lambda: |-
-                auto *list = &id(dial_covers_id);
+                auto *list = id(dial_covers_id);
                 const int k = id(entity_selector_kind);
-                if (k == 0) list = &id(dial_climates_id);
-                else if (k == 1) list = &id(dial_media_players_id);
-                else if (k == 3) list = &id(dial_garages_id);
-                else if (k == 4) list = &id(dial_switches_id);
-                else if (k == 5) list = &id(dial_scenes_id);
+                if (k == 0) list = id(dial_climates_id);
+                else if (k == 1) list = id(dial_media_players_id);
+                else if (k == 3) list = id(dial_garages_id);
+                else if (k == 4) list = id(dial_switches_id);
+                else if (k == 5) list = id(dial_scenes_id);
                 const size_t count = list->count();
                 const size_t active = list->active_index();
                 size_t idx = 0;

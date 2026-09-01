@@ -26,34 +26,45 @@ substitutions:
   # --- Timer ---
   timer_entity: timer.disabled
 
-# --- Lumières ---
+# Une seule entrée = ouverture directe. Plusieurs = sélecteur.
+
+# --- Lumière / Light ---
 # dial_lights:
 #   - entity_id: light.salon
 #     name: Salon
 dial_lights: []
 
-# --- Clim, musique, volets, etc. ---
-# Une seule entrée = ouverture directe. Plusieurs = sélecteur, comme les lumières.
+# --- Chauffage / Climate ---
 # dial_climates:
 #   - entity_id: climate.salon
 #     name: Salon
 dial_climates: []
+
+# --- Media Player ---
 # dial_media_players:
 #   - entity_id: media_player.salon
 #     name: Salon
 dial_media_players: []
+
+# --- Ouverture / Cover ---
 # dial_covers:
 #   - entity_id: cover.volet_salon
 #     name: Salon
 dial_covers: []
+
+# --- Garage ---
 # dial_garages:
 #   - entity_id: cover.portail
 #     name: Portail
 dial_garages: []
+
+# --- Interrupteur / Switch ---
 # dial_switches:
 #   - entity_id: switch.prise_salon
 #     name: Salon
 dial_switches: []
+
+# --- Scène / Scene ---
 # dial_scenes:
 #   - entity_id: scene.cinema
 #     name: Cinema

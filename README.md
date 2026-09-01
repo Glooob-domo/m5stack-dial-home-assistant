@@ -107,18 +107,31 @@ substitutions:
   aqi_entity: sensor.aqi_salon
   timer_entity: timer.dial
 
+# --- Lumière / Light ---
 dial_lights:
   - entity_id: light.salon
     name: Salon
+
+# --- Chauffage / Climate ---
 dial_climates:
   - entity_id: climate.salon
     name: Salon
+
+# --- Media Player ---
 dial_media_players:
   - entity_id: media_player.salon
     name: Salon
+
+# --- Ouverture / Cover ---
 dial_covers: []
+
+# --- Garage ---
 dial_garages: []
+
+# --- Interrupteur / Switch ---
 dial_switches: []
+
+# --- Scène / Scene ---
 dial_scenes: []
 
 packages:

@@ -473,17 +473,16 @@ script:
               break;
             }
             case 3: {
-              auto &list = id(dial_garages_id);
-              const size_t count = list.count();
+              const size_t count = id(dial_garages_id).count();
               if (count == 0) {
                 snprintf(subbuf, sizeof(subbuf), "%s", dial_i18n::unavailable());
                 break;
               }
               if (count == 1) {
-                if (!list.state_valid_at(0)) {
+                if (!id(dial_garages_id).state_valid_at(0)) {
                   snprintf(subbuf, sizeof(subbuf), "%s", dial_i18n::unavailable());
                 } else {
-                  const std::string &st = list.state_at(0);
+                  const std::string &st = id(dial_garages_id).state_at(0);
                   if (st == "open") snprintf(subbuf, sizeof(subbuf), "%s", dial_i18n::cover_open());
                   else if (st == "closed") snprintf(subbuf, sizeof(subbuf), "%s", dial_i18n::cover_closed());
                   else if (st == "opening") snprintf(subbuf, sizeof(subbuf), "%s", dial_i18n::cover_opening());
@@ -495,9 +494,9 @@ script:
               size_t open_count = 0;
               bool any_valid = false;
               for (size_t i = 0; i < count; i++) {
-                if (list.state_valid_at(i)) {
+                if (id(dial_garages_id).state_valid_at(i)) {
                   any_valid = true;
-                  const std::string &st = list.state_at(i);
+                  const std::string &st = id(dial_garages_id).state_at(i);
                   if (st == "open" || st == "opening") open_count++;
                 }
               }
