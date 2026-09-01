@@ -2,6 +2,12 @@ globals:
   - id: in_switch
     type: bool
     initial_value: 'false'
+  - id: switch_is_on
+    type: bool
+    initial_value: 'false'
+  - id: switch_pending
+    type: bool
+    initial_value: 'false'
 
 font:
   - file:
@@ -11,7 +17,7 @@ font:
     id: font_switch_state
     size: 36
     bpp: 4
-    glyphs: "ONFAUS"
+    glyphs: "AaNnOoFfUuSs"
 
 color:
   - id: col_switch_bg
@@ -28,18 +34,16 @@ script:
     then:
       - lambda: |-
           lv_label_set_text(id(lbl_switch_title), id(dial_switches_id).active_name().c_str());
-          const bool on = id(dial_switches_id).active_state_valid() &&
-                          id(dial_switches_id).active_state() == "on";
+          if (!id(switch_pending) && id(dial_switches_id).active_state_valid()) {
+            id(switch_is_on) = id(dial_switches_id).active_state() == "on";
+          }
+          const bool on = id(switch_is_on);
           const uint32_t accent = on ? 0x4ADE80 : 0x64748B;
           lv_label_set_text(id(lbl_switch_state), on ? dial_i18n::on() : dial_i18n::off());
           lv_obj_set_style_text_color(id(lbl_switch_state), lv_color_hex(accent), LV_PART_MAIN);
           lv_obj_set_style_bg_color(id(btn_switch_power), lv_color_hex(on ? 0x14532D : 0x1E293B), LV_PART_MAIN);
           lv_obj_set_style_border_color(id(btn_switch_power), lv_color_hex(accent), LV_PART_MAIN);
-          if (id(dial_switches_id).active_state_valid()) {
-            lv_label_set_text(id(lbl_switch_status), on ? dial_i18n::switch_on() : dial_i18n::switch_off());
-          } else {
-            lv_label_set_text(id(lbl_switch_status), dial_i18n::unavailable());
-          }
+          lv_label_set_text(id(lbl_switch_status), on ? dial_i18n::switch_on() : dial_i18n::switch_off());
           lv_obj_set_style_text_color(id(lbl_switch_status), lv_color_hex(accent), LV_PART_MAIN);
 
   - id: open_switch
@@ -47,6 +51,10 @@ script:
       - globals.set: {id: in_switch, value: 'true'}
       - globals.set: {id: in_menu, value: 'false'}
       - globals.set: {id: in_entity_selector, value: 'false'}
+      - globals.set: {id: switch_pending, value: 'false'}
+      - lambda: |-
+          id(switch_is_on) = id(dial_switches_id).active_state_valid() &&
+                             id(dial_switches_id).active_state() == "on";
       - script.execute: refresh_switch
       - lvgl.page.show:
           id: page_switch
@@ -64,8 +72,21 @@ script:
           else:
             - script.execute: open_menu_back
 
+  - id: switch_clear_pending
+    mode: restart
+    then:
+      - delay: 2s
+      - globals.set: {id: switch_pending, value: 'false'}
+
   - id: toggle_switch
     then:
+      - lambda: |-
+          id(switch_is_on) = !id(switch_is_on);
+          id(switch_pending) = true;
+          ESP_LOGI("switch", "toggle %s -> %s", id(dial_switches_id).active_entity_id().c_str(),
+                   id(switch_is_on) ? "on" : "off");
+      - script.execute: refresh_switch
+      - script.execute: switch_clear_pending
       - if:
           condition:
             lambda: |-
@@ -85,9 +106,6 @@ script:
                   entity_id: "{{ target_entity }}"
                 variables:
                   target_entity: !lambda "return id(dial_switches_id).active_entity_id();"
-      - lambda: |-
-          ESP_LOGI("switch", "toggle %s", id(dial_switches_id).active_entity_id().c_str());
-      - rtttl.play: "b:d=16,o=6,b=200:c"
 
 interval:
   - interval: 400ms

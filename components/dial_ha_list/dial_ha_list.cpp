@@ -98,21 +98,30 @@ const std::string &DialHaList::entity_id_at(size_t index) const {
 const std::string &DialHaList::state_at(size_t index) const {
   if (index >= this->entries_.size())
     return EMPTY_STRING;
-  return this->entries_[index].state_value;
+  const auto &entry = this->entries_[index];
+  if (entry.state != nullptr && entry.state->has_state())
+    return entry.state->state;
+  return entry.state_value;
 }
 
 bool DialHaList::state_valid_at(size_t index) const {
   if (index >= this->entries_.size())
     return false;
-  return this->entries_[index].state_valid;
+  const auto &entry = this->entries_[index];
+  if (entry.state != nullptr && entry.state->has_state())
+    return value_valid_(entry.state->state);
+  return entry.state_valid;
 }
 
 const std::string &DialHaList::attr_at(size_t index, const char *key) const {
   if (index >= this->entries_.size() || key == nullptr)
     return EMPTY_STRING;
   for (const auto &attr : this->entries_[index].attrs) {
-    if (attr.key == key)
-      return attr.value;
+    if (attr.key != key)
+      continue;
+    if (attr.sensor != nullptr && attr.sensor->has_state())
+      return attr.sensor->state;
+    return attr.value;
   }
   return EMPTY_STRING;
 }
@@ -121,8 +130,11 @@ bool DialHaList::attr_valid_at(size_t index, const char *key) const {
   if (index >= this->entries_.size() || key == nullptr)
     return false;
   for (const auto &attr : this->entries_[index].attrs) {
-    if (attr.key == key)
-      return attr.valid;
+    if (attr.key != key)
+      continue;
+    if (attr.sensor != nullptr && attr.sensor->has_state())
+      return value_valid_(attr.sensor->state);
+    return attr.valid;
   }
   return false;
 }

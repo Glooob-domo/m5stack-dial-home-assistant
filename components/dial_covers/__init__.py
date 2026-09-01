@@ -8,6 +8,7 @@ CONFIG_SCHEMA = list_config_schema("dial_covers_id")
 
 COVER_ATTRS = [
     ("position", "current_position"),
+    ("position_alt", "position"),
 ]
 
 

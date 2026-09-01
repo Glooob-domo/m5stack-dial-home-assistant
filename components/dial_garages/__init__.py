@@ -8,6 +8,7 @@ CONFIG_SCHEMA = list_config_schema("dial_garages_id")
 
 GARAGE_ATTRS = [
     ("position", "current_position"),
+    ("position_alt", "position"),
 ]
 
 

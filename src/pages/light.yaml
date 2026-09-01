@@ -11,7 +11,7 @@ image:
     id: light_img_dengguang
     type: RGB565
     transparency: alpha_channel
-    resize: 20x20
+    resize: 28x28
 
   - platform: file
     file: ${asset_url}src/assets/images/light.png
@@ -26,13 +26,13 @@ font:
       weight: 900
       type: gfonts
     id: font_light_big
-    size: 59
+    size: 42
     bpp: 4
     glyphs: "0123456789"
 
   - file: "gfonts://DM+Sans"
     id: font_light_pct
-    size: 24
+    size: 16
     bpp: 4
     glyphs: "%"
 
@@ -622,9 +622,10 @@ script:
 
           lv_obj_add_flag(id(onoff_main_btn), LV_OBJ_FLAG_HIDDEN);
           lv_obj_clear_flag(id(light_title_pill), LV_OBJ_FLAG_HIDDEN);
-          lv_obj_set_align(id(light_title_pill), LV_ALIGN_TOP_LEFT);
-          lv_obj_set_x(id(light_title_pill), 81);
-          lv_obj_set_y(id(light_title_pill), 143);
+          lv_obj_set_align(id(light_title_pill), LV_ALIGN_TOP_MID);
+          lv_obj_set_x(id(light_title_pill), 0);
+          lv_obj_set_y(id(light_title_pill), 128);
+          lv_obj_set_width(id(light_title_pill), 140);
           lv_obj_clear_flag(id(btn_dengguang), LV_OBJ_FLAG_HIDDEN);
 
           int pct = id(light_brightness);
@@ -634,10 +635,10 @@ script:
           // Center the "N%" pair — no ring collision at any value including 100
           lv_obj_update_layout(id(lbl_brightness_num));
           lv_coord_t nw = lv_obj_get_width(id(lbl_brightness_num));
-          int pct_w = 16, gap = 3;
+          int pct_w = 12, gap = 3;
           int pair_x = 120 - (nw + gap + pct_w) / 2;
-          lv_obj_set_x(id(lbl_brightness_num), pair_x);
-          lv_obj_set_x(id(lbl_brightness_pct), pair_x + nw + gap);
+          lv_obj_set_pos(id(lbl_brightness_num), pair_x, 70);
+          lv_obj_set_pos(id(lbl_brightness_pct), pair_x + nw + gap, 88);
           // Sync ALL theme-coloured elements from globals
           lv_color_t tc = lv_color_make(id(light_color_r), id(light_color_g), id(light_color_b));
           lv_obj_set_style_arc_color(id(light_arc), tc, LV_PART_INDICATOR);
@@ -646,8 +647,14 @@ script:
           lv_obj_set_style_border_color(id(btn_palette), tc, LV_STATE_DEFAULT);
           lv_obj_set_style_shadow_color(id(btn_palette), tc, LV_STATE_DEFAULT);
           lv_obj_set_style_text_color(id(lbl_light_title), tc, LV_STATE_DEFAULT);
-          if (id(light_supports_rgb) || id(light_supports_color_temp)) lv_obj_clear_flag(id(btn_palette), LV_OBJ_FLAG_HIDDEN);
-          else lv_obj_add_flag(id(btn_palette), LV_OBJ_FLAG_HIDDEN);
+          if (id(light_supports_rgb) || id(light_supports_color_temp)) {
+            lv_obj_clear_flag(id(btn_palette), LV_OBJ_FLAG_HIDDEN);
+            lv_obj_set_pos(id(btn_palette), 69, 172);
+            lv_obj_set_pos(id(btn_dengguang), 123, 166);
+          } else {
+            lv_obj_add_flag(id(btn_palette), LV_OBJ_FLAG_HIDDEN);
+            lv_obj_set_pos(id(btn_dengguang), 96, 166);
+          }
           if (id(light_supports_brightness)) {
             lv_obj_clear_flag(id(light_arc), LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(id(light_knob_dot), LV_OBJ_FLAG_HIDDEN);
@@ -697,10 +704,10 @@ lvgl:
             widgets:
               - arc:
                   id: light_arc
-                  x: 17
-                  y: 17
-                  width: 205
-                  height: 205
+                  x: 8
+                  y: 8
+                  width: 224
+                  height: 224
                   rotation: 90
                   start_angle: 55
                   end_angle: 305
@@ -708,23 +715,23 @@ lvgl:
                   min_value: 0
                   max_value: 100
                   arc_color: col_light_track
-                  arc_width: 20
+                  arc_width: 14
                   arc_opa: COVER
                   arc_rounded: true
                   adjustable: false
                   clickable: false
                   indicator:
                     arc_color: col_light_orange
-                    arc_width: 20
+                    arc_width: 14
                     arc_opa: COVER
                     arc_rounded: true
                   knob:
                     bg_color: 0xFFFFFF
                     bg_opa: COVER
                     border_width: 0
-                    width: 16
-                    height: 16
-                    radius: 8
+                    width: 12
+                    height: 12
+                    radius: 6
 
               - obj:
                   id: light_knob_dot
@@ -741,24 +748,25 @@ lvgl:
               - label:
                   id: lbl_brightness_num
                   x: 72
-                  y: 65
+                  y: 70
                   text: "75"
                   text_font: font_light_big
                   text_color: 0xFFFFFF
 
               - label:
                   id: lbl_brightness_pct
-                  x: 152
-                  y: 95
+                  x: 140
+                  y: 88
                   text: "%"
                   text_font: font_light_pct
                   text_color: col_light_purple
 
               - obj:
                   id: light_title_pill
-                  x: 81
-                  y: 143
-                  width: 116
+                  align: TOP_MID
+                  x: 0
+                  y: 128
+                  width: 140
                   height: 22
                   radius: 15
                   bg_color: col_light_label_bg
@@ -776,8 +784,8 @@ lvgl:
 
               - obj:
                   id: btn_palette
-                  x: 61
-                  y: 177
+                  x: 69
+                  y: 172
                   width: 36
                   height: 36
                   radius: 18
@@ -808,10 +816,10 @@ lvgl:
               - obj:
                   id: btn_dengguang
                   x: 123
-                  y: 177
-                  width: 36
-                  height: 36
-                  radius: 18
+                  y: 166
+                  width: 48
+                  height: 48
+                  radius: 24
                   bg_color: col_light_bg
                   bg_opa: COVER
                   border_width: 2
