@@ -46,47 +46,51 @@ script:
           const uint32_t track = 0x282729;
           const uint32_t btn = garage ? 0x201208 : 0x08201C;
           const uint32_t pill = garage ? 0x2A1A10 : 0x1A2A28;
-          char buf[8];
-          snprintf(buf, sizeof(buf), "%d", id(cover_position));
-          lv_label_set_text(id(lbl_cover_num), buf);
-          lv_obj_update_layout(id(lbl_cover_num));
-          lv_coord_t nw = lv_obj_get_width(id(lbl_cover_num));
-          int pct_w = 12, gap = 3;
-          int pair_x = 120 - (nw + gap + pct_w) / 2;
-          lv_obj_set_pos(id(lbl_cover_num), pair_x, 32);
-          lv_obj_set_pos(id(lbl_cover_pct), pair_x + nw + gap, 50);
 
           if (garage) {
             lv_obj_add_flag(id(cover_arc), LV_OBJ_FLAG_HIDDEN);
-            lv_obj_clear_flag(id(gate_visual), LV_OBJ_FLAG_HIDDEN);
-            static constexpr int kGateX = 28;
-            static constexpr int kGateY = 78;
-            static constexpr int kGateW = 184;
-            static constexpr int kGateH = 68;
-            const int opening = (id(cover_position) * kGateW) / 100;
-            const int panel_w = (kGateW - opening) / 2;
-            lv_obj_set_pos(id(gate_lane), kGateX, kGateY);
-            lv_obj_set_size(id(gate_lane), kGateW, kGateH);
-            lv_obj_set_pos(id(gate_panel_left), kGateX, kGateY);
-            lv_obj_set_size(id(gate_panel_left), panel_w, kGateH);
-            lv_obj_set_pos(id(gate_panel_right), kGateX + panel_w + opening, kGateY);
-            lv_obj_set_size(id(gate_panel_right), panel_w, kGateH);
-            lv_obj_set_style_bg_color(id(gate_lane), lv_color_hex(0x120C08), LV_PART_MAIN);
-            lv_obj_set_style_bg_color(id(gate_panel_left), lv_color_hex(accent), LV_PART_MAIN);
-            lv_obj_set_style_bg_color(id(gate_panel_right), lv_color_hex(accent), LV_PART_MAIN);
-            lv_obj_set_style_bg_color(id(gate_post_left), lv_color_hex(accent), LV_PART_MAIN);
-            lv_obj_set_style_bg_color(id(gate_post_right), lv_color_hex(accent), LV_PART_MAIN);
-            lv_obj_set_y(id(cover_title_pill), 156);
-            lv_obj_set_y(id(cover_open_close), 188);
+            lv_obj_add_flag(id(lbl_cover_num), LV_OBJ_FLAG_HIDDEN);
+            lv_obj_add_flag(id(lbl_cover_pct), LV_OBJ_FLAG_HIDDEN);
+            lv_obj_add_flag(id(cover_open_close), LV_OBJ_FLAG_HIDDEN);
+            lv_obj_clear_flag(id(gate_controls), LV_OBJ_FLAG_HIDDEN);
+
+            const std::string &st = list->active_state();
+            const bool opening = st == "opening";
+            const bool closing = st == "closing";
+            const bool open = list->cover_is_open_at(list->active_index());
+            const char *action = (opening || closing || open) ? dial_i18n::cover_close_btn()
+                                                              : dial_i18n::cover_open_btn();
+            lv_label_set_text(id(lbl_gate_toggle), action);
+            lv_obj_set_style_text_color(id(lbl_gate_toggle), lv_color_hex(accent), LV_PART_MAIN);
+            lv_obj_set_style_bg_color(id(btn_gate_toggle), lv_color_hex(btn), LV_PART_MAIN);
+            lv_obj_set_style_border_color(id(btn_gate_toggle), lv_color_hex(accent), LV_PART_MAIN);
+
+            lv_obj_set_y(id(cover_title_pill), 36);
+            lv_obj_set_y(id(gate_controls), 8);
+            lv_obj_set_y(id(btn_cover_stop), -24);
           } else {
             lv_obj_clear_flag(id(cover_arc), LV_OBJ_FLAG_HIDDEN);
-            lv_obj_add_flag(id(gate_visual), LV_OBJ_FLAG_HIDDEN);
+            lv_obj_clear_flag(id(lbl_cover_num), LV_OBJ_FLAG_HIDDEN);
+            lv_obj_clear_flag(id(lbl_cover_pct), LV_OBJ_FLAG_HIDDEN);
+            lv_obj_clear_flag(id(cover_open_close), LV_OBJ_FLAG_HIDDEN);
+            lv_obj_add_flag(id(gate_controls), LV_OBJ_FLAG_HIDDEN);
+
+            char buf[8];
+            snprintf(buf, sizeof(buf), "%d", id(cover_position));
+            lv_label_set_text(id(lbl_cover_num), buf);
+            lv_obj_update_layout(id(lbl_cover_num));
+            lv_coord_t nw = lv_obj_get_width(id(lbl_cover_num));
+            int pct_w = 12, gap = 3;
+            int pair_x = 120 - (nw + gap + pct_w) / 2;
+            lv_obj_set_pos(id(lbl_cover_num), pair_x, 32);
+            lv_obj_set_pos(id(lbl_cover_pct), pair_x + nw + gap, 50);
             if (lv_arc_get_value(id(cover_arc)) != id(cover_position))
               lv_arc_set_value(id(cover_arc), id(cover_position));
             lv_obj_set_style_arc_color(id(cover_arc), lv_color_hex(track), LV_PART_MAIN);
             lv_obj_set_style_arc_color(id(cover_arc), lv_color_hex(accent), LV_PART_INDICATOR);
             lv_obj_set_y(id(cover_title_pill), 98);
             lv_obj_set_y(id(cover_open_close), 132);
+            lv_obj_set_y(id(btn_cover_stop), -8);
           }
 
           lv_obj_set_style_text_color(id(lbl_cover_pct), lv_color_hex(accent), LV_PART_MAIN);
@@ -101,12 +105,13 @@ script:
           lv_label_set_text(id(lbl_cover_open), dial_i18n::cover_open_btn());
           lv_label_set_text(id(lbl_cover_stop), dial_i18n::cover_stop_btn());
           lv_label_set_text(id(lbl_cover_close), dial_i18n::cover_close_btn());
-          lv_obj_invalidate(id(lbl_cover_num));
-          lv_obj_invalidate(id(lbl_cover_pct));
-          if (!garage)
+          if (!garage) {
+            lv_obj_invalidate(id(lbl_cover_num));
+            lv_obj_invalidate(id(lbl_cover_pct));
             lv_obj_invalidate(id(cover_arc));
-          else
-            lv_obj_invalidate(id(gate_visual));
+          } else {
+            lv_obj_invalidate(id(gate_controls));
+          }
           lv_obj_invalidate(id(cover_overlay));
           lv_obj_move_foreground(id(cover_overlay));
 
@@ -114,7 +119,11 @@ script:
     mode: restart
     then:
       - lambda: |-
-          auto *list = (id(cover_page_kind) == 1) ? id(dial_garages_id) : id(dial_covers_id);
+          if (id(cover_page_kind) == 1) {
+            id(refresh_cover).execute();
+            return;
+          }
+          auto *list = id(dial_covers_id);
           const int pos = list->active_position();
           if (pos < 0)
             return;
@@ -181,11 +190,7 @@ script:
   - id: cover_position_up
     then:
       - lambda: |-
-          auto *list = (id(cover_page_kind) == 1) ? id(dial_garages_id) : id(dial_covers_id);
-          if (id(cover_page_kind) == 1 && list->active_position() < 0) {
-            id(cover_open_action).execute();
-            return;
-          }
+          if (id(cover_page_kind) == 1) return;
           int v = id(cover_position) + 5;
           if (v > 100) v = 100;
           id(cover_position) = v;
@@ -196,11 +201,7 @@ script:
   - id: cover_position_down
     then:
       - lambda: |-
-          auto *list = (id(cover_page_kind) == 1) ? id(dial_garages_id) : id(dial_covers_id);
-          if (id(cover_page_kind) == 1 && list->active_position() < 0) {
-            id(cover_close_action).execute();
-            return;
-          }
+          if (id(cover_page_kind) == 1) return;
           int v = id(cover_position) - 5;
           if (v < 0) v = 0;
           id(cover_position) = v;
@@ -286,8 +287,7 @@ lvgl:
               lv_scr_act(), id(cover_overlay), id(cover_title_pill), id(lbl_cover_title),
               id(cover_open_close), id(btn_cover_open), id(btn_cover_close), id(btn_cover_stop),
               id(lbl_cover_open), id(lbl_cover_close), id(lbl_cover_stop), id(lbl_cover_num),
-              id(lbl_cover_pct), id(gate_visual), id(gate_lane), id(gate_panel_left),
-              id(gate_panel_right), id(gate_post_left), id(gate_post_right)
+              id(lbl_cover_pct), id(gate_controls), id(btn_gate_toggle), id(lbl_gate_toggle)
             };
             for (lv_obj_t *obj : objs) {
               lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
@@ -337,75 +337,6 @@ lvgl:
                     width: 12
                     height: 12
                     radius: 6
-              - obj:
-                  id: gate_visual
-                  hidden: true
-                  align: TOP_LEFT
-                  x: 0
-                  y: 0
-                  width: 240
-                  height: 240
-                  bg_opa: TRANSP
-                  border_width: 0
-                  pad_all: 0
-                  clickable: false
-                  scrollbar_mode: "OFF"
-                  widgets:
-                    - obj:
-                        id: gate_post_left
-                        x: 20
-                        y: 72
-                        width: 6
-                        height: 80
-                        radius: 2
-                        bg_color: 0xF97316
-                        bg_opa: COVER
-                        border_width: 0
-                        clickable: false
-                    - obj:
-                        id: gate_post_right
-                        x: 214
-                        y: 72
-                        width: 6
-                        height: 80
-                        radius: 2
-                        bg_color: 0xF97316
-                        bg_opa: COVER
-                        border_width: 0
-                        clickable: false
-                    - obj:
-                        id: gate_lane
-                        x: 28
-                        y: 78
-                        width: 184
-                        height: 68
-                        radius: 4
-                        bg_color: 0x120C08
-                        bg_opa: COVER
-                        border_width: 0
-                        clickable: false
-                    - obj:
-                        id: gate_panel_left
-                        x: 28
-                        y: 78
-                        width: 92
-                        height: 68
-                        radius: 3
-                        bg_color: 0xF97316
-                        bg_opa: COVER
-                        border_width: 0
-                        clickable: false
-                    - obj:
-                        id: gate_panel_right
-                        x: 120
-                        y: 78
-                        width: 92
-                        height: 68
-                        radius: 3
-                        bg_color: 0xF97316
-                        bg_opa: COVER
-                        border_width: 0
-                        clickable: false
               - obj:
                   id: cover_overlay
                   align: TOP_LEFT
@@ -461,6 +392,42 @@ lvgl:
                               text_color: col_cover_accent
                               scrollbar_mode: "OFF"
                               text: ""
+                    - obj:
+                        id: gate_controls
+                        hidden: true
+                        align: CENTER
+                        y: 8
+                        width: 168
+                        height: 64
+                        bg_opa: TRANSP
+                        border_width: 0
+                        pad_all: 0
+                        scrollbar_mode: "OFF"
+                        widgets:
+                          - obj:
+                              id: btn_gate_toggle
+                              align: CENTER
+                              width: 168
+                              height: 64
+                              radius: 32
+                              bg_color: 0x201208
+                              border_width: 3
+                              border_color: 0xF97316
+                              bg_opa: COVER
+                              pad_all: 0
+                              clip_corner: true
+                              clickable: true
+                              scrollbar_mode: "OFF"
+                              on_click:
+                                - script.execute: toggle_cover
+                              widgets:
+                                - label:
+                                    id: lbl_gate_toggle
+                                    align: CENTER
+                                    text_font: font_cover_btn
+                                    text_color: 0xF97316
+                                    scrollbar_mode: "OFF"
+                                    text: "OUVRIR"
                     - obj:
                         id: cover_open_close
                         align: TOP_MID
