@@ -13,4 +13,12 @@ COVER_ATTRS = [
 
 
 async def to_code(config):
-    await to_code_list(config, "dial_cover", COVER_ATTRS)
+    await to_code_list(
+        config,
+        "dial_cover",
+        COVER_ATTRS,
+        numeric_attributes=[
+            ("position", "current_position"),
+            ("position_alt", "position"),
+        ],
+    )

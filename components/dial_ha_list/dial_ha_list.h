@@ -5,6 +5,7 @@
 #include <utility>
 #include <vector>
 
+#include "esphome/components/sensor/sensor.h"
 #include "esphome/components/text_sensor/text_sensor.h"
 #include "esphome/core/component.h"
 
@@ -15,6 +16,7 @@ class DialHaList : public Component {
  public:
   void add_entity(std::string entity_id, std::string name, text_sensor::TextSensor *state);
   void add_attr(std::string key, text_sensor::TextSensor *sensor);
+  void add_num_attr(std::string key, sensor::Sensor *sensor);
   void setup() override;
   void loop() override;
 
@@ -49,6 +51,10 @@ class DialHaList : public Component {
     std::string value;
     bool valid{false};
   };
+  struct NumAttr {
+    std::string key;
+    sensor::Sensor *sensor{nullptr};
+  };
   struct Entry {
     std::string entity_id;
     std::string name;
@@ -56,12 +62,14 @@ class DialHaList : public Component {
     std::string state_value;
     bool state_valid{false};
     std::vector<Attr> attrs;
+    std::vector<NumAttr> num_attrs;
   };
 
   void on_state_(size_t index, const std::string &value);
   void on_attr_(size_t index, size_t attr_index, const std::string &value);
   static bool value_valid_(const std::string &value);
   static bool sensor_ready_(text_sensor::TextSensor *sensor);
+  static bool parse_percent_(const std::string &raw, int &pos);
 
   std::vector<Entry> entries_;
   size_t active_index_{0};

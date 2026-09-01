@@ -1,6 +1,7 @@
 #include "dial_ha_list.h"
 
 #include <cctype>
+#include <cmath>
 #include <cstdlib>
 
 #include "esphome/core/log.h"
@@ -26,6 +27,35 @@ bool DialHaList::sensor_ready_(text_sensor::TextSensor *sensor) {
   return sensor != nullptr && (sensor->has_state() || !sensor->state.empty());
 }
 
+bool DialHaList::parse_percent_(const std::string &raw, int &pos) {
+  std::string text = raw;
+  while (!text.empty() && std::isspace(static_cast<unsigned char>(text.front())))
+    text.erase(text.begin());
+  while (!text.empty() && std::isspace(static_cast<unsigned char>(text.back())))
+    text.pop_back();
+  if (text.empty())
+    return false;
+  char *end = nullptr;
+  const float parsed = std::strtof(text.c_str(), &end);
+  if (end == text.c_str())
+    return false;
+  while (end != nullptr && *end != '\0' && std::isspace(static_cast<unsigned char>(*end)))
+    end++;
+  if (end != nullptr && *end == '%')
+    end++;
+  if (end != nullptr && *end != '\0')
+    return false;
+  if (!std::isfinite(parsed))
+    return false;
+  int value = static_cast<int>(parsed + (parsed < 0.0f ? -0.5f : 0.5f));
+  if (value < 0)
+    value = 0;
+  if (value > 100)
+    value = 100;
+  pos = value;
+  return true;
+}
+
 void DialHaList::add_entity(std::string entity_id, std::string name, text_sensor::TextSensor *state) {
   for (const auto &existing : this->entries_) {
     if (existing.entity_id == entity_id) {
@@ -47,6 +77,15 @@ void DialHaList::add_attr(std::string key, text_sensor::TextSensor *sensor) {
   attr.key = std::move(key);
   attr.sensor = sensor;
   this->entries_.back().attrs.push_back(std::move(attr));
+}
+
+void DialHaList::add_num_attr(std::string key, sensor::Sensor *sensor) {
+  if (this->entries_.empty())
+    return;
+  NumAttr attr;
+  attr.key = std::move(key);
+  attr.sensor = sensor;
+  this->entries_.back().num_attrs.push_back(std::move(attr));
 }
 
 void DialHaList::setup() {
@@ -158,19 +197,49 @@ bool DialHaList::attr_valid_at(size_t index, const char *key) const {
 }
 
 int DialHaList::position_at(size_t index) const {
+  if (index >= this->entries_.size())
+    return -1;
+  const auto &entry = this->entries_[index];
+  for (const auto &attr : entry.num_attrs) {
+    if (attr.sensor == nullptr || !attr.sensor->has_state())
+      continue;
+    if (attr.key != "position" && attr.key != "position_alt")
+      continue;
+    const float raw = attr.sensor->state;
+    if (!std::isfinite(raw))
+      continue;
+    int pos = static_cast<int>(raw + (raw < 0.0f ? -0.5f : 0.5f));
+    if (pos < 0)
+      pos = 0;
+    if (pos > 100)
+      pos = 100;
+    return pos;
+  }
   const char *key = nullptr;
   if (this->attr_valid_at(index, "position"))
     key = "position";
   else if (this->attr_valid_at(index, "position_alt"))
     key = "position_alt";
-  if (key == nullptr)
+  if (key != nullptr) {
+    int pos = 0;
+    if (parse_percent_(this->attr_at(index, key), pos))
+      return pos;
+  }
+  if (!this->state_valid_at(index))
     return -1;
-  int pos = atoi(this->attr_at(index, key).c_str());
-  if (pos < 0)
-    pos = 0;
-  if (pos > 100)
-    pos = 100;
-  return pos;
+  int from_state = 0;
+  if (parse_percent_(this->state_at(index), from_state))
+    return from_state;
+  std::string st = this->state_at(index);
+  for (char &c : st) {
+    if (c >= 'A' && c <= 'Z')
+      c = static_cast<char>(c - 'A' + 'a');
+  }
+  if (st == "open" || st == "on")
+    return 100;
+  if (st == "closed" || st == "off")
+    return 0;
+  return -1;
 }
 
 bool DialHaList::cover_is_open_at(size_t index) const {
@@ -196,6 +265,8 @@ void DialHaList::on_state_(size_t index, const std::string &value) {
   auto &entry = this->entries_[index];
   entry.state_value = value;
   entry.state_valid = value_valid_(value);
+  ESP_LOGD(TAG, "%s state='%s' valid=%s", entry.entity_id.c_str(), value.c_str(),
+           entry.state_valid ? "yes" : "no");
 }
 
 void DialHaList::on_attr_(size_t index, size_t attr_index, const std::string &value) {

@@ -13,4 +13,12 @@ GARAGE_ATTRS = [
 
 
 async def to_code(config):
-    await to_code_list(config, "dial_garage", GARAGE_ATTRS)
+    await to_code_list(
+        config,
+        "dial_garage",
+        GARAGE_ATTRS,
+        numeric_attributes=[
+            ("position", "current_position"),
+            ("position_alt", "position"),
+        ],
+    )

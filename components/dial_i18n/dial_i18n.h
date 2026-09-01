@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdio>
+#include <cstdlib>
 #include <string>
 
 #include "esphome/core/component.h"
@@ -116,6 +117,22 @@ inline void cover_status_from(const std::string &raw_state, bool state_valid, in
       label = cover_closing();
     else if (st == "stopped")
       label = cover_stopped();
+  }
+  if (label == nullptr && state_valid) {
+    char *end = nullptr;
+    const long parsed = strtol(st.c_str(), &end, 10);
+    if (end != st.c_str() && end != nullptr) {
+      while (*end == ' ' || *end == '%')
+        end++;
+      if (*end == '\0' && parsed >= 0 && parsed <= 100) {
+        pos = static_cast<int>(parsed);
+        pos_valid = true;
+        if (pos <= 0)
+          label = cover_closed();
+        else if (pos >= 100)
+          label = cover_open();
+      }
+    }
   }
   if (label == nullptr && pos_valid) {
     if (pos <= 0)

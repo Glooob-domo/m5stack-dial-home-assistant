@@ -252,6 +252,7 @@ script:
             }
             id(entity_selector_carousel).apply_title_layout(slot, layout);
           }
+          lv_obj_set_style_opa(id(es_slot_center_sub), 255, LV_PART_MAIN);
 
           if (count <= 5) {
             for (int d = 0; d < 5; d++) {
@@ -387,6 +388,12 @@ lvgl:
       on_load:
         - lambda: |-
             lv_obj_clear_flag(id(entity_selector_root), LV_OBJ_FLAG_SCROLLABLE);
+            lv_obj_clear_flag(id(es_slot_center), LV_OBJ_FLAG_SCROLLABLE);
+            lv_obj_clear_flag(id(es_slot_center_lbl), LV_OBJ_FLAG_SCROLLABLE);
+            lv_obj_clear_flag(id(es_slot_center_sub), LV_OBJ_FLAG_SCROLLABLE);
+            lv_obj_set_scrollbar_mode(id(es_slot_center), LV_SCROLLBAR_MODE_OFF);
+            lv_obj_set_scrollbar_mode(id(es_slot_center_lbl), LV_SCROLLBAR_MODE_OFF);
+            lv_obj_set_scrollbar_mode(id(es_slot_center_sub), LV_SCROLLBAR_MODE_OFF);
             lv_obj_move_foreground(id(es_overlay_far_up_lbl));
             lv_obj_move_foreground(id(es_overlay_near_up_lbl));
             lv_obj_move_foreground(id(es_overlay_near_dn_lbl));
@@ -478,6 +485,8 @@ lvgl:
                         bg_opa: COVER
                         border_width: 0
                         pad_all: 0
+                        clip_corner: true
+                        scrollbar_mode: "OFF"
                         clickable: true
                         on_click:
                           - lambda: 'id(entity_selector_touch_slot).execute(0);'
@@ -495,6 +504,7 @@ lvgl:
                               long_mode: DOT
                               text_font: font_menu_item
                               text_color: col_text_pri
+                              scrollbar_mode: "OFF"
                               text: ""
                           - label:
                               id: es_slot_center_sub
@@ -504,6 +514,7 @@ lvgl:
                               long_mode: DOT
                               text_font: font_menu_sub
                               text_color: col_menu_val
+                              scrollbar_mode: "OFF"
                               text: ""
                     - obj:
                         id: es_slot_near_dn

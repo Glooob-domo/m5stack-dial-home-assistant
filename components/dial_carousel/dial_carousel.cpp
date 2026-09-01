@@ -210,6 +210,9 @@ void DialCarousel::anim_ready_cb_(lv_anim_t *anim) {
     return;
 
   self->animating_ = false;
+  if (self->center_sub_ != nullptr) {
+    lv_obj_set_style_opa(self->center_sub_, 255, LV_PART_MAIN);
+  }
   if (self->on_ready_ != nullptr) {
     self->on_ready_(self->on_ready_context_);
   }

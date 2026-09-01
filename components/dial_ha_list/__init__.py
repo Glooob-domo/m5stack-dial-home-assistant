@@ -2,6 +2,7 @@ import esphome.codegen as cg
 import esphome.config_validation as cv
 import esphome.components.text_sensor as text_sensor
 from esphome.const import (
+    CONF_ACCURACY_DECIMALS,
     CONF_ATTRIBUTE,
     CONF_DISABLED_BY_DEFAULT,
     CONF_ENTITY_ID,
@@ -13,8 +14,8 @@ from esphome.const import (
 from esphome.core import CORE, ID
 
 CODEOWNERS = []
-DEPENDENCIES = ["api", "text_sensor"]
-AUTO_LOAD = ["text_sensor"]
+DEPENDENCIES = ["api", "text_sensor", "sensor"]
+AUTO_LOAD = ["text_sensor", "sensor"]
 
 LEGACY_DISABLED = {
     "timer.your_timer",
@@ -83,12 +84,36 @@ async def make_ha_text(uid_prefix, index, suffix, entity_id, attribute=None):
     return var
 
 
-async def to_code_list(config, uid_prefix, attributes):
+async def make_ha_number(uid_prefix, index, suffix, entity_id, attribute):
+    from esphome.components import sensor as ha_sensor
+    from esphome.components.homeassistant import setup_home_assistant_entity
+    from esphome.components.homeassistant.sensor import HomeassistantSensor
+
+    uid = ID(f"{uid_prefix}_{index}_{suffix}_num", True, HomeassistantSensor)
+    CORE.component_ids.add(uid.id)
+    conf = {
+        CONF_ID: uid,
+        CONF_NAME: f"Dial {uid_prefix} {index} {suffix} num",
+        CONF_INTERNAL: True,
+        CONF_DISABLED_BY_DEFAULT: True,
+        CONF_FORCE_UPDATE: False,
+        CONF_ACCURACY_DECIMALS: 0,
+    }
+    var = cg.new_Pvariable(uid)
+    await ha_sensor.register_sensor(var, conf)
+    await cg.register_component(var, conf)
+    ha_conf = {CONF_ENTITY_ID: entity_id, CONF_INTERNAL: True, CONF_ATTRIBUTE: attribute}
+    setup_home_assistant_entity(var, ha_conf)
+    return var
+
+
+async def to_code_list(config, uid_prefix, attributes, numeric_attributes=None):
     cg.add_global(cg.RawStatement('#include <cstdlib>'))
     cg.add_global(cg.RawStatement('#include "esphome/components/dial_lights/dial_entity.h"'))
     cg.add_global(cg.RawStatement('#include "esphome/components/dial_ha_list/dial_ha_list.h"'))
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
+    numeric_attributes = numeric_attributes or []
     for index, item in enumerate(config["entities"]):
         entity = item[CONF_ENTITY_ID]
         if not entity_enabled(entity):
@@ -98,6 +123,9 @@ async def to_code_list(config, uid_prefix, attributes):
         for suffix, attribute in attributes:
             sensor = await make_ha_text(uid_prefix, index, suffix, entity, attribute)
             cg.add(var.add_attr(suffix, sensor))
+        for suffix, attribute in numeric_attributes:
+            sensor = await make_ha_number(uid_prefix, index, suffix, entity, attribute)
+            cg.add(var.add_num_attr(suffix, sensor))
     return var
 
 
