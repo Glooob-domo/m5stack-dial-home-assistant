@@ -41,14 +41,6 @@ color:
   - id: col_music_dark
     hex: "1A1040"
 
-image:
-  - platform: file
-    file: ${asset_url}src/assets/images/place_holder.png
-    id: place_holder
-    type: RGB565
-    transparency: alpha_channel
-    resize: 100x100
-
 sendspin:
   id: sendspin_hub
 
@@ -485,7 +477,7 @@ lvgl:
                   widgets:
                     - image:
                         id: img_music_cover
-                        src: place_holder
+                        src: logo_img
                         align: CENTER
               - label:
                   id: lbl_music_title
