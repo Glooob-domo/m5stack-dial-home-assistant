@@ -51,29 +51,22 @@ script:
             lv_obj_add_flag(id(cover_arc), LV_OBJ_FLAG_HIDDEN);
             lv_obj_add_flag(id(lbl_cover_num), LV_OBJ_FLAG_HIDDEN);
             lv_obj_add_flag(id(lbl_cover_pct), LV_OBJ_FLAG_HIDDEN);
-            lv_obj_add_flag(id(cover_open_close), LV_OBJ_FLAG_HIDDEN);
-            lv_obj_clear_flag(id(gate_controls), LV_OBJ_FLAG_HIDDEN);
+            lv_obj_clear_flag(id(cover_open_close), LV_OBJ_FLAG_HIDDEN);
 
-            const std::string &st = list->active_state();
-            const bool opening = st == "opening";
-            const bool closing = st == "closing";
-            const bool open = list->cover_is_open_at(list->active_index());
-            const char *action = (opening || closing || open) ? dial_i18n::cover_close_btn()
-                                                              : dial_i18n::cover_open_btn();
-            lv_label_set_text(id(lbl_gate_toggle), action);
-            lv_obj_set_style_text_color(id(lbl_gate_toggle), lv_color_hex(accent), LV_PART_MAIN);
-            lv_obj_set_style_bg_color(id(btn_gate_toggle), lv_color_hex(btn), LV_PART_MAIN);
-            lv_obj_set_style_border_color(id(btn_gate_toggle), lv_color_hex(accent), LV_PART_MAIN);
-
-            lv_obj_set_y(id(cover_title_pill), 36);
-            lv_obj_set_y(id(gate_controls), 8);
+            lv_obj_set_align(id(cover_open_close), LV_ALIGN_CENTER);
+            lv_obj_set_y(id(cover_open_close), 0);
+            lv_obj_set_size(id(btn_cover_open), 80, 44);
+            lv_obj_set_size(id(btn_cover_close), 80, 44);
+            lv_obj_set_y(id(cover_title_pill), 28);
             lv_obj_set_y(id(btn_cover_stop), -24);
           } else {
             lv_obj_clear_flag(id(cover_arc), LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(id(lbl_cover_num), LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(id(lbl_cover_pct), LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(id(cover_open_close), LV_OBJ_FLAG_HIDDEN);
-            lv_obj_add_flag(id(gate_controls), LV_OBJ_FLAG_HIDDEN);
+            lv_obj_set_align(id(cover_open_close), LV_ALIGN_TOP_MID);
+            lv_obj_set_size(id(btn_cover_open), 76, 32);
+            lv_obj_set_size(id(btn_cover_close), 76, 32);
 
             char buf[8];
             snprintf(buf, sizeof(buf), "%d", id(cover_position));
@@ -110,7 +103,7 @@ script:
             lv_obj_invalidate(id(lbl_cover_pct));
             lv_obj_invalidate(id(cover_arc));
           } else {
-            lv_obj_invalidate(id(gate_controls));
+            lv_obj_invalidate(id(cover_open_close));
           }
           lv_obj_invalidate(id(cover_overlay));
           lv_obj_move_foreground(id(cover_overlay));
@@ -287,7 +280,7 @@ lvgl:
               lv_scr_act(), id(cover_overlay), id(cover_title_pill), id(lbl_cover_title),
               id(cover_open_close), id(btn_cover_open), id(btn_cover_close), id(btn_cover_stop),
               id(lbl_cover_open), id(lbl_cover_close), id(lbl_cover_stop), id(lbl_cover_num),
-              id(lbl_cover_pct), id(gate_controls), id(btn_gate_toggle), id(lbl_gate_toggle)
+              id(lbl_cover_pct)
             };
             for (lv_obj_t *obj : objs) {
               lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
@@ -393,42 +386,6 @@ lvgl:
                               scrollbar_mode: "OFF"
                               text: ""
                     - obj:
-                        id: gate_controls
-                        hidden: true
-                        align: CENTER
-                        y: 8
-                        width: 168
-                        height: 64
-                        bg_opa: TRANSP
-                        border_width: 0
-                        pad_all: 0
-                        scrollbar_mode: "OFF"
-                        widgets:
-                          - obj:
-                              id: btn_gate_toggle
-                              align: CENTER
-                              width: 168
-                              height: 64
-                              radius: 32
-                              bg_color: 0x201208
-                              border_width: 3
-                              border_color: 0xF97316
-                              bg_opa: COVER
-                              pad_all: 0
-                              clip_corner: true
-                              clickable: true
-                              scrollbar_mode: "OFF"
-                              on_click:
-                                - script.execute: toggle_cover
-                              widgets:
-                                - label:
-                                    id: lbl_gate_toggle
-                                    align: CENTER
-                                    text_font: font_cover_btn
-                                    text_color: 0xF97316
-                                    scrollbar_mode: "OFF"
-                                    text: "OUVRIR"
-                    - obj:
                         id: cover_open_close
                         align: TOP_MID
                         y: 132
@@ -458,6 +415,7 @@ lvgl:
                                 - label:
                                     id: lbl_cover_open
                                     align: CENTER
+                                    clickable: false
                                     text_font: font_cover_btn
                                     text_color: col_cover_accent
                                     scrollbar_mode: "OFF"
@@ -481,6 +439,7 @@ lvgl:
                                 - label:
                                     id: lbl_cover_close
                                     align: CENTER
+                                    clickable: false
                                     text_font: font_cover_btn
                                     text_color: col_cover_accent
                                     scrollbar_mode: "OFF"
@@ -505,6 +464,7 @@ lvgl:
                           - label:
                               id: lbl_cover_stop
                               align: CENTER
+                              clickable: false
                               text_font: font_cover_btn
                               text_color: 0xFFFFFF
                               scrollbar_mode: "OFF"

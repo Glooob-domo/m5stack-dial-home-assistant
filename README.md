@@ -151,7 +151,7 @@ The Dial supports the rotary encoder, the front button and horizontal touch gest
 | Menu | Moves the circular selection | Opens the selected page; Home returns to Clock | Tap a visible menu item to open it. Swipe left confirms; swipe right returns to Clock. |
 | Lights | Changes brightness or the active selector value | Opens/accepts the selected light, according to context | Double press or swipe right goes back. Touch controls power, colour picker and colour confirmation. |
 | Covers | Changes position | Toggles open/close, or stops if moving | Double press or swipe right goes back. Touch sends open, stop and close. |
-| Garage | Open/close toggle (encoder and short press) | Same toggle, or stop if moving | Large open/close button in the centre, stop below. No position percentage. |
+| Garage | No action | Stop if moving, otherwise no action | Open and close buttons in the centre, stop below. No position percentage. |
 | Outlets | No action | Toggles the switch | Double press or swipe right goes back. Tap the centre control to toggle. |
 | Scenes | No action | Activates the scene or script | Double press or swipe right goes back. Tap ACTIVATE to run it. |
 | Rooms | Steps through rooms | Goes back | Double press or swipe right goes back. |

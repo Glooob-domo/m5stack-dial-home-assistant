@@ -118,7 +118,7 @@ dial_garages:
     name: Gate
 ```
 
-Same skip-if-one rule as covers. The page shows a large open/close button and a stop button; the encoder and short press toggle open/close (or stop while moving). No position percentage.
+Same skip-if-one rule as covers. The page shows open and close buttons in the centre and a stop button below; short press stops while moving. No position percentage.
 
 ### Outlets
 
