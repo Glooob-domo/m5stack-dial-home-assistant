@@ -1,6 +1,6 @@
-# Home Assistant Controller for M5Stack Dial configuration reference
+# Home Assistant Controller for M5Stack Dial — configuration reference
 
-This is the detailed reference for the Home Assistant Controller for M5Stack Dial. For an overview and a ready-to-use installation example, return to the [README](../README.md).
+Maintained by **[Glooob Domo](https://github.com/Glooob-domo)**, based on [hectorzin](https://github.com/hectorzin)'s Home Assistant Controller fork and [Jason Wen](https://github.com/Jasionf)'s original Smart Home Button project. For an overview and a ready-to-use installation example, return to the [README](../README.md).
 
 A normal install uses one file in ESPHome: `m5-dial.yaml`. It pulls the firmware from GitHub and holds your entity IDs. You do not copy `src/` or `components/` into ESPHome.
 
@@ -25,30 +25,25 @@ substitutions:
 
 `ui_language` picks the labels on Clock, the menu and the other pages. Supported values: `en`, `fr`, `es`, `de`, `it`. Changing it requires a recompile. The default is `en` if the key is omitted.
 
-## Encoder
+Non-English locales also switch the **date order** on Clock to day/month (`Mar  02/09`). English keeps month/day (`Mon  09/02`).
 
-```yaml
-substitutions:
-  encoder_resolution: "1"
-```
+## Clock display
 
-The Dial encoder produces four quadrature pulses per mechanical click. `encoder_resolution` is how many of those pulses count as one UI step. Allowed values: `1`, `2` or `4`. The default `1` is one step per click. `4` is more sensitive and can jump several steps on a slow turn. Changing it requires a recompile.
-
-## Optional Clock data
+The clock page is always available. Besides time, weather and optional AQI, it shows a circular **seconds** progress ring that updates every 5 seconds.
 
 ```yaml
 substitutions:
   timezone: Europe/Paris
+  ui_language: fr
   weather_entity: weather.maison
   aqi_entity: sensor.aqi_salon
 ```
 
 Leave `weather.disabled` or `sensor.disabled` in `m5-dial.yaml` to keep `--` on those fields. If an entity is missing or unavailable, Clock also shows `--`. `weather_entity` supplies weather information; `aqi_entity` should be numeric, with the weather entity's legacy `aqi` attribute used only as a fallback. Find entity IDs under **Developer Tools → States**.
 
-
 ## Optional menu features
 
-Unconfigured optional features are hidden from the menu. Fill the matching list to show a page, or set `timer_entity` for Timer. Omit a list key to hide that page (the package defaults to an empty list). Leave `timer.disabled` to hide Timer. Clock weather/AQI stay on the clock page and show `--` when left as `*.disabled`.
+Unconfigured optional features are hidden from the menu. Fill the matching list to show a page, or set `timer_entity` for Timer. **Omit** a list key entirely to hide that page — you do not need to add empty `dial_*: []` entries in `m5-dial.yaml`. Leave `timer.disabled` to hide Timer. Clock weather/AQI stay on the clock page and show `--` when left as `*.disabled`.
 
 | Field | Enables | Example |
 | --- | --- | --- |
@@ -96,7 +91,9 @@ dial_media_players:
     name: Living room
 ```
 
-Select the entity that actually plays the audio. Home Assistant supplies player state, transport actions, volume and available metadata, including `media_title`, `media_artist`, `media_duration` and `media_position`. SendSpin is optional and currently supplies only 100 × 100 album artwork when a compatible SendSpin source is available.
+Select the entity that actually plays the audio. Home Assistant supplies player state, transport actions, volume and available metadata, including `media_title`, `media_artist`, `media_duration` and `media_position`.
+
+The cover area shows the **Home Assistant logo** (same as the boot screen) until optional artwork arrives. **SendSpin** can push a 100 × 100 JPEG album cover when a compatible source is configured (for example Music Assistant with SendSpin pointing at the Dial). Playback works without SendSpin; only the cover image stays on the logo.
 
 ### Covers
 
@@ -108,7 +105,7 @@ dial_covers:
     name: Bedroom
 ```
 
-The encoder sets position. A short press toggles open/close (or stop if the cover is moving). Touch buttons send open, stop and close.
+The encoder sets position in 5% steps. A short press toggles open/close (or stop if the cover is moving). Touch buttons send open, stop and close. With the default `encoder_resolution: "1"`, one mechanical click equals one 5% step.
 
 ### Garage
 
@@ -118,7 +115,7 @@ dial_garages:
     name: Gate
 ```
 
-Same skip-if-one rule as covers. The page shows open and close buttons in the centre and a stop button below; short press stops while moving. No position percentage.
+Same skip-if-one rule as covers. The page shows **open** and **close** touch buttons in the centre and **stop** below. The encoder is ignored. A short press stops the cover while it is opening or closing. There is no position arc or percentage.
 
 ### Outlets
 
@@ -140,7 +137,7 @@ dial_scenes:
     name: All off
 ```
 
-A short press or tap runs `scene.turn_on` or `script.turn_on` according to the entity domain.
+A short press or tap runs `scene.turn_on` or `script.turn_on` according to the entity domain. The control page shows a large **ACTIVATE** button in the centre.
 
 ### Rooms
 
@@ -170,6 +167,15 @@ timer:
     duration: "00:05:00"
     restore: true
 ```
+
+## Encoder
+
+```yaml
+substitutions:
+  encoder_resolution: "1"
+```
+
+The Dial encoder produces four quadrature pulses per mechanical click. `encoder_resolution` is how many of those pulses count as one UI step. Allowed values: `1`, `2` or `4`. The default **`1`** is one UI step per mechanical click on every page that uses the wheel (lights, covers, rooms, volume, timer editing, menu selection, etc.). Use `4` only if you want a more sensitive wheel. Changing it requires a recompile.
 
 ## Screen-management reference
 
@@ -211,6 +217,8 @@ Use USB for the initial installation if the device is not on Wi-Fi; later update
 - **Entity not found or unavailable:** check its exact ID and availability in Home Assistant; a configured unavailable feature stays in the menu but cannot synchronise.
 - **Lights missing:** ensure `dial_lights` has at least one entry and is not `[]`.
 - **AQI empty:** use a numeric sensor, not a textual state.
+- **Music is unavailable:** use the entity that actually plays audio and exposes its media state.
+- **Album art never appears:** enable SendSpin on the music source and point it at the Dial; without SendSpin the Home Assistant logo placeholder remains.
 - **Fonts or glyphs fail during build:** allow the initial build to download Google Fonts and dependencies; use the version pinned in `requirements.txt`.
 - **Compilation error after an update:** validate the complete local YAML and refresh the package before retrying.
 

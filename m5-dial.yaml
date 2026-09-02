@@ -1,8 +1,12 @@
 # Fichier unique à coller dans ESPHome (dashboard).
+# Glooob Domo — fork de hectorzin / Jason Wen (Smart Home Button)
+# https://github.com/Glooob-domo/m5stack-dial-home-assistant
 # ESPHome télécharge le firmware depuis GitHub. Wi-Fi / clé API / OTA : secrets.yaml.
 #
-# Une liste vide (ou timer/weather en *.disabled) = pas de page sur le M5.
-# Pour activer une page : décommentez le bloc et remplissez-le (pas besoin de dial_*: []).
+# Pages optionnelles : décommentez seulement les blocs dial_* dont vous avez besoin.
+# Pas besoin de dial_*: [] — une liste absente = page masquée dans le menu.
+# Horloge, date (JJ/MM en fr), anneau des secondes : toujours actifs.
+# Molette : encoder_resolution "1" = un pas par cran (recommandé).
 # Identifiants : Home Assistant → Outils de développement → États.
 
 substitutions:

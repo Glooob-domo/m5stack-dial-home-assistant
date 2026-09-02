@@ -15,10 +15,19 @@
 - `src/main/defaults.yaml`: substitution fallbacks and empty entity lists.
 - `src/main/hardware.yaml`: M5Stack Dial hardware drivers and pins.
 - `src/main/idle.yaml`: screen dim / return / off timeouts.
-- `src/pages/*.yaml`: one LVGL page per feature (`entity_selector.yaml` is shared by climates, media players, covers, garages, switches and scenes).
+- `src/pages/*.yaml`: one LVGL page per feature (`entity_selector.yaml` is shared by climates, media players, covers, garages, switches and scenes; `temp.yaml` is the Rooms page).
 - `src/assets/fonts/`: local fonts.
 - `src/assets/images/`: small embedded image assets.
 - `components/`: local ESPHome external components (`dial_lights`, `dial_ha_list`, `dial_climates`, `dial_media_players`, `dial_covers`, `dial_garages`, `dial_switches`, `dial_scenes`, `dial_temperatures`, `dial_carousel`, `dial_i18n`, SendSpin).
+
+## Behaviour notes (for doc authors)
+
+- **Clock** (`main.yaml`): seconds ring on `arc_second`, date via `dial_i18n::format_clock_date`.
+- **Encoder** (`hardware.yaml` / `encoder_resolution`): default `1` = one UI step per mechanical click.
+- **Covers** (`cover.yaml`): position arc and percentage; garage mode (`cover_page_kind == 1`) uses open/close/stop only.
+- **Music** (`music.yaml`): placeholder cover uses `logo_img` from `dial.yaml`; optional SendSpin artwork via `sendspin_cover_art`.
+- **Scenes** (`scene.yaml`): large centre ACTIVATE button.
+- **Empty pages**: omit `dial_*` keys in `m5-dial.yaml`; `defaults.yaml` supplies empty fallbacks.
 
 ## ID conventions
 
