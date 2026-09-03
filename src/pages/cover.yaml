@@ -116,17 +116,19 @@ script:
             id(refresh_cover).execute();
             return;
           }
+          if (id(cover_user_adjusting)) {
+            // Trust the local target while the wheel is actively being
+            // turned: Home Assistant's reported position lags real
+            // shutter travel and would otherwise yank the display back
+            // mid-turn. queue_cover_position clears this flag once the
+            // user has stopped for a moment.
+            return;
+          }
           auto *list = id(dial_covers_id);
           const int pos = list->active_position();
           if (pos < 0)
             return;
-          const int local = id(cover_position);
-          const int delta = pos > local ? pos - local : local - pos;
-          if (id(cover_user_adjusting) && delta <= 5)
-            return;
           id(cover_position) = pos;
-          if (delta > 5)
-            id(cover_user_adjusting) = false;
       - script.execute: refresh_cover
 
   - id: open_cover
