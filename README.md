@@ -168,6 +168,8 @@ substitutions:
 
 `encoder_resolution` is `1`, `2` or `4`. The default `1` is one UI step per mechanical click. Use `4` if you want a more sensitive wheel.
 
+On Lights, Covers, AC and Music — the pages that edit an entity value — each step changes the value by `light_brightness_step`, `cover_position_step`, `climate_temperature_step` or `music_volume_step` (defaults `1%`, `5%`, `1°C`, `10%`). See [the configuration reference](docs/configuration.md) for details.
+
 ## Screen management
 
 The package offers four substitutions for idle behaviour:

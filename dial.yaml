@@ -40,6 +40,11 @@ substitutions:
   screen_off_timeout: 30min
   screen_dim_brightness: "20%"
   encoder_resolution: "1"
+  # Amount one encoder step changes on pages that edit an entity value.
+  cover_position_step: "5"      # % per step, 1-100
+  light_brightness_step: "1"    # % per step, 1-100
+  climate_temperature_step: "2" # 0.5C units per step: 2 = 1C, 1 = 0.5C
+  music_volume_step: "10"       # % per step, 1-100
 
 esphome:
   name: ${device_name}

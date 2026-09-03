@@ -184,7 +184,7 @@ script:
     then:
       - lambda: |-
           if (id(cover_page_kind) == 1) return;
-          int v = id(cover_position) + 5;
+          int v = id(cover_position) + ${cover_position_step};
           if (v > 100) v = 100;
           id(cover_position) = v;
           id(cover_user_adjusting) = true;
@@ -195,7 +195,7 @@ script:
     then:
       - lambda: |-
           if (id(cover_page_kind) == 1) return;
-          int v = id(cover_position) - 5;
+          int v = id(cover_position) - ${cover_position_step};
           if (v < 0) v = 0;
           id(cover_position) = v;
           id(cover_user_adjusting) = true;

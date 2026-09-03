@@ -332,7 +332,7 @@ script:
   - id: music_volume_up
     then:
       - lambda: |-
-          int v = id(music_volume) + 10;
+          int v = id(music_volume) + ${music_volume_step};
           if (v > 100) v = 100;
           id(music_volume) = v;
           id(music_volume_override_until_ms) = millis() + 1200;
@@ -357,7 +357,7 @@ script:
   - id: music_volume_down
     then:
       - lambda: |-
-          int v = id(music_volume) - 10;
+          int v = id(music_volume) - ${music_volume_step};
           if (v < 0) v = 0;
           id(music_volume) = v;
           id(music_volume_override_until_ms) = millis() + 1200;

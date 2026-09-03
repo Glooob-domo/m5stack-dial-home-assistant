@@ -177,6 +177,20 @@ substitutions:
 
 The Dial encoder produces four quadrature pulses per mechanical click. `encoder_resolution` is how many of those pulses count as one UI step. Allowed values: `1`, `2` or `4`. The default **`1`** is one UI step per mechanical click on every page that uses the wheel (lights, covers, rooms, volume, timer editing, menu selection, etc.). Use `4` only if you want a more sensitive wheel. Changing it requires a recompile.
 
+### Value step size
+
+On the pages that edit an entity value (Lights, Covers, AC, Music), each encoder step listed above changes the value by a configurable amount:
+
+```yaml
+substitutions:
+  cover_position_step: "5"       # % per step, 1-100
+  light_brightness_step: "1"     # % per step, 1-100
+  climate_temperature_step: "2"  # 0.5C units per step: 2 = 1C, 1 = 0.5C
+  music_volume_step: "10"        # % per step, 1-100
+```
+
+These only apply to Lights, Covers, AC and Music — pages that only navigate (Menu, Rooms) or toggle/activate (Outlets, Scenes, Garage) are unaffected. Changing any of them requires a recompile.
+
 ## Screen-management reference
 
 ```yaml

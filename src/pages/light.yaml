@@ -553,7 +553,7 @@ script:
   - id: light_brightness_up
     then:
       - lambda: |-
-          int v = id(light_brightness) + 1;
+          int v = id(light_brightness) + ${light_brightness_step};
           if (v > 100) v = 100;
           id(light_brightness) = v;
           id(light_requested_brightness) = v;
@@ -566,7 +566,7 @@ script:
   - id: light_brightness_down
     then:
       - lambda: |-
-          int v = id(light_brightness) - 1;
+          int v = id(light_brightness) - ${light_brightness_step};
           if (v < 0) v = 0;
           id(light_brightness) = v;
           id(light_requested_brightness) = v;

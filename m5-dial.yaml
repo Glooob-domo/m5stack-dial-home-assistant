@@ -27,6 +27,15 @@ substitutions:
   # Molette : 1 = un pas par cran, 4 = plus sensible (sauts possibles en tournant lentement)
   encoder_resolution: "1"
 
+  # Amplitude d'un pas de molette sur les pages qui modifient une valeur d'entité.
+  # cover_position_step et light_brightness_step : en %, de 1 à 100.
+  # climate_temperature_step : en demi-degrés (2 = 1°C, 1 = 0,5°C).
+  # music_volume_step : en %, de 1 à 100.
+  cover_position_step: "5"
+  light_brightness_step: "1"
+  climate_temperature_step: "2"
+  music_volume_step: "10"
+
   # --- Horloge (la page existe toujours) ---
   weather_entity: weather.disabled
   aqi_entity: sensor.disabled

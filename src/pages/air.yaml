@@ -207,7 +207,7 @@ script:
   - id: air_temp_up
     then:
       - lambda: |-
-          int v = id(air_temp) + 2;
+          int v = id(air_temp) + ${climate_temperature_step};
           if (v > 52) v = 52;  // 26C
           id(air_temp) = v;
       - homeassistant.service:
@@ -220,7 +220,7 @@ script:
   - id: air_temp_down
     then:
       - lambda: |-
-          int v = id(air_temp) - 2;
+          int v = id(air_temp) - ${climate_temperature_step};
           if (v < 34) v = 34;  // 17C
           id(air_temp) = v;
       - homeassistant.service:
