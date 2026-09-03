@@ -365,10 +365,14 @@ script:
 
   # Count raw presses. delayed_on_off ate short single taps; on_multi_click
   # cancelled them during the release wait. Bounce closer than 80ms is one press.
+  # 400ms (was 280ms): 280 was tight enough that a real double-press on the
+  # physical button often landed as two independent single presses (each
+  # toggling the current page's action, e.g. Covers open/close) instead of
+  # being grouped into a double-press "back".
   - id: dial_button_decide
     mode: restart
     then:
-      - delay: 280ms
+      - delay: 400ms
       - lambda: |-
           const int n = id(button_press_count);
           id(button_press_count) = 0;
