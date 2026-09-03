@@ -622,10 +622,18 @@ script:
                 if (id(dial_media_players_id).count() == 1 && id(dial_media_players_id).attr_valid_at(0, "title"))
                   title = id(dial_media_players_id).attr_at(0, "title");
                 if (title.empty()) title = id(track_title).state;
-                if (!title.empty())
+                if (!title.empty()) {
+                  // Cap at 20 chars (UTF-8 safe) so a long title can't
+                  // wrap the subtitle across multiple lines.
+                  if (title.size() > 20) {
+                    size_t cut = 20;
+                    while (cut > 0 && (title[cut] & 0xC0) == 0x80) cut--;
+                    title = title.substr(0, cut) + "...";
+                  }
                   snprintf(subbuf, sizeof(subbuf), "%s", title.c_str());
-                else
+                } else {
                   snprintf(subbuf, sizeof(subbuf), "%s", dial_i18n::media_playing());
+                }
               } else {
                 snprintf(subbuf, sizeof(subbuf), "%s", dial_i18n::unavailable());
               }
