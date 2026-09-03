@@ -1,0 +1,99 @@
+# Single file to paste into ESPHome (dashboard).
+# Version française : m5-dial.yaml
+# Glooob Domo — fork of hectorzin / Jason Wen (Smart Home Button)
+# https://github.com/Glooob-domo/m5stack-dial-home-assistant
+# ESPHome downloads the firmware from GitHub. Wi-Fi / API key / OTA: secrets.yaml.
+#
+# Optional pages: uncomment only the dial_* blocks you need.
+# No need for dial_*: [] — an absent list hides that page from the menu.
+# Clock, date, seconds ring: always active.
+# Encoder: encoder_resolution "1" = one step per detent (recommended).
+# Entity IDs: Home Assistant → Developer Tools → States.
+
+substitutions:
+  device_name: m5stack-dial
+  device_friendly_name: M5Stack Dial
+  wifi_ssid: !secret wifi_ssid
+  wifi_password: !secret wifi_password
+  api_encryption_key: !secret api_encryption_key
+  ota_password: !secret ota_password
+  ap_ssid: Dial Fallback Hotspot
+  ap_password: "changeme-dial-ap"
+
+  timezone: Europe/Paris
+
+  # Interface: en, fr, es, de, it
+  ui_language: en
+
+  # Encoder: 1 = one step per detent, 4 = more sensitive (can skip steps when turned slowly)
+  encoder_resolution: "1"
+
+  # Amount one encoder step changes on pages that edit an entity value.
+  # cover_position_step and light_brightness_step: in %, 1 to 100.
+  # climate_temperature_step: in half-degree units (2 = 1°C, 1 = 0.5°C).
+  # music_volume_step: in %, 1 to 100.
+  cover_position_step: "5"
+  light_brightness_step: "1"
+  climate_temperature_step: "2"
+  music_volume_step: "10"
+
+  # --- Clock (this page always exists) ---
+  weather_entity: weather.disabled
+  aqi_entity: sensor.disabled
+
+# The Alarm page is local to the device: nothing to configure here,
+# it is set directly on the Dial (encoder + button).
+
+# One entry = opens directly. Several = opens a selector first.
+
+# --- Light ---
+# dial_lights:
+#   - entity_id: light.living_room
+#     name: Living room
+
+# --- Climate ---
+# dial_climates:
+#   - entity_id: climate.living_room
+#     name: Living room
+
+# --- Media Player ---
+# dial_media_players:
+#   - entity_id: media_player.living_room
+#     name: Living room
+
+# --- Cover ---
+# dial_covers:
+#   - entity_id: cover.living_room
+#     name: Living room
+
+# --- Garage ---
+# dial_garages:
+#   - entity_id: cover.gate
+#     name: Gate
+
+# --- Switch ---
+# dial_switches:
+#   - entity_id: switch.living_room
+#     name: Living room
+
+# --- Scene / Script ---
+# dial_scenes:
+#   - entity_id: scene.movie
+#     name: Movie
+#   - entity_id: script.all_off
+#     name: All off
+
+# --- Room temperatures ---
+# dial_temperatures:
+#   - entity_id: sensor.living_room_temperature
+#     name: Living room
+#   - entity_id: sensor.bedroom_temperature
+#     name: Bedroom
+
+packages:
+  m5_dial:
+    url: https://github.com/Glooob-domo/m5stack-dial-home-assistant
+    ref: main
+    files:
+      - dial.yaml
+    refresh: 0s

@@ -2,7 +2,9 @@
 
 Maintained by **[Glooob Domo](https://github.com/Glooob-domo)**, based on [hectorzin](https://github.com/hectorzin)'s Home Assistant Controller fork and [Jason Wen](https://github.com/Jasionf)'s original Smart Home Button project. For an overview and a ready-to-use installation example, return to the [README](../README.md).
 
-A normal install uses one file in ESPHome: `m5-dial.yaml`. It pulls the firmware from GitHub and holds your entity IDs. You do not copy `src/` or `components/` into ESPHome.
+**Languages:** English (this page) · [Français](configuration.fr.md)
+
+A normal install uses one file in ESPHome: [`m5-dial.en.yaml`](../m5-dial.en.yaml) (English comments) or [`m5-dial.yaml`](../m5-dial.yaml) (French comments) — same fields either way. It pulls the firmware from GitHub and holds your entity IDs. You do not copy `src/` or `components/` into ESPHome.
 
 ## Device credentials
 
@@ -60,10 +62,10 @@ Unconfigured optional features are hidden from the menu. Fill the matching list 
 
 ```yaml
 dial_lights:
-  - entity_id: light.sofa
-    name: Sofá
+  - entity_id: light.living_room
+    name: Living room
   - entity_id: light.desk
-    name: Escritorio
+    name: Desk
 ```
 
 Each entry needs an `entity_id` and a display `name`. Omit `dial_lights` to hide Lights from the menu. One light opens the control page directly; two or more open a selector first.

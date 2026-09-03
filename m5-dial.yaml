@@ -1,4 +1,5 @@
 # Fichier unique à coller dans ESPHome (dashboard).
+# English version: m5-dial.en.yaml
 # Glooob Domo — fork de hectorzin / Jason Wen (Smart Home Button)
 # https://github.com/Glooob-domo/m5stack-dial-home-assistant
 # ESPHome télécharge le firmware depuis GitHub. Wi-Fi / clé API / OTA : secrets.yaml.

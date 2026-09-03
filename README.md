@@ -8,6 +8,8 @@
 
 **Maintained by [Glooob Domo](https://github.com/Glooob-domo)** — custom firmware, UI and Home Assistant integrations for the M5Stack Dial.
 
+**Languages:** English (this page) · [Français](README.fr.md)
+
 [![ESPHome](https://img.shields.io/badge/ESPHome-2026.7+-blue?style=flat-square&logo=esphome)](https://esphome.io/)
 [![Platform](https://img.shields.io/badge/Platform-ESP32--S3-red?style=flat-square&logo=espressif)](https://www.espressif.com/)
 [![Display](https://img.shields.io/badge/Display-GC9A01A%20240x240-purple?style=flat-square)](#hardware)
@@ -94,7 +96,7 @@ Weather and AQI are optional: leave them as `weather.disabled` / `sensor.disable
 
 You only add **one file** to ESPHome. ESPHome downloads the firmware from GitHub; you do not copy the rest of this repository.
 
-1. In the ESPHome dashboard, create a device and paste [`m5-dial.yaml`](m5-dial.yaml).
+1. In the ESPHome dashboard, create a device and paste [`m5-dial.en.yaml`](m5-dial.en.yaml) (English comments) — or [`m5-dial.yaml`](m5-dial.yaml) for the French-commented original.
 2. Put Wi-Fi, `api_encryption_key` and `ota_password` in `secrets.yaml`.
 3. In that same YAML, set `ui_language`, replace `weather_entity` / `aqi_entity` when you want those fields, and uncomment the `dial_*` blocks you need. Omit a list entirely to hide that menu page (you do not need empty `dial_*: []` entries).
 4. Install over USB the first time, then use OTA.
@@ -104,28 +106,28 @@ Example of the fields you edit:
 ```yaml
 substitutions:
   timezone: Europe/Paris
-  ui_language: fr
+  ui_language: en
   encoder_resolution: "1"
-  weather_entity: weather.maison
-  aqi_entity: sensor.aqi_salon
+  weather_entity: weather.home
+  aqi_entity: sensor.aqi_living_room
 
-# --- Lumière / Light ---
+# --- Light ---
 dial_lights:
-  - entity_id: light.salon
-    name: Salon
+  - entity_id: light.living_room
+    name: Living room
 
-# --- Chauffage / Climate ---
+# --- Climate ---
 dial_climates:
-  - entity_id: climate.salon
-    name: Salon
+  - entity_id: climate.living_room
+    name: Living room
 
 # --- Media Player ---
 dial_media_players:
-  - entity_id: media_player.salon
-    name: Salon
+  - entity_id: media_player.living_room
+    name: Living room
 
-# Pages optionnelles : ajoutez seulement les listes dont vous avez besoin.
-# Sans dial_covers, dial_garages, etc., la page reste masquée.
+# Optional pages: only add the lists you need.
+# Without dial_covers, dial_garages, etc., that page stays hidden.
 
 packages:
   m5_dial:
@@ -244,7 +246,8 @@ The package enables GPIO46 at boot for M5Dial V1.1 battery power hold. This keep
 
 ```text
 m5stack-dial-home-assistant/
-├── m5-dial.yaml               # Single ESPHome device file (GitHub package + entities)
+├── m5-dial.yaml               # Single ESPHome device file, French comments (GitHub package + entities)
+├── m5-dial.en.yaml            # Same file, English comments
 ├── m5-dial.local.yaml         # Compile this clone (not used in the ESPHome dashboard)
 ├── dial.yaml                 # Firmware package (pulled from GitHub)
 ├── secrets.example.yaml      # Example credentials for local development
@@ -287,7 +290,7 @@ For an earlier walkthrough of the hectorzin derivative (architecture and first H
 
 ## Documentation
 
-- [Configuration reference](docs/configuration.md)
+- [Configuration reference](docs/configuration.md) ([Français](docs/configuration.fr.md))
 - [Project structure](docs/project-structure.md)
 - [License](LICENSE)
 - [Third-party notices](THIRD_PARTY_NOTICES.md)
