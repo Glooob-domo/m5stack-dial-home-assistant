@@ -50,6 +50,18 @@ esphome:
   name: ${device_name}
   friendly_name: ${device_friendly_name}
   min_version: 2026.7.0
+  # Temporary control test: does on_loop (runs every main-loop iteration,
+  # bypassing the scheduler entirely) fire where interval: components do
+  # not? Helps tell apart "the loop itself is starved" from "something
+  # specific to PollingComponent/set_interval is broken."
+  on_loop:
+    - lambda: |-
+        static uint32_t last_loop_heartbeat_ms = 0;
+        uint32_t now_ms = millis();
+        if (now_ms - last_loop_heartbeat_ms >= 5000) {
+          last_loop_heartbeat_ms = now_ms;
+          ESP_LOGI("diag", "ON_LOOP now=%u", now_ms);
+        }
   on_boot:
     - priority: 800
       then:
