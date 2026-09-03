@@ -599,7 +599,8 @@ interval:
       - lambda: |-
           uint32_t now_ms = millis();
           bool server_playing = id(sendspin_playback_state).state == "playing";
-          if (id(dial_media_players_id).count() > 0 && id(dial_media_players_id).active_state_valid()) {
+          bool have_players = id(dial_media_players_id).count() > 0;
+          if (have_players && id(dial_media_players_id).active_state_valid()) {
             const std::string &st = id(dial_media_players_id).active_state();
             server_playing = server_playing || st == "playing" || st == "buffering";
             if (id(in_music) && (int32_t)(id(music_volume_override_until_ms) - now_ms) <= 0 &&
@@ -625,8 +626,14 @@ interval:
                   id(local_progress_sync_ms) = now_ms;
                 }
               }
-              id(refresh_music_metadata).execute();
             }
+          }
+          // Title/artist/cover only depend on their own attribute sensors,
+          // not on the media player's overall "state" sensor — keep them
+          // refreshing even if state briefly lags or reports invalid, so a
+          // flaky state sync doesn't also blank out what's playing.
+          if (id(in_music) && have_players) {
+            id(refresh_music_metadata).execute();
           }
           bool use_local_state = (int32_t)(id(music_state_override_until_ms) - now_ms) > 0;
           bool playing = use_local_state ? id(music_playing) : server_playing;
