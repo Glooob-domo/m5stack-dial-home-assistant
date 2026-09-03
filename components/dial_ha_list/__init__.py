@@ -18,7 +18,6 @@ DEPENDENCIES = ["api", "text_sensor", "sensor"]
 AUTO_LOAD = ["text_sensor", "sensor"]
 
 LEGACY_DISABLED = {
-    "timer.your_timer",
     "weather.your_location",
 }
 
