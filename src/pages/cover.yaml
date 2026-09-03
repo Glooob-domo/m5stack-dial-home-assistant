@@ -128,8 +128,10 @@ script:
           const int pos = list->active_position();
           if (pos < 0)
             return;
+          if (pos == id(cover_position))
+            return;
           id(cover_position) = pos;
-      - script.execute: refresh_cover
+          id(refresh_cover).execute();
 
   - id: open_cover
     then:
