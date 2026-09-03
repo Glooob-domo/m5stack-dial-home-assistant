@@ -714,12 +714,12 @@ interval:
     then:
       - lambda: |-
           uint32_t now_ms = millis();
-          // Temporary: prove the 200ms tick itself is still alive while on
-          // Music, independent of refresh_music_metadata.
+          // Temporary: prove the interval itself is still alive at all,
+          // unconditionally - not gated on in_music this time.
           static uint32_t last_heartbeat_ms = 0;
-          if (id(in_music) && now_ms - last_heartbeat_ms >= 3000) {
+          if (now_ms - last_heartbeat_ms >= 5000) {
             last_heartbeat_ms = now_ms;
-            ESP_LOGI("music", "TICK now=%u", now_ms);
+            ESP_LOGI("music", "TICK now=%u in_music=%d", now_ms, id(in_music));
           }
           bool server_playing = id(sendspin_playback_state).state == "playing";
           bool have_players = id(dial_media_players_id).count() > 0;
