@@ -107,14 +107,17 @@ script:
                 variables:
                   target_entity: !lambda "return id(dial_switches_id).active_entity_id();"
 
-interval:
-  - interval: 400ms
-    then:
-      - if:
-          condition:
-            lambda: 'return id(in_switch);'
-          then:
-            - script.execute: refresh_switch
+esphome:
+  on_loop:
+    - lambda: |-
+        static uint32_t last_tick_switch_ms = 0;
+        uint32_t now_ms = millis();
+        if (now_ms - last_tick_switch_ms >= 400) {
+          last_tick_switch_ms = now_ms;
+          if (id(in_switch)) {
+            id(refresh_switch).execute();
+          }
+        }
 
 lvgl:
   pages:

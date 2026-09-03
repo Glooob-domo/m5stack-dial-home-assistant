@@ -813,31 +813,33 @@ script:
             }
           }
 
-interval:
-  - interval: 500ms
-    then:
-      - if:
-          condition:
-            lambda: 'return id(in_air) && id(dial_climates_id).count() > 0;'
-          then:
-            - lambda: |-
-                if (id(air_control_mode) == 0 && id(dial_climates_id).active_attr_valid("temperature")) {
-                  const int t = (int)(atof(id(dial_climates_id).active_attr("temperature").c_str()) * 2.0f + 0.5f);
-                  if (t >= 34 && t <= 52) id(air_temp) = t;
-                }
-                if (id(dial_climates_id).active_state_valid()) {
-                  const std::string &st = id(dial_climates_id).active_state();
-                  id(air_btn_power_active) = (st != "off");
-                  if (st != "off" && id(air_control_mode) != 2) {
-                    id(air_last_hvac_mode) = st;
-                    id(air_hvac_mode_pending) = st;
-                  }
-                }
-                if (id(air_control_mode) != 1 && id(dial_climates_id).active_attr_valid("fan_mode")) {
-                  id(air_fan_mode_pending) = id(dial_climates_id).active_attr("fan_mode");
-                  id(air_last_valid_fan_mode) = id(air_fan_mode_pending);
-                }
-            - script.execute: refresh_air
+esphome:
+  on_loop:
+    - lambda: |-
+        static uint32_t last_tick_air_ms = 0;
+        uint32_t now_ms = millis();
+        if (now_ms - last_tick_air_ms >= 500) {
+          last_tick_air_ms = now_ms;
+          if (id(in_air) && id(dial_climates_id).count() > 0) {
+            if (id(air_control_mode) == 0 && id(dial_climates_id).active_attr_valid("temperature")) {
+              const int t = (int)(atof(id(dial_climates_id).active_attr("temperature").c_str()) * 2.0f + 0.5f);
+              if (t >= 34 && t <= 52) id(air_temp) = t;
+            }
+            if (id(dial_climates_id).active_state_valid()) {
+              const std::string &st = id(dial_climates_id).active_state();
+              id(air_btn_power_active) = (st != "off");
+              if (st != "off" && id(air_control_mode) != 2) {
+                id(air_last_hvac_mode) = st;
+                id(air_hvac_mode_pending) = st;
+              }
+            }
+            if (id(air_control_mode) != 1 && id(dial_climates_id).active_attr_valid("fan_mode")) {
+              id(air_fan_mode_pending) = id(dial_climates_id).active_attr("fan_mode");
+              id(air_last_valid_fan_mode) = id(air_fan_mode_pending);
+            }
+            id(refresh_air).execute();
+          }
+        }
 
 lvgl:
   pages:

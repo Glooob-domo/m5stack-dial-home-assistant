@@ -255,23 +255,17 @@ script:
             id(cover_open_action).execute();
           }
 
-interval:
-  - interval: 200ms
-    then:
-      - lambda: |-
-          // Temporary control test: does this interval, in a different
-          // page's file, log a heartbeat where Music's does not?
-          static uint32_t last_cover_heartbeat_ms = 0;
-          uint32_t now_ms = millis();
-          if (now_ms - last_cover_heartbeat_ms >= 5000) {
-            last_cover_heartbeat_ms = now_ms;
-            ESP_LOGI("cover", "TICK now=%u in_cover=%d", now_ms, id(in_cover));
+esphome:
+  on_loop:
+    - lambda: |-
+        static uint32_t last_tick_cover_ms = 0;
+        uint32_t now_ms = millis();
+        if (now_ms - last_tick_cover_ms >= 200) {
+          last_tick_cover_ms = now_ms;
+          if (id(in_cover)) {
+            id(cover_apply_snapshot).execute();
           }
-      - if:
-          condition:
-            lambda: 'return id(in_cover);'
-          then:
-            - script.execute: cover_apply_snapshot
+        }
 
 lvgl:
   pages:

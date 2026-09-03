@@ -89,14 +89,17 @@ script:
       - rtttl.play: "b:d=16,o=6,b=180:c,e,g"
       - script.execute: refresh_scene
 
-interval:
-  - interval: 300ms
-    then:
-      - if:
-          condition:
-            lambda: 'return id(in_scene);'
-          then:
-            - script.execute: refresh_scene
+esphome:
+  on_loop:
+    - lambda: |-
+        static uint32_t last_tick_scene_ms = 0;
+        uint32_t now_ms = millis();
+        if (now_ms - last_tick_scene_ms >= 300) {
+          last_tick_scene_ms = now_ms;
+          if (id(in_scene)) {
+            id(refresh_scene).execute();
+          }
+        }
 
 lvgl:
   pages:

@@ -81,14 +81,17 @@ script:
           id(dial_temperatures_id).select_previous();
       - script.execute: refresh_temp
 
-interval:
-  - interval: 1s
-    then:
-      - if:
-          condition:
-            lambda: 'return id(in_temp);'
-          then:
-            - script.execute: refresh_temp
+esphome:
+  on_loop:
+    - lambda: |-
+        static uint32_t last_tick_temp_ms = 0;
+        uint32_t now_ms = millis();
+        if (now_ms - last_tick_temp_ms >= 1000) {
+          last_tick_temp_ms = now_ms;
+          if (id(in_temp)) {
+            id(refresh_temp).execute();
+          }
+        }
 
 lvgl:
   pages:

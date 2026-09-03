@@ -27,21 +27,23 @@ globals:
     type: int
     initial_value: '0'
 
-interval:
-  - interval: 400ms
-    then:
-      - if:
-          condition:
-            lambda: "return !id(ha_connected);"
-          then:
-            - lambda: |-
-                id(dot_tick) = (id(dot_tick) + 1) % 3;
-                lv_obj_set_style_bg_color(id(dot_0),
-                  id(dot_tick) == 0 ? lv_color_hex(0x41B3FF) : lv_color_hex(0x0D2340), LV_PART_MAIN);
-                lv_obj_set_style_bg_color(id(dot_1),
-                  id(dot_tick) == 1 ? lv_color_hex(0x41B3FF) : lv_color_hex(0x0D2340), LV_PART_MAIN);
-                lv_obj_set_style_bg_color(id(dot_2),
-                  id(dot_tick) == 2 ? lv_color_hex(0x41B3FF) : lv_color_hex(0x0D2340), LV_PART_MAIN);
+esphome:
+  on_loop:
+    - lambda: |-
+        static uint32_t last_tick_load_ms = 0;
+        uint32_t now_ms = millis();
+        if (now_ms - last_tick_load_ms >= 400) {
+          last_tick_load_ms = now_ms;
+          if (!id(ha_connected)) {
+            id(dot_tick) = (id(dot_tick) + 1) % 3;
+            lv_obj_set_style_bg_color(id(dot_0),
+              id(dot_tick) == 0 ? lv_color_hex(0x41B3FF) : lv_color_hex(0x0D2340), LV_PART_MAIN);
+            lv_obj_set_style_bg_color(id(dot_1),
+              id(dot_tick) == 1 ? lv_color_hex(0x41B3FF) : lv_color_hex(0x0D2340), LV_PART_MAIN);
+            lv_obj_set_style_bg_color(id(dot_2),
+              id(dot_tick) == 2 ? lv_color_hex(0x41B3FF) : lv_color_hex(0x0D2340), LV_PART_MAIN);
+          }
+        }
 
 script:
   - id: update_loading_page

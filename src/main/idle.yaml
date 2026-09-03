@@ -365,17 +365,22 @@ script:
             id(idle_dim_applied) = true;
           }
 
-interval:
-  - interval: 1s
-    then:
-      - script.execute: dial_idle_tick
-      - if:
-          condition:
-            lambda: 'return id(in_cover);'
-          then:
-            - script.execute: cover_apply_snapshot
-
 esphome:
+  # interval: (PollingComponent/scheduler) never fired on this device -
+  # confirmed by diagnostic logging across every page that used it. Every
+  # periodic tick in this project is driven from on_loop instead, each
+  # with its own millis()-based throttle to reproduce the original period.
+  on_loop:
+    - lambda: |-
+        static uint32_t last_tick_idle_ms = 0;
+        uint32_t now_ms = millis();
+        if (now_ms - last_tick_idle_ms >= 1000) {
+          last_tick_idle_ms = now_ms;
+          id(dial_idle_tick).execute();
+          if (id(in_cover)) {
+            id(cover_apply_snapshot).execute();
+          }
+        }
   on_boot:
     - priority: -50
       then:

@@ -121,43 +121,46 @@ text_sensor:
     on_value:
       - script.execute: timer_schedule_sync
 
-interval:
-  - interval: 1s
-    then:
-      - lambda: |-
-          const int ACTIVE = 1;
-          const int FINISHED = 3;
-          const int UNAVAILABLE = 4;
-          if (!id(ha_connected)) {
-            id(timer_ui_state) = UNAVAILABLE;
-            id(timer_sync_ready) = false;
-          }
-          if (id(timer_ui_state) == ACTIVE && id(timer_finish_epoch_utc) > 0) {
-            auto now = id(esptime).now();
-            if (now.is_valid()) {
-              const int previous = id(timer_remaining_seconds);
-              const int64_t delta = id(timer_finish_epoch_utc) - now.timestamp;
-              int remaining = delta > 0 ? (int) delta : 0;
-              if (id(timer_duration_seconds) > 0 && remaining > id(timer_duration_seconds)) {
-                remaining = id(timer_duration_seconds);
-              }
-              id(timer_remaining_seconds) = remaining;
-              if (previous > 0 && remaining == 0 &&
-                  id(timer_observed_active_cycle) &&
-                  !id(timer_finish_feedback_sent) &&
-                  id(ha_timer_state).state == "active") {
-                ESP_LOGI("timer", "TIMER_FINISHED source=local_zero finish_epoch=%lld now=%lld",
-                         (long long) id(timer_finish_epoch_utc), (long long) now.timestamp);
-                id(timer_enter_finished).execute();
-              }
+esphome:
+  on_loop:
+    - lambda: |-
+        static uint32_t last_tick_timer_ms = 0;
+        uint32_t now_ms = millis();
+        if (now_ms - last_tick_timer_ms < 1000) return;
+        last_tick_timer_ms = now_ms;
+        const int ACTIVE = 1;
+        const int FINISHED = 3;
+        const int UNAVAILABLE = 4;
+        if (!id(ha_connected)) {
+          id(timer_ui_state) = UNAVAILABLE;
+          id(timer_sync_ready) = false;
+        }
+        if (id(timer_ui_state) == ACTIVE && id(timer_finish_epoch_utc) > 0) {
+          auto now = id(esptime).now();
+          if (now.is_valid()) {
+            const int previous = id(timer_remaining_seconds);
+            const int64_t delta = id(timer_finish_epoch_utc) - now.timestamp;
+            int remaining = delta > 0 ? (int) delta : 0;
+            if (id(timer_duration_seconds) > 0 && remaining > id(timer_duration_seconds)) {
+              remaining = id(timer_duration_seconds);
             }
-            if (id(in_timer)) id(refresh_timer).execute();
-            return;
-          }
-          if (id(timer_ui_state) == FINISHED && id(in_timer)) {
-            id(timer_blink) = !id(timer_blink);
+            id(timer_remaining_seconds) = remaining;
+            if (previous > 0 && remaining == 0 &&
+                id(timer_observed_active_cycle) &&
+                !id(timer_finish_feedback_sent) &&
+                id(ha_timer_state).state == "active") {
+              ESP_LOGI("timer", "TIMER_FINISHED source=local_zero finish_epoch=%lld now=%lld",
+                       (long long) id(timer_finish_epoch_utc), (long long) now.timestamp);
+              id(timer_enter_finished).execute();
+            }
           }
           if (id(in_timer)) id(refresh_timer).execute();
+          return;
+        }
+        if (id(timer_ui_state) == FINISHED && id(in_timer)) {
+          id(timer_blink) = !id(timer_blink);
+        }
+        if (id(in_timer)) id(refresh_timer).execute();
 
 script:
   - id: timer_enter_finished

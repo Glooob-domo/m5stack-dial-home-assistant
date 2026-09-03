@@ -241,19 +241,6 @@ script:
                      title_attr_valid, title.c_str(), artist.c_str());
             last_logged_title = title;
           }
-          // Temporary: prove whether the underlying HA subscriptions ever
-          // push a second update at all, regardless of whether it changes
-          // the value we render - one snapshot every ~3s while on Music.
-          static uint32_t last_probe_ms = 0;
-          uint32_t probe_now = millis();
-          if (probe_now - last_probe_ms >= 3000) {
-            last_probe_ms = probe_now;
-            ESP_LOGI("music", "PROBE state_valid=%d state='%s' title_valid=%d title_raw='%s'",
-                     id(dial_media_players_id).active_state_valid(),
-                     id(dial_media_players_id).active_state().c_str(),
-                     title_attr_valid,
-                     id(dial_media_players_id).active_attr("title").c_str());
-          }
           // Cap the displayed title at 20 characters so a long title (some
           // are 60+) can't wrap across lines; keep the full string for
           // logging above. UTF-8 safe: back off from a cut that would
@@ -719,18 +706,13 @@ lvgl:
                         text_color: 0xFFFFFF
                         align: CENTER
 
-interval:
-  - interval: 200ms
-    then:
-      - lambda: |-
-          uint32_t now_ms = millis();
-          // Temporary: prove the interval itself is still alive at all,
-          // unconditionally - not gated on in_music this time.
-          static uint32_t last_heartbeat_ms = 0;
-          if (now_ms - last_heartbeat_ms >= 5000) {
-            last_heartbeat_ms = now_ms;
-            ESP_LOGI("music", "TICK now=%u in_music=%d", now_ms, id(in_music));
-          }
+esphome:
+  on_loop:
+    - lambda: |-
+        static uint32_t last_tick_music_ms = 0;
+        uint32_t now_ms = millis();
+        if (now_ms - last_tick_music_ms < 200) return;
+        last_tick_music_ms = now_ms;
           bool server_playing = id(sendspin_playback_state).state == "playing";
           bool have_players = id(dial_media_players_id).count() > 0;
           if (have_players && id(dial_media_players_id).active_state_valid()) {

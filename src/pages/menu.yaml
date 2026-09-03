@@ -882,14 +882,17 @@ script:
 
           lv_obj_add_flag(id(menu_arrow), LV_OBJ_FLAG_HIDDEN);
 
-interval:
-  - interval: 1s
-    then:
-      - if:
-          condition:
-            lambda: 'return id(in_menu);'
-          then:
-            - script.execute: refresh_menu_subtitle
+esphome:
+  on_loop:
+    - lambda: |-
+        static uint32_t last_tick_menu_ms = 0;
+        uint32_t now_ms = millis();
+        if (now_ms - last_tick_menu_ms >= 1000) {
+          last_tick_menu_ms = now_ms;
+          if (id(in_menu)) {
+            id(refresh_menu_subtitle).execute();
+          }
+        }
 
 lvgl:
   pages:

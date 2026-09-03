@@ -366,14 +366,17 @@ script:
                 list->select(idx);
             - script.execute: entity_selector_confirm
 
-interval:
-  - interval: 1s
-    then:
-      - if:
-          condition:
-            lambda: 'return id(in_entity_selector) && !id(entity_selector_carousel).is_animating();'
-          then:
-            - script.execute: refresh_entity_selector
+esphome:
+  on_loop:
+    - lambda: |-
+        static uint32_t last_tick_entsel_ms = 0;
+        uint32_t now_ms = millis();
+        if (now_ms - last_tick_entsel_ms >= 1000) {
+          last_tick_entsel_ms = now_ms;
+          if (id(in_entity_selector) && !id(entity_selector_carousel).is_animating()) {
+            id(refresh_entity_selector).execute();
+          }
+        }
 
 lvgl:
   pages:
