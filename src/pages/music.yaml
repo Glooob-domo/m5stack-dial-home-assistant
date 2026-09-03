@@ -216,12 +216,19 @@ script:
       - lambda: |-
           std::string title;
           std::string artist;
-          if (id(dial_media_players_id).active_attr_valid("title"))
+          bool title_attr_valid = id(dial_media_players_id).active_attr_valid("title");
+          if (title_attr_valid)
             title = id(dial_media_players_id).active_attr("title");
           if (id(dial_media_players_id).active_attr_valid("artist"))
             artist = id(dial_media_players_id).active_attr("artist");
           if (title.empty()) title = id(track_title).state;
           if (title.empty()) title = dial_i18n::ready_to_play();
+          static std::string last_logged_title;
+          if (title != last_logged_title) {
+            ESP_LOGI("music", "METADATA title_attr_valid=%d title='%s' artist='%s'",
+                     title_attr_valid, title.c_str(), artist.c_str());
+            last_logged_title = title;
+          }
           lv_label_set_text(id(lbl_music_title), title.c_str());
           if (artist.empty()) artist = id(track_artist).state;
           lv_label_set_text(id(lbl_music_artist), artist.c_str());
