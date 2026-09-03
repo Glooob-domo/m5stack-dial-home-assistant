@@ -90,13 +90,13 @@ M5Stack Dial V1.1 is the tested target. GPIO46 power hold is configured for V1.1
 - Wi-Fi access for the Dial.
 - Home Assistant entities only for the features and information you want to enable.
 
-Weather and AQI are optional: leave them as `weather.disabled` / `sensor.disabled` (or point at unavailable entities) and Clock shows `--`. AC, Music, Lights and Covers are also optional; those menu entries disappear when the matching line in `m5-dial.yaml` stays `*.disabled` or, for list-based pages, when the list is empty. Alarm needs no configuration at all — it is always in the menu and is set entirely on the Dial.
+Weather and AQI are optional: leave them as `weather.disabled` / `sensor.disabled` (or point at unavailable entities) and Clock shows `--`. AC, Music, Lights and Covers are also optional; those menu entries disappear when the matching line in `m5-dial.FR.yaml` / `m5-dial.EN.yaml` stays `*.disabled` or, for list-based pages, when the list is empty. Alarm needs no configuration at all — it is always in the menu and is set entirely on the Dial.
 
 ## Quick installation
 
 You only add **one file** to ESPHome. ESPHome downloads the firmware from GitHub; you do not copy the rest of this repository.
 
-1. In the ESPHome dashboard, create a device and paste [`m5-dial.en.yaml`](m5-dial.en.yaml) (English comments) — or [`m5-dial.yaml`](m5-dial.yaml) for the French-commented original.
+1. In the ESPHome dashboard, create a device and paste [`m5-dial.EN.yaml`](m5-dial.EN.yaml) (English comments) — or [`m5-dial.FR.yaml`](m5-dial.FR.yaml) for the French-commented original.
 2. Put Wi-Fi, `api_encryption_key` and `ota_password` in `secrets.yaml`.
 3. In that same YAML, set `ui_language`, replace `weather_entity` / `aqi_entity` when you want those fields, and uncomment the `dial_*` blocks you need. Omit a list entirely to hide that menu page (you do not need empty `dial_*: []` entries).
 4. Install over USB the first time, then use OTA.
@@ -246,8 +246,8 @@ The package enables GPIO46 at boot for M5Dial V1.1 battery power hold. This keep
 
 ```text
 m5stack-dial-home-assistant/
-├── m5-dial.yaml               # Single ESPHome device file, French comments (GitHub package + entities)
-├── m5-dial.en.yaml            # Same file, English comments
+├── m5-dial.FR.yaml            # Single ESPHome device file, French comments (GitHub package + entities)
+├── m5-dial.EN.yaml            # Same file, English comments
 ├── m5-dial.local.yaml         # Compile this clone (not used in the ESPHome dashboard)
 ├── dial.yaml                 # Firmware package (pulled from GitHub)
 ├── secrets.example.yaml      # Example credentials for local development
@@ -265,7 +265,7 @@ m5stack-dial-home-assistant/
 
 ## Development and customisation
 
-This section is for people changing the firmware. Create a local `secrets.yaml` from `secrets.example.yaml`, then compile **this clone** (the ESPHome dashboard uses `m5-dial.yaml` + GitHub instead):
+This section is for people changing the firmware. Create a local `secrets.yaml` from `secrets.example.yaml`, then compile **this clone** (the ESPHome dashboard uses `m5-dial.FR.yaml` / `m5-dial.EN.yaml` + GitHub instead):
 
 ```bash
 python -m venv .venv

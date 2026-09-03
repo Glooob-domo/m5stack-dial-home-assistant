@@ -4,7 +4,7 @@ Maintained by **[Glooob Domo](https://github.com/Glooob-domo)**, based on [hecto
 
 **Languages:** English (this page) · [Français](configuration.fr.md)
 
-A normal install uses one file in ESPHome: [`m5-dial.en.yaml`](../m5-dial.en.yaml) (English comments) or [`m5-dial.yaml`](../m5-dial.yaml) (French comments) — same fields either way. It pulls the firmware from GitHub and holds your entity IDs. You do not copy `src/` or `components/` into ESPHome.
+A normal install uses one file in ESPHome: [`m5-dial.EN.yaml`](../m5-dial.EN.yaml) (English comments) or [`m5-dial.FR.yaml`](../m5-dial.FR.yaml) (French comments) — same fields either way. It pulls the firmware from GitHub and holds your entity IDs. You do not copy `src/` or `components/` into ESPHome.
 
 ## Device credentials
 
@@ -41,11 +41,11 @@ substitutions:
   aqi_entity: sensor.aqi_salon
 ```
 
-Leave `weather.disabled` or `sensor.disabled` in `m5-dial.yaml` to keep `--` on those fields. If an entity is missing or unavailable, Clock also shows `--`. `weather_entity` supplies weather information; `aqi_entity` should be numeric, with the weather entity's legacy `aqi` attribute used only as a fallback. Find entity IDs under **Developer Tools → States**.
+Leave `weather.disabled` or `sensor.disabled` in `m5-dial.FR.yaml` / `m5-dial.EN.yaml` to keep `--` on those fields. If an entity is missing or unavailable, Clock also shows `--`. `weather_entity` supplies weather information; `aqi_entity` should be numeric, with the weather entity's legacy `aqi` attribute used only as a fallback. Find entity IDs under **Developer Tools → States**.
 
 ## Optional menu features
 
-Unconfigured optional features are hidden from the menu. Fill the matching list to show a page. **Omit** a list key entirely to hide that page — you do not need to add empty `dial_*: []` entries in `m5-dial.yaml`. Clock weather/AQI stay on the clock page and show `--` when left as `*.disabled`. Alarm needs no field at all — it is always in the menu, set entirely on the Dial.
+Unconfigured optional features are hidden from the menu. Fill the matching list to show a page. **Omit** a list key entirely to hide that page — you do not need to add empty `dial_*: []` entries in `m5-dial.FR.yaml` / `m5-dial.EN.yaml`. Clock weather/AQI stay on the clock page and show `--` when left as `*.disabled`. Alarm needs no field at all — it is always in the menu, set entirely on the Dial.
 
 | Field | Enables | Example |
 | --- | --- | --- |
@@ -237,4 +237,4 @@ Each `dial_*` list validates its entities **at compile time**, before you ever f
 
 ## Development-only customisation
 
-Clone the repository when you need to change the firmware itself. Entity IDs belong in `m5-dial.yaml` (dashboard). To compile this clone without GitHub, use `m5-dial.local.yaml`. `src/pages/` contains the LVGL pages; `src/main/` contains hardware, idle logic and default fallbacks. Install `requirements.txt`, copy `secrets.example.yaml` to a local `secrets.yaml`, and run `esphome config m5-dial.local.yaml` before compiling.
+Clone the repository when you need to change the firmware itself. Entity IDs belong in `m5-dial.FR.yaml` / `m5-dial.EN.yaml` (dashboard). To compile this clone without GitHub, use `m5-dial.local.yaml`. `src/pages/` contains the LVGL pages; `src/main/` contains hardware, idle logic and default fallbacks. Install `requirements.txt`, copy `secrets.example.yaml` to a local `secrets.yaml`, and run `esphome config m5-dial.local.yaml` before compiling.

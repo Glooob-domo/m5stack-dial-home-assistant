@@ -90,13 +90,13 @@ Le M5Stack Dial V1.1 est la cible testée. Le maintien d'alimentation GPIO46 est
 - Un accès Wi-Fi pour le Dial.
 - Des entités Home Assistant uniquement pour les fonctionnalités que vous souhaitez activer.
 
-Météo et AQI sont optionnels : laissez-les en `weather.disabled` / `sensor.disabled` (ou pointez vers des entités indisponibles) et l'Horloge affiche `--`. Clim, Musique, Lumières et Volets sont également optionnels ; ces entrées de menu disparaissent quand la ligne correspondante dans `m5-dial.yaml` reste `*.disabled`, ou, pour les pages à liste, quand la liste est vide. L'Alarme ne nécessite aucune configuration — elle est toujours dans le menu et se règle entièrement sur le Dial.
+Météo et AQI sont optionnels : laissez-les en `weather.disabled` / `sensor.disabled` (ou pointez vers des entités indisponibles) et l'Horloge affiche `--`. Clim, Musique, Lumières et Volets sont également optionnels ; ces entrées de menu disparaissent quand la ligne correspondante dans `m5-dial.FR.yaml` / `m5-dial.EN.yaml` reste `*.disabled`, ou, pour les pages à liste, quand la liste est vide. L'Alarme ne nécessite aucune configuration — elle est toujours dans le menu et se règle entièrement sur le Dial.
 
 ## Installation rapide
 
 Vous ajoutez seulement **un fichier** à ESPHome. ESPHome télécharge le firmware depuis GitHub ; vous ne copiez pas le reste de ce dépôt.
 
-1. Dans le dashboard ESPHome, créez un appareil et collez [`m5-dial.yaml`](m5-dial.yaml) (commentaires en français) — ou [`m5-dial.en.yaml`](m5-dial.en.yaml) pour la version en anglais.
+1. Dans le dashboard ESPHome, créez un appareil et collez [`m5-dial.FR.yaml`](m5-dial.FR.yaml) (commentaires en français) — ou [`m5-dial.EN.yaml`](m5-dial.EN.yaml) pour la version en anglais.
 2. Mettez le Wi-Fi, `api_encryption_key` et `ota_password` dans `secrets.yaml`.
 3. Dans ce même YAML, réglez `ui_language`, remplacez `weather_entity` / `aqi_entity` si vous voulez ces champs, et décommentez les blocs `dial_*` dont vous avez besoin. Omettez une liste entièrement pour masquer cette page du menu (inutile d'ajouter des entrées `dial_*: []` vides).
 4. Installez en USB la première fois, puis utilisez l'OTA.
@@ -246,8 +246,8 @@ Le package active le GPIO46 au démarrage pour le maintien d'alimentation batter
 
 ```text
 m5stack-dial-home-assistant/
-├── m5-dial.yaml               # Fichier appareil ESPHome unique, commentaires en français (package GitHub + entités)
-├── m5-dial.en.yaml            # Même fichier, commentaires en anglais
+├── m5-dial.FR.yaml            # Fichier appareil ESPHome unique, commentaires en français (package GitHub + entités)
+├── m5-dial.EN.yaml            # Même fichier, commentaires en anglais
 ├── m5-dial.local.yaml         # Compile ce clone (non utilisé dans le dashboard ESPHome)
 ├── dial.yaml                 # Package du firmware (récupéré depuis GitHub)
 ├── secrets.example.yaml      # Exemple d'identifiants pour le développement local
@@ -265,7 +265,7 @@ m5stack-dial-home-assistant/
 
 ## Développement et personnalisation
 
-Cette section s'adresse à celles et ceux qui modifient le firmware. Créez un `secrets.yaml` local à partir de `secrets.example.yaml`, puis compilez **ce clone** (le dashboard ESPHome utilise `m5-dial.yaml` + GitHub à la place) :
+Cette section s'adresse à celles et ceux qui modifient le firmware. Créez un `secrets.yaml` local à partir de `secrets.example.yaml`, puis compilez **ce clone** (le dashboard ESPHome utilise `m5-dial.FR.yaml` / `m5-dial.EN.yaml` + GitHub à la place) :
 
 ```bash
 python -m venv .venv

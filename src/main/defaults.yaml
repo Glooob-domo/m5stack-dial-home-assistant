@@ -1,4 +1,4 @@
-# Fallbacks if a key is missing from m5-dial.yaml. Hidden on the Dial.
+# Fallbacks if a key is missing from m5-dial.FR.yaml / m5-dial.EN.yaml. Hidden on the Dial.
 substitutions:
   timezone: Europe/Paris
   weather_entity: weather.disabled
@@ -17,7 +17,7 @@ substitutions:
   climate_temperature_step: "2" # 0.5C units per step: 2 = 1C, 1 = 0.5C
   music_volume_step: "10"       # % per step, 1-100
 
-# Empty lists hide those pages until m5-dial.yaml lists entities.
+# Empty lists hide those pages until m5-dial.FR.yaml / m5-dial.EN.yaml lists entities.
 dial_lights: []
 dial_climates: []
 dial_media_players: []

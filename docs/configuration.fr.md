@@ -4,7 +4,7 @@ Maintenu par **[Glooob Domo](https://github.com/Glooob-domo)**, basé sur le for
 
 **Langues :** [English](configuration.md) · Français (cette page)
 
-Une installation normale utilise un seul fichier dans ESPHome : [`m5-dial.yaml`](../m5-dial.yaml) (commentaires en français) ou [`m5-dial.en.yaml`](../m5-dial.en.yaml) (commentaires en anglais) — mêmes champs dans les deux cas. Il récupère le firmware depuis GitHub et contient vos identifiants d'entités. Vous ne copiez pas `src/` ni `components/` dans ESPHome.
+Une installation normale utilise un seul fichier dans ESPHome : [`m5-dial.FR.yaml`](../m5-dial.FR.yaml) (commentaires en français) ou [`m5-dial.EN.yaml`](../m5-dial.EN.yaml) (commentaires en anglais) — mêmes champs dans les deux cas. Il récupère le firmware depuis GitHub et contient vos identifiants d'entités. Vous ne copiez pas `src/` ni `components/` dans ESPHome.
 
 ## Identifiants de l'appareil
 
@@ -237,4 +237,4 @@ Les placeholders `*.disabled` sont exemptés des deux vérifications : `weather.
 
 ## Personnalisation (développement uniquement)
 
-Clonez le dépôt quand vous devez modifier le firmware lui-même. Les identifiants d'entités vont dans votre fichier `m5-dial*.yaml` (dashboard). Pour compiler ce clone sans passer par GitHub, utilisez `m5-dial.local.yaml`. `src/pages/` contient les pages LVGL ; `src/main/` contient le matériel, la logique de mise en veille et les valeurs par défaut. Installez `requirements.txt`, copiez `secrets.example.yaml` vers un `secrets.yaml` local, et lancez `esphome config m5-dial.local.yaml` avant de compiler.
+Clonez le dépôt quand vous devez modifier le firmware lui-même. Les identifiants d'entités vont dans votre fichier `m5-dial.FR.yaml` / `m5-dial.EN.yaml` (dashboard). Pour compiler ce clone sans passer par GitHub, utilisez `m5-dial.local.yaml`. `src/pages/` contient les pages LVGL ; `src/main/` contient le matériel, la logique de mise en veille et les valeurs par défaut. Installez `requirements.txt`, copiez `secrets.example.yaml` vers un `secrets.yaml` local, et lancez `esphome config m5-dial.local.yaml` avant de compiler.

@@ -2,9 +2,9 @@
 
 ## Root files
 
-- `m5-dial.yaml`: the single ESPHome device file for the dashboard (GitHub package + entity IDs).
+- `m5-dial.FR.yaml` / `m5-dial.EN.yaml`: the single ESPHome device file for the dashboard (GitHub package + entity IDs), French- and English-commented twins with identical fields.
 - `m5-dial.local.yaml`: compile this clone (`components/` + `src/`) without GitHub. Not used by the ESPHome dashboard.
-- `dial.yaml`: firmware package pulled from GitHub by `m5-dial.yaml`.
+- `dial.yaml`: firmware package pulled from GitHub by `m5-dial.FR.yaml` / `m5-dial.EN.yaml`.
 - `secrets.example.yaml`: public template for credentials.
 - `requirements.txt`: pinned ESPHome version for reproducible builds.
 - `README.md`: community-facing overview and setup guide.
@@ -27,7 +27,7 @@
 - **Covers** (`cover.yaml`): position arc and percentage; garage mode (`cover_page_kind == 1`) uses open/close/stop only.
 - **Music** (`music.yaml`): placeholder cover uses `logo_img` from `dial.yaml`; optional SendSpin artwork via `sendspin_cover_art`.
 - **Scenes** (`scene.yaml`): large centre ACTIVATE button.
-- **Empty pages**: omit `dial_*` keys in `m5-dial.yaml`; `defaults.yaml` supplies empty fallbacks.
+- **Empty pages**: omit `dial_*` keys in `m5-dial.FR.yaml` / `m5-dial.EN.yaml`; `defaults.yaml` supplies empty fallbacks.
 
 ## ID conventions
 
