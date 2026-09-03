@@ -246,22 +246,22 @@ lvgl:
               - label:
                   id: lbl_alarm_status
                   align: CENTER
-                  y: -56
+                  y: -72
                   text: ""
                   text_font: font_alarm_status
                   text_color: col_alarm_ring
               - label:
                   id: lbl_alarm_time
                   align: CENTER
-                  y: -16
+                  y: -38
                   text: "07:00"
                   text_font: font_alarm_time
                   text_color: col_alarm_accent
               - obj:
                   id: btn_alarm_h
                   align: CENTER
-                  x: -50
-                  y: 24
+                  x: -30
+                  y: 2
                   width: 44
                   height: 26
                   radius: 13
@@ -282,8 +282,8 @@ lvgl:
               - obj:
                   id: btn_alarm_m
                   align: CENTER
-                  x: 0
-                  y: 24
+                  x: 30
+                  y: 2
                   width: 44
                   height: 26
                   radius: 13
@@ -304,11 +304,11 @@ lvgl:
               - obj:
                   id: btn_alarm_toggle
                   align: CENTER
-                  x: 60
-                  y: 24
-                  width: 48
-                  height: 26
-                  radius: 13
+                  x: 0
+                  y: 70
+                  width: 96
+                  height: 42
+                  radius: 21
                   bg_color: col_alarm_btn_bg
                   bg_opa: COVER
                   border_width: 1
@@ -324,5 +324,5 @@ lvgl:
                         id: lbl_alarm_toggle
                         align: CENTER
                         text: "OFF"
-                        text_font: font_alarm_btn
+                        text_font: font_alarm_status
                         text_color: col_alarm_dim_text
