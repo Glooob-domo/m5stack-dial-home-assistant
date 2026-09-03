@@ -196,6 +196,8 @@ The Menu is more than a launcher: its current selection shows a live subtitle. T
 
 The outer arc tracks **seconds** and refreshes every 5 s. The date line follows `ui_language`: English uses month/day (`Mon  09/02`); French, Spanish, German and Italian use day/month (`Mar  02/09`).
 
+A small red dot appears above the time only while the Dial has lost its connection to Home Assistant (checked every 5 s), so a Wi-Fi drop or a Home Assistant restart doesn't look like a frozen or broken device. It disappears as soon as the connection is back.
+
 ### Music
 
 The Music page is controlled through `dial_media_players`. Home Assistant provides playback state, play/pause and transport actions, volume, title and metadata, plus duration and position when available.

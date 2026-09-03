@@ -63,6 +63,8 @@ color:
     hex: "D8C16A"    # restrained wind accent
   - id: col_divider
     hex: "202A3C"
+  - id: col_offline_dot
+    hex: "F87171"    # muted red, same danger accent as Timer
 
 time:
   - platform: pcf8563
@@ -94,6 +96,15 @@ time:
           - lvgl.arc.update:
               id: arc_second
               value: !lambda "return id(rtctime).now().second;"
+          - lambda: |-
+              // Small, easy-to-miss-on-purpose dot: only draws attention
+              // when the Dial has actually lost its link to Home Assistant,
+              // instead of a permanent status icon cluttering the clock.
+              if (id(ha_connected)) {
+                lv_obj_add_flag(id(dot_offline), LV_OBJ_FLAG_HIDDEN);
+              } else {
+                lv_obj_clear_flag(id(dot_offline), LV_OBJ_FLAG_HIDDEN);
+              }
 
   - platform: homeassistant
     id: esptime
@@ -653,6 +664,20 @@ lvgl:
               border_width: 0
               width: 0
               height: 0
+
+        - obj:
+            id: dot_offline
+            align: CENTER
+            y: -95
+            width: 7
+            height: 7
+            radius: 4
+            bg_color: col_offline_dot
+            bg_opa: COVER
+            border_width: 0
+            clickable: false
+            scrollbar_mode: "OFF"
+            hidden: true
 
         - label:
             id: lbl_clock
