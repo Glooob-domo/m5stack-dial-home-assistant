@@ -13,7 +13,7 @@ packages:
   switch_page: !include src/pages/switch.yaml
   scene_page:  !include src/pages/scene.yaml
   temp_page:   !include src/pages/temp.yaml
-  timer_page:  !include src/pages/timer.yaml
+  alarm_page:  !include src/pages/alarm.yaml
   idle:        !include src/main/idle.yaml
 
 external_components:

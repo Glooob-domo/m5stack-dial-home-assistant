@@ -1,0 +1,328 @@
+color:
+  - id: col_alarm_bg
+    hex: "000000"
+  - id: col_alarm_accent
+    hex: "FBBF24"
+  - id: col_alarm_ring
+    hex: "F87171"
+  - id: col_alarm_btn_bg
+    hex: "1a1a1a"
+  - id: col_alarm_btn_border
+    hex: "2d2d2d"
+  - id: col_alarm_dim_text
+    hex: "555555"
+
+font:
+  - file:
+      family: Share Tech Mono
+      weight: 400
+      type: gfonts
+    id: font_alarm_time
+    size: 42
+    bpp: 4
+    glyphs: "0123456789:"
+
+  - file:
+      family: DM+Sans
+      weight: 600
+      type: gfonts
+    id: font_alarm_btn
+    size: 11
+    bpp: 4
+    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZ "
+
+  - file:
+      family: DM+Sans
+      weight: 700
+      type: gfonts
+    id: font_alarm_status
+    size: 14
+    bpp: 4
+    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZ !"
+
+globals:
+  - id: in_alarm
+    type: bool
+    initial_value: 'false'
+  - id: alarm_enabled
+    type: bool
+    restore_value: true
+    initial_value: 'false'
+  - id: alarm_hour
+    type: int
+    restore_value: true
+    initial_value: '7'
+  - id: alarm_minute
+    type: int
+    restore_value: true
+    initial_value: '0'
+  # 0 = not editing, 1 = editing hour, 2 = editing minute
+  - id: alarm_edit_unit
+    type: int
+    initial_value: '0'
+  - id: alarm_ringing
+    type: bool
+    initial_value: 'false'
+  - id: alarm_blink
+    type: bool
+    initial_value: 'true'
+  # Minute-of-day (0-1439) the alarm last fired at, so it rings once per
+  # match instead of every tick, then resets once the clock moves past
+  # that minute - ready to fire again the same time next day.
+  - id: alarm_fired_key
+    type: int
+    restore_value: false
+    initial_value: '-1'
+  - id: alarm_last_beep_ms
+    type: uint32_t
+    restore_value: false
+    initial_value: '0'
+
+script:
+  - id: open_alarm
+    then:
+      - globals.set: {id: in_alarm, value: 'true'}
+      - globals.set: {id: in_menu, value: 'false'}
+      - globals.set: {id: alarm_edit_unit, value: '0'}
+      - script.execute: refresh_alarm
+      - lvgl.page.show:
+          id: page_alarm
+          animation: MOVE_LEFT
+
+  - id: close_alarm
+    then:
+      - globals.set: {id: in_alarm, value: 'false'}
+      - globals.set: {id: alarm_edit_unit, value: '0'}
+      - script.execute: open_menu_back
+
+  - id: alarm_beep
+    then:
+      - rtttl.play: "alarm:d=8,o=6,b=180:c,p,c,p,c"
+
+  - id: alarm_dismiss
+    then:
+      - lambda: |-
+          id(alarm_ringing) = false;
+          id(alarm_blink) = true;
+      - rtttl.stop:
+      - script.execute: refresh_alarm
+
+  - id: alarm_click
+    then:
+      - lambda: |-
+          if (id(alarm_ringing)) {
+            id(alarm_dismiss).execute();
+            return;
+          }
+          id(alarm_edit_unit) = (id(alarm_edit_unit) + 1) % 3;
+      - script.execute: refresh_alarm
+
+  - id: alarm_toggle_enabled
+    then:
+      - lambda: |-
+          id(alarm_enabled) = !id(alarm_enabled);
+          if (!id(alarm_enabled) && id(alarm_ringing)) {
+            id(alarm_dismiss).execute();
+          }
+      - script.execute: refresh_alarm
+
+  - id: alarm_encoder_up
+    then:
+      - lambda: |-
+          if (id(alarm_ringing)) return;
+          if (id(alarm_edit_unit) == 1) {
+            id(alarm_hour) = (id(alarm_hour) + 1) % 24;
+          } else if (id(alarm_edit_unit) == 2) {
+            id(alarm_minute) = (id(alarm_minute) + 1) % 60;
+          } else {
+            return;
+          }
+      - script.execute: refresh_alarm
+
+  - id: alarm_encoder_down
+    then:
+      - lambda: |-
+          if (id(alarm_ringing)) return;
+          if (id(alarm_edit_unit) == 1) {
+            id(alarm_hour) = (id(alarm_hour) + 23) % 24;
+          } else if (id(alarm_edit_unit) == 2) {
+            id(alarm_minute) = (id(alarm_minute) + 59) % 60;
+          } else {
+            return;
+          }
+      - script.execute: refresh_alarm
+
+  - id: refresh_alarm
+    then:
+      - lambda: |-
+          const bool ringing = id(alarm_ringing);
+          const lv_color_t accent = ringing ? lv_color_hex(0xF87171) : lv_color_hex(0xFBBF24);
+
+          char buf[6];
+          snprintf(buf, sizeof(buf), "%02d:%02d", id(alarm_hour), id(alarm_minute));
+          const bool hide_for_blink = ringing && !id(alarm_blink);
+          lv_label_set_text(id(lbl_alarm_time), hide_for_blink ? "" : buf);
+          lv_obj_set_style_text_color(id(lbl_alarm_time), accent, 0);
+
+          lv_obj_t *unit_buttons[2] = {id(btn_alarm_h), id(btn_alarm_m)};
+          for (int i = 0; i < 2; i++) {
+            const bool selected = !ringing && id(alarm_edit_unit) == i + 1;
+            lv_obj_set_style_bg_color(unit_buttons[i],
+              selected ? lv_color_hex(0x3A2A00) : lv_color_hex(0x1A1A1A), LV_PART_MAIN);
+            lv_obj_set_style_border_color(unit_buttons[i],
+              selected ? accent : lv_color_hex(0x2D2D2D), LV_PART_MAIN);
+            lv_obj_t *child = lv_obj_get_child(unit_buttons[i], 0);
+            if (child) lv_obj_set_style_text_color(child, selected ? accent : lv_color_hex(0x555555), 0);
+          }
+
+          lv_label_set_text(id(lbl_alarm_toggle), id(alarm_enabled) ? dial_i18n::on() : dial_i18n::off());
+          lv_obj_set_style_bg_color(id(btn_alarm_toggle),
+            id(alarm_enabled) ? lv_color_hex(0x3A2A00) : lv_color_hex(0x1A1A1A), LV_PART_MAIN);
+          lv_obj_set_style_border_color(id(btn_alarm_toggle),
+            id(alarm_enabled) ? accent : lv_color_hex(0x2D2D2D), LV_PART_MAIN);
+          lv_obj_set_style_text_color(id(lbl_alarm_toggle),
+            id(alarm_enabled) ? accent : lv_color_hex(0x555555), 0);
+
+          lv_label_set_text(id(lbl_alarm_status), ringing ? dial_i18n::alarm_ringing() : "");
+
+esphome:
+  on_loop:
+    - lambda: |-
+        static uint32_t last_tick_alarm_ms = 0;
+        uint32_t now_ms = millis();
+        if (now_ms - last_tick_alarm_ms < 1000) return;
+        last_tick_alarm_ms = now_ms;
+
+        if (id(alarm_enabled) && !id(alarm_ringing)) {
+          auto t = id(rtctime).now();
+          if (t.is_valid()) {
+            const int key = t.hour * 60 + t.minute;
+            if (t.hour == id(alarm_hour) && t.minute == id(alarm_minute)) {
+              if (id(alarm_fired_key) != key) {
+                id(alarm_fired_key) = key;
+                id(alarm_ringing) = true;
+                id(dial_idle_alarm_ringing_wake).execute();
+              }
+            } else {
+              id(alarm_fired_key) = -1;
+            }
+          }
+        }
+
+        if (id(alarm_ringing)) {
+          id(alarm_blink) = !id(alarm_blink);
+          if (now_ms - id(alarm_last_beep_ms) >= 2000) {
+            id(alarm_last_beep_ms) = now_ms;
+            id(alarm_beep).execute();
+          }
+          if (id(in_alarm)) id(refresh_alarm).execute();
+        }
+
+lvgl:
+  pages:
+    - id: page_alarm
+      bg_color: col_alarm_bg
+      bg_opa: COVER
+      scrollbar_mode: "OFF"
+      widgets:
+        - obj:
+            align: TOP_LEFT
+            x: 0
+            y: 0
+            width: 240
+            height: 240
+            radius: 120
+            clip_corner: true
+            bg_color: col_alarm_bg
+            bg_opa: COVER
+            border_width: 0
+            pad_all: 0
+            scrollbar_mode: "OFF"
+            clickable: true
+            on_click:
+              - lambda: |-
+                  if (id(alarm_ringing)) id(alarm_dismiss).execute();
+            widgets:
+              - label:
+                  id: lbl_alarm_status
+                  align: CENTER
+                  y: -56
+                  text: ""
+                  text_font: font_alarm_status
+                  text_color: col_alarm_ring
+              - label:
+                  id: lbl_alarm_time
+                  align: CENTER
+                  y: -16
+                  text: "07:00"
+                  text_font: font_alarm_time
+                  text_color: col_alarm_accent
+              - obj:
+                  id: btn_alarm_h
+                  align: CENTER
+                  x: -50
+                  y: 24
+                  width: 44
+                  height: 26
+                  radius: 13
+                  bg_color: col_alarm_btn_bg
+                  bg_opa: COVER
+                  border_width: 1
+                  border_color: col_alarm_btn_border
+                  border_opa: COVER
+                  clickable: false
+                  scrollbar_mode: "OFF"
+                  pad_all: 0
+                  widgets:
+                    - label:
+                        align: CENTER
+                        text: !lambda "return std::string(dial_i18n::unit_hr());"
+                        text_font: font_alarm_btn
+                        text_color: col_alarm_dim_text
+              - obj:
+                  id: btn_alarm_m
+                  align: CENTER
+                  x: 0
+                  y: 24
+                  width: 44
+                  height: 26
+                  radius: 13
+                  bg_color: col_alarm_btn_bg
+                  bg_opa: COVER
+                  border_width: 1
+                  border_color: col_alarm_btn_border
+                  border_opa: COVER
+                  clickable: false
+                  scrollbar_mode: "OFF"
+                  pad_all: 0
+                  widgets:
+                    - label:
+                        align: CENTER
+                        text: !lambda "return std::string(dial_i18n::unit_min());"
+                        text_font: font_alarm_btn
+                        text_color: col_alarm_dim_text
+              - obj:
+                  id: btn_alarm_toggle
+                  align: CENTER
+                  x: 60
+                  y: 24
+                  width: 48
+                  height: 26
+                  radius: 13
+                  bg_color: col_alarm_btn_bg
+                  bg_opa: COVER
+                  border_width: 1
+                  border_color: col_alarm_btn_border
+                  border_opa: COVER
+                  clickable: true
+                  scrollbar_mode: "OFF"
+                  pad_all: 0
+                  on_click:
+                    - script.execute: alarm_toggle_enabled
+                  widgets:
+                    - label:
+                        id: lbl_alarm_toggle
+                        align: CENTER
+                        text: "OFF"
+                        text_font: font_alarm_btn
+                        text_color: col_alarm_dim_text

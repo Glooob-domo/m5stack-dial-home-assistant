@@ -40,8 +40,8 @@ substitutions:
   weather_entity: weather.disabled
   aqi_entity: sensor.disabled
 
-  # --- Timer ---
-  timer_entity: timer.disabled
+# La page Alarme est locale à l'appareil : rien à configurer ici,
+# elle se règle directement sur le Dial (molette + bouton).
 
 # Une seule entrée = ouverture directe. Plusieurs = sélecteur.
 

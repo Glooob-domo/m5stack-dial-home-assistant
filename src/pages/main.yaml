@@ -64,7 +64,7 @@ color:
   - id: col_divider
     hex: "202A3C"
   - id: col_offline_dot
-    hex: "F87171"    # muted red, same danger accent as Timer
+    hex: "F87171"    # muted red, shared danger accent (e.g. a ringing Alarm)
 
 time:
   - platform: pcf8563
@@ -112,7 +112,6 @@ time:
     on_time_sync:
       then:
         - pcf8563.write_time:
-        - script.execute: timer_schedule_sync
 
 script:
   - id: refresh_aqi
@@ -178,7 +177,7 @@ script:
                 condition:
                   lambda: |-
                     return !id(in_menu) && !id(in_light_selector) && !id(in_entity_selector) && !id(in_light)
-                        && !id(in_air) && !id(in_music) && !id(in_timer) && !id(in_cover)
+                        && !id(in_air) && !id(in_music) && !id(in_alarm) && !id(in_cover)
                         && !id(in_switch) && !id(in_scene) && !id(in_temp)
                         && !id(in_colorpicker);
                 then:
@@ -226,7 +225,7 @@ script:
                 condition:
                   lambda: |-
                     return !id(in_menu) && !id(in_light_selector) && !id(in_entity_selector) && !id(in_light)
-                        && !id(in_air) && !id(in_music) && !id(in_timer) && !id(in_cover)
+                        && !id(in_air) && !id(in_music) && !id(in_alarm) && !id(in_cover)
                         && !id(in_switch) && !id(in_scene) && !id(in_temp)
                         && !id(in_colorpicker);
                 then:
@@ -234,9 +233,9 @@ script:
                 else:
                   - if:
                       condition:
-                        lambda: 'return id(in_timer);'
+                        lambda: 'return id(in_alarm);'
                       then:
-                        - script.execute: timer_toggle
+                        - script.execute: alarm_click
                       else:
                         - if:
                             condition:
@@ -357,8 +356,8 @@ script:
                   id(close_music).execute();
                   return;
                 }
-                if (id(in_timer)) {
-                  id(close_timer).execute();
+                if (id(in_alarm)) {
+                  id(close_alarm).execute();
                   return;
                 }
                 id(open_menu).execute();
@@ -443,8 +442,8 @@ sensor:
                   id(menu_scroll_down).execute();
                   return;
                 }
-                if (id(in_timer)) {
-                  id(timer_encoder_up).execute();
+                if (id(in_alarm)) {
+                  id(alarm_encoder_up).execute();
                 }
     on_anticlockwise:
       - script.execute:
@@ -496,8 +495,8 @@ sensor:
                   id(menu_scroll_up).execute();
                   return;
                 }
-                if (id(in_timer)) {
-                  id(timer_encoder_down).execute();
+                if (id(in_alarm)) {
+                  id(alarm_encoder_down).execute();
                 }
 
   - platform: homeassistant

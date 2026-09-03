@@ -1,27 +1,6 @@
 #pragma once
 
-#include <cstring>
-
-// A Home Assistant entity enables its Dial page when it is a real entity id.
-// Leave the substitution empty or set it to "<domain>.disabled" to hide the page.
-// Legacy package placeholders stay hidden for existing configs.
-inline bool dial_ha_entity_enabled(const char *entity) {
-  if (entity == nullptr || entity[0] == '\0')
-    return false;
-
-  const char *dot = strrchr(entity, '.');
-  if (dot != nullptr && strcmp(dot + 1, "disabled") == 0)
-    return false;
-
-  if (strcmp(entity, "timer.your_timer") == 0)
-    return false;
-  if (strcmp(entity, "weather.your_location") == 0)
-    return false;
-
-  return true;
-}
-
-// 0 timer, 1 lights, 2 covers, 3 garage, 4 switches, 5 scenes, 6 ac, 7 music, 8 home, 9 temps
+// 0 alarm, 1 lights, 2 covers, 3 garage, 4 switches, 5 scenes, 6 ac, 7 music, 8 home, 9 temps
 static constexpr int DIAL_MENU_MAX = 10;
 static constexpr int DIAL_FUNC_HOME = 8;
 static constexpr int DIAL_FUNC_TEMPS = 9;
@@ -37,10 +16,10 @@ struct DialMenuCounts {
   size_t temperatures{0};
 };
 
-inline int dial_collect_menu_items(int *items, const char *timer_entity, const DialMenuCounts &c) {
+inline int dial_collect_menu_items(int *items, const DialMenuCounts &c) {
   int n = 0;
-  if (dial_ha_entity_enabled(timer_entity))
-    items[n++] = 0;
+  // Alarm is always available: purely local, no Home Assistant entity needed.
+  items[n++] = 0;
   if (c.lights > 0)
     items[n++] = 1;
   if (c.covers > 0)

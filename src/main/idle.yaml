@@ -1,8 +1,8 @@
 # Screen idle management: dim, return-to-clock, and backlight off.
 # States: 0=ACTIVE, 1=DIMMED, 2=OFF
 # Stages are independent; off_ms must be >= dim_ms and return_ms when enabled.
-# Timer: only ha_timer_state=="active" blocks return-to-clock; DIM/OFF ignore Timer.
-# Only FINISHED triggers dial_idle_timer_finished_wake.
+# Alarm: only alarm_ringing blocks return-to-clock; DIM/OFF ignore it.
+# dial_idle_alarm_ringing_wake wakes the screen and opens Alarm when it fires.
 
 globals:
   # 0=ACTIVE, 1=DIMMED, 2=OFF
@@ -171,7 +171,7 @@ script:
           id(in_switch) = false;
           id(in_scene) = false;
           id(in_temp) = false;
-          id(in_timer) = false;
+          id(in_alarm) = false;
 
   - id: dial_idle_return_to_clock
     then:
@@ -181,7 +181,7 @@ script:
               if (id(in_menu) || id(in_light_selector) || id(in_entity_selector) || id(in_light) || id(in_colorpicker) ||
                   id(in_air) || id(in_music) || id(in_cover) || id(in_switch) || id(in_scene) || id(in_temp))
                 return true;
-              if (id(in_timer)) return true;
+              if (id(in_alarm)) return true;
               return false;
           then:
             - script.execute: dial_idle_reset_page_flags
@@ -290,10 +290,10 @@ script:
                 id(idle_off_execute_logged) = false;
                 id(idle_return_blocked_logged) = false;
 
-  - id: dial_idle_timer_finished_wake
+  - id: dial_idle_alarm_ringing_wake
     then:
       - lambda: |-
-          ESP_LOGI("idle", "[IDLE] wake source=timer");
+          ESP_LOGI("idle", "[IDLE] wake source=alarm");
           if (id(screen_idle_state) != 0) {
             id(dial_idle_restore_brightness).execute();
           }
@@ -304,7 +304,7 @@ script:
           id(idle_off_threshold_logged) = false;
           id(idle_off_execute_logged) = false;
           id(idle_return_blocked_logged) = false;
-      - script.execute: open_timer
+      - script.execute: open_alarm
 
   - id: dial_idle_tick
     then:
@@ -343,12 +343,11 @@ script:
             return;
           }
 
-          // 2) Return to clock — blocked only while HA timer is actively running.
+          // 2) Return to clock — blocked only while the Alarm is actively ringing.
           if (return_ms > 0 && elapsed >= return_ms && !id(idle_return_applied) && idle_state != 2) {
-            const std::string ha_timer = id(ha_timer_state).state;
-            if (id(ha_connected) && ha_timer == "active") {
+            if (id(alarm_ringing)) {
               if (!id(idle_return_blocked_logged)) {
-                ESP_LOGI("idle", "[IDLE] return blocked ha_timer=active");
+                ESP_LOGI("idle", "[IDLE] return blocked alarm_ringing");
                 id(idle_return_blocked_logged) = true;
               }
             } else {

@@ -47,7 +47,7 @@ inline const char *connected() {
 }
 inline const char *home_assistant() { return "Home Assistant"; }
 
-inline const char *menu_timer() { return DIAL_I18N_PICK("Timer", "Minuteur", "Temporiz.", "Timer", "Timer"); }
+inline const char *menu_alarm() { return DIAL_I18N_PICK("Alarm", "Alarme", "Alarma", "Alarm", "Sveglia"); }
 inline const char *menu_lights() { return DIAL_I18N_PICK("Lights", "Lumières", "Luces", "Licht", "Luci"); }
 inline const char *menu_covers() { return DIAL_I18N_PICK("Covers", "Volets", "Persianas", "Rolladen", "Tapparelle"); }
 inline const char *menu_garage() { return DIAL_I18N_PICK("Garage", "Portail", "Porton", "Tor", "Cancello"); }
@@ -62,10 +62,7 @@ inline const char *menu_clock() { return DIAL_I18N_PICK("Clock", "Horloge", "Rel
 inline const char *unavailable() {
   return DIAL_I18N_PICK("Unavailable", "Indispo.", "No disp.", "Nicht da", "Non disp.");
 }
-inline const char *no_timer() { return DIAL_I18N_PICK("No timer", "Inactif", "Sin timer", "Kein Timer", "Nessun timer"); }
-inline const char *finished() { return DIAL_I18N_PICK("Finished", "Terminé", "Terminado", "Fertig", "Finito"); }
-inline const char *timer_left() { return DIAL_I18N_PICK("%s left", "%s rest.", "%s rest.", "%s rest.", "%s rest."); }
-inline const char *timer_paused() { return DIAL_I18N_PICK("Paused · %s", "Pause · %s", "Pausa · %s", "Pause · %s", "Pausa · %s"); }
+inline const char *alarm_ringing() { return DIAL_I18N_PICK("ALARM!", "ALARME !", "ALARMA!", "ALARM!", "SVEGLIA!"); }
 
 inline const char *light_off() { return DIAL_I18N_PICK("Off", "Off", "Off", "Aus", "Off"); }
 inline const char *light_on() { return DIAL_I18N_PICK("On", "On", "On", "An", "On"); }
@@ -222,9 +219,6 @@ inline const char *off() { return DIAL_I18N_PICK("OFF", "OFF", "OFF", "AUS", "OF
 
 inline const char *unit_hr() { return DIAL_I18N_PICK("HR", "H", "H", "STD", "H"); }
 inline const char *unit_min() { return DIAL_I18N_PICK("MIN", "MIN", "MIN", "MIN", "MIN"); }
-inline const char *unit_sec() { return DIAL_I18N_PICK("SEC", "SEC", "SEG", "SEK", "SEC"); }
-inline const char *rst() { return DIAL_I18N_PICK("RST", "RAZ", "RST", "RST", "RST"); }
-inline const char *cancel() { return DIAL_I18N_PICK("CANCEL", "ANNUL.", "ANULAR", "ABBR.", "ANNULLA"); }
 
 inline const char *mode_auto() { return DIAL_I18N_PICK("AUTO", "AUTO", "AUTO", "AUTO", "AUTO"); }
 inline const char *mode_cool() { return DIAL_I18N_PICK("COOL", "FROID", "FRIO", "KUHL", "FREDDO"); }

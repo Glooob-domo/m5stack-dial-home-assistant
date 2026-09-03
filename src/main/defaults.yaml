@@ -3,7 +3,6 @@ substitutions:
   timezone: Europe/Paris
   weather_entity: weather.disabled
   aqi_entity: sensor.disabled
-  timer_entity: timer.disabled
   # Prefix for fonts/images. GitHub raw URL when this file is used as a
   # remote package (ESPHome looks up file: paths in /config/esphome/).
   # Override with "" in m5-dial.local.yaml to use files from this clone.

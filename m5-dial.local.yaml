@@ -16,7 +16,6 @@ substitutions:
   encoder_resolution: "1"
   weather_entity: weather.disabled
   aqi_entity: sensor.disabled
-  timer_entity: timer.disabled
 
   # Local files from this clone (empty prefix).
   asset_url: ""

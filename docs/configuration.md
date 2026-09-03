@@ -43,7 +43,7 @@ Leave `weather.disabled` or `sensor.disabled` in `m5-dial.yaml` to keep `--` on 
 
 ## Optional menu features
 
-Unconfigured optional features are hidden from the menu. Fill the matching list to show a page, or set `timer_entity` for Timer. **Omit** a list key entirely to hide that page — you do not need to add empty `dial_*: []` entries in `m5-dial.yaml`. Leave `timer.disabled` to hide Timer. Clock weather/AQI stay on the clock page and show `--` when left as `*.disabled`.
+Unconfigured optional features are hidden from the menu. Fill the matching list to show a page. **Omit** a list key entirely to hide that page — you do not need to add empty `dial_*: []` entries in `m5-dial.yaml`. Clock weather/AQI stay on the clock page and show `--` when left as `*.disabled`. Alarm needs no field at all — it is always in the menu, set entirely on the Dial.
 
 | Field | Enables | Example |
 | --- | --- | --- |
@@ -55,7 +55,6 @@ Unconfigured optional features are hidden from the menu. Fill the matching list 
 | `dial_switches` | Outlets | A list of `switch` or `input_boolean` entities. |
 | `dial_scenes` | Scenes | A list of `scene` or `script` entities. |
 | `dial_temperatures` | Rooms | A list of temperature sensors (or climate entities). |
-| `timer_entity` | Timer | `timer.dial_timer` |
 
 ### Lights
 
@@ -151,22 +150,11 @@ dial_temperatures:
 
 Each entry needs an `entity_id` and a display `name`. Use a numeric `sensor.*` (the state is the temperature) or a `climate.*` entity (the page shows `current_temperature`). Omit `dial_temperatures` to hide the menu entry. One room opens the page directly; several rooms stay on that page and the encoder steps through them.
 
-### Timer
+### Alarm
 
-```yaml
-substitutions:
-  timer_entity: timer.dial_timer
-```
+Nothing to configure — Alarm is always in the menu. It is a single daily alarm, entirely local to the Dial: the target time and armed state live on the device (they survive a reboot) and there is no Home Assistant entity involved.
 
-Create the referenced Home Assistant Timer helper. Home Assistant remains the source of truth, so dashboards and automations can control it too. For YAML-defined timers, `restore: true` is optional but can be useful after a Home Assistant restart.
-
-```yaml
-timer:
-  dial_timer:
-    name: Dial timer
-    duration: "00:05:00"
-    restore: true
-```
+Press once on the Alarm page to edit the hour (it blinks; the encoder adjusts it), press again to move to the minute, then once more to confirm. Tap **ON**/**OFF** to arm or disarm it. Once armed, it fires at that time every day until disarmed. When it fires, the Dial wakes, opens Alarm and beeps every couple of seconds until dismissed (tap the screen or press the button).
 
 ## Encoder
 
@@ -175,7 +163,7 @@ substitutions:
   encoder_resolution: "1"
 ```
 
-The Dial encoder produces four quadrature pulses per mechanical click. `encoder_resolution` is how many of those pulses count as one UI step. Allowed values: `1`, `2` or `4`. The default **`1`** is one UI step per mechanical click on every page that uses the wheel (lights, covers, rooms, volume, timer editing, menu selection, etc.). Use `4` only if you want a more sensitive wheel. Changing it requires a recompile.
+The Dial encoder produces four quadrature pulses per mechanical click. `encoder_resolution` is how many of those pulses count as one UI step. Allowed values: `1`, `2` or `4`. The default **`1`** is one UI step per mechanical click on every page that uses the wheel (lights, covers, rooms, volume, alarm editing, menu selection, etc.). Use `4` only if you want a more sensitive wheel. Changing it requires a recompile.
 
 ### Value step size
 
@@ -210,7 +198,7 @@ substitutions:
 
 Set a timeout to `0s` to disable it. DIM and RETURN are independent. With OFF enabled, the package raises an OFF timeout that is shorter than an enabled DIM or RETURN timeout to the later timeout. DIM and OFF retain the active page; RETURN intentionally navigates to Clock. The first encoder turn, front-button press or touch gesture from DIM or OFF wakes the display and is consumed.
 
-Only an **active** Home Assistant timer blocks RETURN. A paused timer does not. Timer state does not block DIM or OFF. A finished timer wakes the display, opens Timer and triggers its visual blink and buzzer feedback. Remote timer starts do not wake the display.
+Only a **ringing** Alarm blocks RETURN; DIM and OFF are unaffected either way. A firing Alarm wakes the display, opens Alarm and triggers its visual blink and buzzer feedback until dismissed.
 
 ## Package refresh and validation
 
@@ -232,7 +220,7 @@ Each `dial_*` list validates its entities **at compile time**, before you ever f
 - **Wrong domain:** an entity under the wrong list (for example `switch.salon` under `dial_lights`) fails `esphome config`/`compile` with an explicit message, e.g. `Entity ID 'switch.salon' is not valid for dial_lights: expected an entity starting with 'light.'`. Move the entry to the matching list or fix the typo in the domain.
 - **Duplicate entity:** listing the same `entity_id` twice in one list (a common copy-paste mistake) fails with `Duplicate entity_id '...' in dial_switches: already used for '...'`. Remove the extra entry.
 
-`*.disabled` placeholders are exempt from both checks, so `timer.disabled`, `weather.disabled` and `sensor.disabled` stay valid regardless of list.
+`*.disabled` placeholders are exempt from both checks, so `weather.disabled` and `sensor.disabled` stay valid regardless of list.
 
 ## Technical troubleshooting
 
