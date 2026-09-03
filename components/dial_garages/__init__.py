@@ -4,7 +4,7 @@ CODEOWNERS = []
 DEPENDENCIES = ["dial_ha_list"]
 AUTO_LOAD = ["dial_ha_list"]
 
-CONFIG_SCHEMA = list_config_schema("dial_garages_id")
+CONFIG_SCHEMA = list_config_schema("dial_garages_id", "dial_garages", {"cover"})
 
 GARAGE_ATTRS = [
     ("position", "current_position"),

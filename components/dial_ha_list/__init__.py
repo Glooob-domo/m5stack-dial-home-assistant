@@ -25,13 +25,6 @@ LEGACY_DISABLED = {
 dial_ha_list_ns = cg.esphome_ns.namespace("dial_ha_list")
 DialHaList = dial_ha_list_ns.class_("DialHaList", cg.Component)
 
-ENTITY_SCHEMA = cv.Schema(
-    {
-        cv.Required(CONF_ENTITY_ID): cv.string,
-        cv.Required(CONF_NAME): cv.string,
-    }
-)
-
 # Loaded only via AUTO_LOAD from dial_climates / dial_media_players / dial_covers.
 CONFIG_SCHEMA = cv.Schema({})
 
@@ -46,9 +39,66 @@ def entity_enabled(entity):
     return True
 
 
-def list_config_schema(component_id):
+def validate_entity_domain(list_key, domains):
+    """Reject an entity_id whose domain doesn't match the page it's configured under.
+
+    A `*.disabled` (or legacy) placeholder is always accepted since it is
+    skipped at code-generation time regardless of domain.
+    """
+    prefixes = tuple(f"{domain}." for domain in domains)
+    expected = " or ".join(f"'{prefix}'" for prefix in prefixes)
+
+    def _validate(entity):
+        if not entity_enabled(entity):
+            return entity
+        if not entity.startswith(prefixes):
+            raise cv.Invalid(
+                f"Entity ID '{entity}' is not valid for {list_key}: "
+                f"expected an entity starting with {expected}"
+            )
+        return entity
+
+    return _validate
+
+
+def _reject_duplicates(list_key):
+    def _validate(entities):
+        seen = {}
+        for item in entities:
+            entity = item[CONF_ENTITY_ID]
+            if not entity_enabled(entity):
+                continue
+            if entity in seen:
+                raise cv.Invalid(
+                    f"Duplicate entity_id '{entity}' in {list_key}: "
+                    f"already used for '{seen[entity]}'"
+                )
+            seen[entity] = item[CONF_NAME]
+        return entities
+
+    return _validate
+
+
+def entity_schema(list_key, domains):
+    return cv.Schema(
+        {
+            cv.Required(CONF_ENTITY_ID): cv.All(
+                cv.string, validate_entity_domain(list_key, domains)
+            ),
+            cv.Required(CONF_NAME): cv.string,
+        }
+    )
+
+
+def list_config_schema(component_id, list_key, domains):
+    schema = entity_schema(list_key, domains)
+
     def _schema(value):
-        entities = cv.All(cv.ensure_list(ENTITY_SCHEMA), cv.Length(min=0))(value)
+        entities = cv.All(
+            cv.ensure_list(schema),
+            cv.Length(min=0),
+            _reject_duplicates(list_key),
+        )(value)
         return {
             CONF_ID: cv.declare_id(DialHaList)(component_id),
             "entities": entities,

@@ -4,7 +4,9 @@ CODEOWNERS = []
 DEPENDENCIES = ["dial_ha_list"]
 AUTO_LOAD = ["dial_ha_list"]
 
-CONFIG_SCHEMA = list_config_schema("dial_media_players_id")
+CONFIG_SCHEMA = list_config_schema(
+    "dial_media_players_id", "dial_media_players", {"media_player"}
+)
 
 MEDIA_ATTRS = [
     ("title", "media_title"),

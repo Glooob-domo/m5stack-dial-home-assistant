@@ -33,9 +33,46 @@ LEGACY_DISABLED = {
 dial_lights_ns = cg.esphome_ns.namespace("dial_lights")
 DialLights = dial_lights_ns.class_("DialLights", cg.Component)
 
+
+def entity_enabled(entity):
+    if not entity:
+        return False
+    if entity in LEGACY_DISABLED:
+        return False
+    if "." in entity and entity.rsplit(".", 1)[1] == "disabled":
+        return False
+    return True
+
+
+def _validate_light_entity(entity):
+    if not entity_enabled(entity):
+        return entity
+    if not entity.startswith("light."):
+        raise cv.Invalid(
+            f"Entity ID '{entity}' is not valid for dial_lights: "
+            f"expected an entity starting with 'light.'"
+        )
+    return entity
+
+
+def _reject_duplicate_lights(lights):
+    seen = {}
+    for light in lights:
+        entity = light[CONF_ENTITY_ID]
+        if not entity_enabled(entity):
+            continue
+        if entity in seen:
+            raise cv.Invalid(
+                f"Duplicate entity_id '{entity}' in dial_lights: "
+                f"already used for '{seen[entity]}'"
+            )
+        seen[entity] = light[CONF_NAME]
+    return lights
+
+
 LIGHT_SCHEMA = cv.Schema(
     {
-        cv.Required(CONF_ENTITY_ID): cv.string,
+        cv.Required(CONF_ENTITY_ID): cv.All(cv.string, _validate_light_entity),
         cv.Required(CONF_NAME): cv.string,
         cv.Optional(CONF_STATE_SENSOR): cv.use_id(text_sensor.TextSensor),
         cv.Optional(CONF_MODES_SENSOR): cv.use_id(text_sensor.TextSensor),
@@ -49,18 +86,10 @@ LIGHT_SCHEMA = cv.Schema(
 )
 
 
-def entity_enabled(entity):
-    if not entity:
-        return False
-    if entity in LEGACY_DISABLED:
-        return False
-    if "." in entity and entity.rsplit(".", 1)[1] == "disabled":
-        return False
-    return True
-
-
 def _config_schema(value):
-    lights = cv.All(cv.ensure_list(LIGHT_SCHEMA), cv.Length(min=0))(value)
+    lights = cv.All(
+        cv.ensure_list(LIGHT_SCHEMA), cv.Length(min=0), _reject_duplicate_lights
+    )(value)
     return {
         CONF_ID: cv.declare_id(DialLights)("dial_lights_id"),
         "lights": lights,

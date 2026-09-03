@@ -211,6 +211,15 @@ esphome compile your-dial.yaml
 
 Use USB for the initial installation if the device is not on Wi-Fi; later updates can use ESPHome OTA.
 
+## Common configuration errors
+
+Each `dial_*` list validates its entities **at compile time**, before you ever flash the device:
+
+- **Wrong domain:** an entity under the wrong list (for example `switch.salon` under `dial_lights`) fails `esphome config`/`compile` with an explicit message, e.g. `Entity ID 'switch.salon' is not valid for dial_lights: expected an entity starting with 'light.'`. Move the entry to the matching list or fix the typo in the domain.
+- **Duplicate entity:** listing the same `entity_id` twice in one list (a common copy-paste mistake) fails with `Duplicate entity_id '...' in dial_switches: already used for '...'`. Remove the extra entry.
+
+`*.disabled` placeholders are exempt from both checks, so `timer.disabled`, `weather.disabled` and `sensor.disabled` stay valid regardless of list.
+
 ## Technical troubleshooting
 
 - **Invalid API encryption key:** generate a valid ESPHome API key and put it in `secrets.yaml`.

@@ -4,7 +4,7 @@ CODEOWNERS = []
 DEPENDENCIES = ["dial_ha_list"]
 AUTO_LOAD = ["dial_ha_list"]
 
-CONFIG_SCHEMA = list_config_schema("dial_climates_id")
+CONFIG_SCHEMA = list_config_schema("dial_climates_id", "dial_climates", {"climate"})
 
 CLIMATE_ATTRS = [
     ("temperature", "temperature"),

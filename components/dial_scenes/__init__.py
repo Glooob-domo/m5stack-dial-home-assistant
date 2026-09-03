@@ -4,7 +4,7 @@ CODEOWNERS = []
 DEPENDENCIES = ["dial_ha_list"]
 AUTO_LOAD = ["dial_ha_list"]
 
-CONFIG_SCHEMA = list_config_schema("dial_scenes_id")
+CONFIG_SCHEMA = list_config_schema("dial_scenes_id", "dial_scenes", {"scene", "script"})
 
 
 async def to_code(config):
