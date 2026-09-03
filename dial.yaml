@@ -61,6 +61,14 @@ esphome:
             id: display_backlight
             brightness: 100%
         - script.execute: update_loading_page
+        - lambda: |-
+            // Every page drives the encoder itself via on_clockwise/
+            // on_anticlockwise; LVGL's own group-focus navigation is never
+            // wanted. Detach it globally instead of excluding widgets one
+            // by one (see Music's prev/play/next buttons, which stayed
+            // focusable and both visibly grabbed selection on rotation and
+            // ate the front-button ENTER press meant for on_multi_click).
+            lv_indev_set_group(id(lvgl_rotary_indev).get_drv(), nullptr);
 
 esp32:
   board: m5stack-stamps3
@@ -134,7 +142,8 @@ lvgl:
   touchscreens:
     - touch
   encoders:
-    - sensor: encoder
+    - id: lvgl_rotary_indev
+      sensor: encoder
       # Dummy: the physical button is handled in GPIO on_multi_click.
       # Binding front_button here also sends LVGL ENTER to hidden widgets
       # (e.g. music play), which beeps and steals the press.
