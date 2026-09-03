@@ -121,16 +121,31 @@ lvgl:
             border_width: 0
             pad_all: 0
             widgets:
-              - label:
-                  id: lbl_scene_title
+              - obj:
+                  id: scene_title_pill
                   align: TOP_MID
                   y: 24
-                  width: 140
-                  text_align: CENTER
-                  long_mode: DOT
-                  text_font: font_menu_item
-                  text_color: 0xFFFFFF
-                  text: ""
+                  width: 180
+                  height: 28
+                  radius: 14
+                  bg_color: col_scene_btn
+                  bg_opa: COVER
+                  border_width: 0
+                  pad_all: 0
+                  clip_corner: true
+                  clickable: false
+                  scrollbar_mode: "OFF"
+                  widgets:
+                    - label:
+                        id: lbl_scene_title
+                        align: CENTER
+                        width: 164
+                        text_align: CENTER
+                        long_mode: DOT
+                        text_font: font_menu_item
+                        text_color: 0xFFFFFF
+                        scrollbar_mode: "OFF"
+                        text: ""
               - obj:
                   id: btn_scene_go
                   align: CENTER
