@@ -115,13 +115,6 @@ text_sensor:
           bool playing = (x == "playing");
           id(music_playing) = playing;
           lv_label_set_text(id(play_label), playing ? "${icon_pause}" : "${icon_play}");
-          auto duration = id(sendspin_hub).get_track_duration_ms();
-          if (duration > 0) {
-            id(local_duration_ms) = duration;
-            id(local_progress_ms) = id(sendspin_hub).get_track_progress_ms();
-            id(local_progress_sync_ms) = millis();
-          }
-      - script.execute: refresh_music_progress
       - script.execute: menu_on_ha_update
 
 sensor:
@@ -149,29 +142,6 @@ globals:
   - id: music_playing
     type: bool
     initial_value: 'false'
-  - id: music_progress
-    type: int
-    initial_value: '0'
-  - id: local_progress_ms
-    type: int
-    restore_value: false
-    initial_value: '0'
-  - id: local_duration_ms
-    type: int
-    restore_value: false
-    initial_value: '0'
-  - id: local_progress_sync_ms
-    type: uint32_t
-    restore_value: false
-    initial_value: '0'
-  - id: last_spin_progress_ms
-    type: uint32_t
-    restore_value: false
-    initial_value: '0'
-  - id: last_spin_progress_seen_ms
-    type: uint32_t
-    restore_value: false
-    initial_value: '0'
   - id: music_state_override_until_ms
     type: uint32_t
     restore_value: false
@@ -346,9 +316,6 @@ script:
                 bool will_play = !current_playing;
                 id(music_playing) = will_play;
                 id(music_state_override_until_ms) = millis() + 2500;
-                if (will_play && id(local_progress_sync_ms) == 0) {
-                  id(local_progress_sync_ms) = millis();
-                }
                 lv_label_set_text(id(play_label), will_play ? "${icon_pause}" : "${icon_play}");
             - lambda: |-
                 ESP_LOGI("music", "MUSIC_HA_ACTION play_pause entity=%s",
@@ -463,22 +430,6 @@ script:
             lv_obj_set_pos(id(next_btn), 142, 158);
           }
 
-  - id: refresh_music_progress
-    then:
-      - lambda: |-
-          int dur = id(local_duration_ms);
-          int pos = id(local_progress_ms);
-          if (dur <= 0) {
-            id(music_progress) = 0;
-          } else {
-            if (pos < 0) pos = 0;
-            if (pos > dur) pos = dur;
-            id(music_progress) = (int)((float) pos / (float) dur * 100.0f + 0.5f);
-            if (id(music_progress) > 100) id(music_progress) = 100;
-          }
-          lv_arc_set_value(id(arc_music_progress), id(music_progress));
-          ESP_LOGD("music", "progress=%d", id(music_progress));
-
 lvgl:
   pages:
     - id: page_music
@@ -505,34 +456,6 @@ lvgl:
             pad_all: 0
             scrollbar_mode: "OFF"
             widgets:
-              - arc:
-                  id: arc_music_progress
-                  align: CENTER
-                  width: 232
-                  height: 232
-                  rotation: 270
-                  start_angle: 0
-                  end_angle: 360
-                  min_value: 0
-                  max_value: 100
-                  value: 0
-                  arc_color: col_music_ring_track
-                  arc_width: 5
-                  arc_opa: COVER
-                  arc_rounded: true
-                  adjustable: false
-                  clickable: false
-                  indicator:
-                    arc_color: col_music_ring_progress
-                    arc_width: 5
-                    arc_opa: COVER
-                    arc_rounded: true
-                  knob:
-                    bg_opa: TRANSP
-                    border_width: 0
-                    width: 0
-                    height: 0
-
               - obj:
                   id: music_cover_wrap
                   x: 65
@@ -728,20 +651,6 @@ esphome:
                 id(refresh_music_volume).execute();
               }
             }
-            if (id(in_music)) {
-              if (id(dial_media_players_id).active_attr_valid("duration")) {
-                const float d = atof(id(dial_media_players_id).active_attr("duration").c_str());
-                if (d > 0) id(local_duration_ms) = (int)(d * 1000.0f + 0.5f);
-              }
-              if ((int32_t)(id(music_state_override_until_ms) - now_ms) <= 0 &&
-                  id(dial_media_players_id).active_attr_valid("position")) {
-                const float p = atof(id(dial_media_players_id).active_attr("position").c_str());
-                if (p >= 0) {
-                  id(local_progress_ms) = (int)(p * 1000.0f + 0.5f);
-                  id(local_progress_sync_ms) = now_ms;
-                }
-              }
-            }
           }
           // Title/artist/cover only depend on their own attribute sensors,
           // not on the media player's overall "state" sensor — keep them
@@ -754,42 +663,3 @@ esphome:
           bool playing = use_local_state ? id(music_playing) : server_playing;
           id(music_playing) = playing;
           lv_label_set_text(id(play_label), playing ? "${icon_pause}" : "${icon_play}");
-
-          uint32_t spin_pos = id(sendspin_hub).get_track_progress_ms();
-          auto spin_dur = id(sendspin_hub).get_track_duration_ms();
-          if (spin_dur > 0) {
-            id(local_duration_ms) = spin_dur;
-            if (spin_pos != id(last_spin_progress_ms)) {
-              id(local_progress_ms) = spin_pos;
-              id(local_progress_sync_ms) = now_ms;
-              id(last_spin_progress_ms) = spin_pos;
-              id(last_spin_progress_seen_ms) = now_ms;
-            } else if (id(last_spin_progress_seen_ms) == 0) {
-              id(last_spin_progress_seen_ms) = now_ms;
-            }
-          }
-
-          int dur = id(local_duration_ms);
-          if (dur <= 0) {
-            id(music_progress) = 0;
-            lv_arc_set_value(id(arc_music_progress), 0);
-            id(local_progress_sync_ms) = now_ms;
-            return;
-          }
-
-          bool spin_progress_stale = spin_dur > 0 && (now_ms - id(last_spin_progress_seen_ms)) > 800;
-          if (playing && (spin_dur <= 0 || spin_progress_stale)) {
-            uint32_t elapsed_ms = id(local_progress_sync_ms) == 0 ? 200 : now_ms - id(local_progress_sync_ms);
-            if (elapsed_ms > 1000) elapsed_ms = 1000;
-            id(local_progress_ms) += elapsed_ms;
-            id(local_progress_sync_ms) = now_ms;
-          } else if (!playing) {
-            id(local_progress_sync_ms) = now_ms;
-          }
-
-          if (id(local_progress_ms) > dur) id(local_progress_ms) = dur;
-          if (id(local_progress_ms) < 0) id(local_progress_ms) = 0;
-          float progress = (float)id(local_progress_ms) / dur * 100.0f;
-          if (progress > 100) progress = 100;
-          id(music_progress) = (int)(progress + 0.5f);
-          lv_arc_set_value(id(arc_music_progress), id(music_progress));
