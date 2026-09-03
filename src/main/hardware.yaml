@@ -1,3 +1,20 @@
+# dial_ha_list/dial_lights create homeassistant::text_sensor::HomeassistantTextSensor
+# instances directly in code for every configured entity's state/title/artist/etc.
+# (see components/dial_ha_list/__init__.py make_ha_text). That does NOT make
+# ESPHome compile the homeassistant text_sensor platform's files - only a literal
+# YAML `text_sensor: platform: homeassistant` entry does (config validation adds
+# the platform to CORE.loaded_integrations, which is what the build's file
+# discovery relies on). Without this entry, `esphome config` still passes but
+# compilation fails with "'HomeassistantTextSensor' is not a member of
+# esphome::homeassistant" - this is what actually kept it compiled before Timer
+# (the only real text_sensor: platform: homeassistant user) was removed. Never
+# shown anywhere; the entity does not need to exist.
+text_sensor:
+  - platform: homeassistant
+    id: dial_ha_text_sensor_keepalive
+    entity_id: sensor.disabled
+    internal: true
+
 i2c:
   - id: internal_i2c
     sda: GPIO11
