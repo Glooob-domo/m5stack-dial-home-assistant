@@ -411,9 +411,6 @@ script:
           lv_obj_set_style_bg_color(id(vol_bar_6), v > 71 ? lv_color_hex(0x7E57FF) : off, 0);
           lv_obj_set_style_bg_color(id(vol_bar_7), v > 85 ? lv_color_hex(0x764CFF) : off, 0);
           lv_arc_set_value(id(arc_music_volume), v);
-          char buf[4];
-          snprintf(buf, sizeof(buf), "%d", v);
-          lv_label_set_text(id(lbl_music_volume_num), buf);
           ESP_LOGI("music", "volume=%d", v);
 
   - id: music_apply_cover_mode
@@ -421,11 +418,15 @@ script:
       - lambda: |-
           const bool cover = id(music_has_cover);
           if (cover) {
+            // Compact layout: small cover art, thin volume bars, original
+            // title/artist placement and button size.
             lv_obj_clear_flag(id(music_cover_wrap), LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(id(music_vol_bars_wrap), LV_OBJ_FLAG_HIDDEN);
             lv_obj_add_flag(id(arc_music_volume), LV_OBJ_FLAG_HIDDEN);
-            lv_obj_add_flag(id(lbl_music_volume_num), LV_OBJ_FLAG_HIDDEN);
-            lv_obj_add_flag(id(lbl_music_volume_pct), LV_OBJ_FLAG_HIDDEN);
+            lv_obj_set_style_text_font(id(lbl_music_title), id(font_music_title)->get_lv_font(), 0);
+            lv_obj_set_pos(id(lbl_music_title), 20, 118);
+            lv_obj_set_style_text_font(id(lbl_music_artist), id(font_music_title)->get_lv_font(), 0);
+            lv_obj_set_pos(id(lbl_music_artist), 20, 139);
             lv_obj_set_size(id(prev_btn), 44, 44);
             lv_obj_set_pos(id(prev_btn), 52, 185);
             lv_obj_set_size(id(play_btn), 44, 44);
@@ -433,19 +434,23 @@ script:
             lv_obj_set_size(id(next_btn), 44, 44);
             lv_obj_set_pos(id(next_btn), 151, 185);
           } else {
+            // No SendSpin cover (the default): a full-screen volume ring,
+            // same geometry as Covers/Light, plus bigger title/artist and
+            // bigger, more accessible transport buttons in the freed-up
+            // space. No percentage readout - the ring itself is the value.
             lv_obj_add_flag(id(music_cover_wrap), LV_OBJ_FLAG_HIDDEN);
             lv_obj_add_flag(id(music_vol_bars_wrap), LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(id(arc_music_volume), LV_OBJ_FLAG_HIDDEN);
-            lv_obj_clear_flag(id(lbl_music_volume_num), LV_OBJ_FLAG_HIDDEN);
-            lv_obj_clear_flag(id(lbl_music_volume_pct), LV_OBJ_FLAG_HIDDEN);
-            // Bigger, more accessible transport buttons when the space
-            // that would hold cover art is free.
-            lv_obj_set_size(id(prev_btn), 50, 50);
-            lv_obj_set_pos(id(prev_btn), 45, 182);
-            lv_obj_set_size(id(play_btn), 52, 52);
-            lv_obj_set_pos(id(play_btn), 94, 180);
-            lv_obj_set_size(id(next_btn), 50, 50);
-            lv_obj_set_pos(id(next_btn), 151, 182);
+            lv_obj_set_style_text_font(id(lbl_music_title), id(font_menu_item)->get_lv_font(), 0);
+            lv_obj_set_pos(id(lbl_music_title), 20, 96);
+            lv_obj_set_style_text_font(id(lbl_music_artist), id(font_music_title)->get_lv_font(), 0);
+            lv_obj_set_pos(id(lbl_music_artist), 20, 122);
+            lv_obj_set_size(id(prev_btn), 56, 56);
+            lv_obj_set_pos(id(prev_btn), 42, 158);
+            lv_obj_set_size(id(play_btn), 56, 56);
+            lv_obj_set_pos(id(play_btn), 92, 154);
+            lv_obj_set_size(id(next_btn), 56, 56);
+            lv_obj_set_pos(id(next_btn), 142, 158);
           }
 
   - id: refresh_music_progress
@@ -539,10 +544,10 @@ lvgl:
 
               - arc:
                   id: arc_music_volume
-                  x: 65
-                  y: 2
-                  width: 110
-                  height: 110
+                  x: 8
+                  y: 8
+                  width: 224
+                  height: 224
                   rotation: 90
                   start_angle: 55
                   end_angle: 305
@@ -550,14 +555,14 @@ lvgl:
                   max_value: 100
                   value: 0
                   arc_color: col_music_dark
-                  arc_width: 8
+                  arc_width: 14
                   arc_opa: COVER
                   arc_rounded: true
                   adjustable: false
                   clickable: false
                   indicator:
                     arc_color: col_music_ring_progress
-                    arc_width: 8
+                    arc_width: 14
                     arc_opa: COVER
                     arc_rounded: true
                   knob:
@@ -565,24 +570,6 @@ lvgl:
                     border_width: 0
                     width: 0
                     height: 0
-              - label:
-                  id: lbl_music_volume_num
-                  x: 65
-                  y: 24
-                  width: 110
-                  text_align: CENTER
-                  text_font: font_light_big
-                  text_color: 0xFFFFFF
-                  text: "0"
-              - label:
-                  id: lbl_music_volume_pct
-                  x: 65
-                  y: 76
-                  width: 110
-                  text_align: CENTER
-                  text_font: font_light_pct
-                  text_color: col_music_ring_progress
-                  text: "%"
               - label:
                   id: lbl_music_title
                   x: 20
