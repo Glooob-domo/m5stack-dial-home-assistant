@@ -93,7 +93,7 @@ dial_media_players:
 
 Select the entity that actually plays the audio. Home Assistant supplies player state, transport actions, volume and available metadata, including `media_title`, `media_artist`, `media_duration` and `media_position`.
 
-The cover area shows the **Home Assistant logo** (same as the boot screen) until optional artwork arrives. **SendSpin** can push a 100 × 100 JPEG album cover when a compatible source is configured (for example Music Assistant with SendSpin pointing at the Dial). Playback works without SendSpin; only the cover image stays on the logo.
+Without **SendSpin** (optional — a compatible source like Music Assistant pushing a 100 × 100 JPEG cover to the Dial), the page uses a bigger layout: a large volume dial instead of the cover, and bigger title/artist/transport controls. The first cover SendSpin ever delivers switches the page, for the rest of that boot, to the compact layout (small cover + small volume bars). Playback and metadata work the same either way.
 
 ### Covers
 

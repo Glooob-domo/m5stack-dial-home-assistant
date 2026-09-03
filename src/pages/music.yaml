@@ -60,6 +60,11 @@ generic_image:
     on_image_decoded:
       - logger.log: "Album image decoded"
       - lambda: |-
+          if (!id(music_has_cover)) {
+            id(music_has_cover) = true;
+            id(music_apply_cover_mode).execute();
+          }
+      - lambda: |-
           lv_obj_t *obj = id(img_music_cover);
           static lv_anim_t a;
           lv_anim_init(&a);
@@ -178,6 +183,12 @@ globals:
   - id: music_feedback_btn
     type: int
     initial_value: '0'
+  # Set once a real SendSpin cover has ever been decoded. Starts false so
+  # most users (no SendSpin) get the bigger no-cover layout by default,
+  # instead of empty space reserved for artwork that will never arrive.
+  - id: music_has_cover
+    type: bool
+    initial_value: 'false'
 
 script:
   - id: open_music
@@ -193,6 +204,7 @@ script:
             if (v > 100) v = 100;
             id(music_volume) = v;
           }
+      - script.execute: music_apply_cover_mode
       - script.execute: refresh_music_volume
       - script.execute: refresh_music_metadata
       - lvgl.page.show:
@@ -398,7 +410,43 @@ script:
           lv_obj_set_style_bg_color(id(vol_bar_5), v > 57 ? lv_color_hex(0x8661FF) : off, 0);
           lv_obj_set_style_bg_color(id(vol_bar_6), v > 71 ? lv_color_hex(0x7E57FF) : off, 0);
           lv_obj_set_style_bg_color(id(vol_bar_7), v > 85 ? lv_color_hex(0x764CFF) : off, 0);
+          lv_arc_set_value(id(arc_music_volume), v);
+          char buf[4];
+          snprintf(buf, sizeof(buf), "%d", v);
+          lv_label_set_text(id(lbl_music_volume_num), buf);
           ESP_LOGI("music", "volume=%d", v);
+
+  - id: music_apply_cover_mode
+    then:
+      - lambda: |-
+          const bool cover = id(music_has_cover);
+          if (cover) {
+            lv_obj_clear_flag(id(music_cover_wrap), LV_OBJ_FLAG_HIDDEN);
+            lv_obj_clear_flag(id(music_vol_bars_wrap), LV_OBJ_FLAG_HIDDEN);
+            lv_obj_add_flag(id(arc_music_volume), LV_OBJ_FLAG_HIDDEN);
+            lv_obj_add_flag(id(lbl_music_volume_num), LV_OBJ_FLAG_HIDDEN);
+            lv_obj_add_flag(id(lbl_music_volume_pct), LV_OBJ_FLAG_HIDDEN);
+            lv_obj_set_size(id(prev_btn), 44, 44);
+            lv_obj_set_pos(id(prev_btn), 52, 185);
+            lv_obj_set_size(id(play_btn), 44, 44);
+            lv_obj_set_pos(id(play_btn), 102, 186);
+            lv_obj_set_size(id(next_btn), 44, 44);
+            lv_obj_set_pos(id(next_btn), 151, 185);
+          } else {
+            lv_obj_add_flag(id(music_cover_wrap), LV_OBJ_FLAG_HIDDEN);
+            lv_obj_add_flag(id(music_vol_bars_wrap), LV_OBJ_FLAG_HIDDEN);
+            lv_obj_clear_flag(id(arc_music_volume), LV_OBJ_FLAG_HIDDEN);
+            lv_obj_clear_flag(id(lbl_music_volume_num), LV_OBJ_FLAG_HIDDEN);
+            lv_obj_clear_flag(id(lbl_music_volume_pct), LV_OBJ_FLAG_HIDDEN);
+            // Bigger, more accessible transport buttons when the space
+            // that would hold cover art is free.
+            lv_obj_set_size(id(prev_btn), 50, 50);
+            lv_obj_set_pos(id(prev_btn), 45, 182);
+            lv_obj_set_size(id(play_btn), 52, 52);
+            lv_obj_set_pos(id(play_btn), 94, 180);
+            lv_obj_set_size(id(next_btn), 50, 50);
+            lv_obj_set_pos(id(next_btn), 151, 182);
+          }
 
   - id: refresh_music_progress
     then:
@@ -471,6 +519,7 @@ lvgl:
                     height: 0
 
               - obj:
+                  id: music_cover_wrap
                   x: 65
                   y: 2
                   width: 110
@@ -481,11 +530,59 @@ lvgl:
                   clip_corner: true
                   clickable: false
                   scrollbar_mode: "OFF"
+                  hidden: true
                   widgets:
                     - image:
                         id: img_music_cover
                         src: logo_img
                         align: CENTER
+
+              - arc:
+                  id: arc_music_volume
+                  x: 65
+                  y: 2
+                  width: 110
+                  height: 110
+                  rotation: 90
+                  start_angle: 55
+                  end_angle: 305
+                  min_value: 0
+                  max_value: 100
+                  value: 0
+                  arc_color: col_music_dark
+                  arc_width: 8
+                  arc_opa: COVER
+                  arc_rounded: true
+                  adjustable: false
+                  clickable: false
+                  indicator:
+                    arc_color: col_music_ring_progress
+                    arc_width: 8
+                    arc_opa: COVER
+                    arc_rounded: true
+                  knob:
+                    bg_opa: TRANSP
+                    border_width: 0
+                    width: 0
+                    height: 0
+              - label:
+                  id: lbl_music_volume_num
+                  x: 65
+                  y: 24
+                  width: 110
+                  text_align: CENTER
+                  text_font: font_light_big
+                  text_color: 0xFFFFFF
+                  text: "0"
+              - label:
+                  id: lbl_music_volume_pct
+                  x: 65
+                  y: 76
+                  width: 110
+                  text_align: CENTER
+                  text_font: font_light_pct
+                  text_color: col_music_ring_progress
+                  text: "%"
               - label:
                   id: lbl_music_title
                   x: 20
@@ -513,20 +610,32 @@ lvgl:
                     - lambda: |-
                         lv_obj_set_style_anim_time(id(lbl_music_artist), 15000, 0);
                         lv_label_set_long_mode(id(lbl_music_artist), LV_LABEL_LONG_SCROLL);
-              - label:
-                  text_font: media_player_icons
-                  text: ${icon_volume}
-                  x: 70
-                  y: 160
-                  text_color: 0xFFFFFF
+              - obj:
+                  id: music_vol_bars_wrap
+                  x: 0
+                  y: 0
+                  width: 240
+                  height: 178
+                  bg_opa: TRANSP
+                  border_width: 0
+                  clickable: false
+                  scrollbar_mode: "OFF"
+                  hidden: true
+                  widgets:
+                    - label:
+                        text_font: media_player_icons
+                        text: ${icon_volume}
+                        x: 70
+                        y: 160
+                        text_color: 0xFFFFFF
 
-              - obj: {id: vol_bar_1, x: 97,  y: 165, width: 6, height: 12, radius: 3, bg_color: 0xA98FFF, bg_opa: COVER, border_width: 0, clickable: false}
-              - obj: {id: vol_bar_2, x: 107, y: 165, width: 6, height: 12, radius: 3, bg_color: 0xA387FF, bg_opa: COVER, border_width: 0, clickable: false}
-              - obj: {id: vol_bar_3, x: 117, y: 165, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
-              - obj: {id: vol_bar_4, x: 127, y: 165, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
-              - obj: {id: vol_bar_5, x: 137, y: 165, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
-              - obj: {id: vol_bar_6, x: 147, y: 165, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
-              - obj: {id: vol_bar_7, x: 157, y: 165, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
+                    - obj: {id: vol_bar_1, x: 97,  y: 165, width: 6, height: 12, radius: 3, bg_color: 0xA98FFF, bg_opa: COVER, border_width: 0, clickable: false}
+                    - obj: {id: vol_bar_2, x: 107, y: 165, width: 6, height: 12, radius: 3, bg_color: 0xA387FF, bg_opa: COVER, border_width: 0, clickable: false}
+                    - obj: {id: vol_bar_3, x: 117, y: 165, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
+                    - obj: {id: vol_bar_4, x: 127, y: 165, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
+                    - obj: {id: vol_bar_5, x: 137, y: 165, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
+                    - obj: {id: vol_bar_6, x: 147, y: 165, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
+                    - obj: {id: vol_bar_7, x: 157, y: 165, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
 
               - button:
                   x: 52

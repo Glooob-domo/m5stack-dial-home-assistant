@@ -202,7 +202,7 @@ A small red dot appears above the time only while the Dial has lost its connecti
 
 The Music page is controlled through `dial_media_players`. Home Assistant provides playback state, play/pause and transport actions, volume, title and metadata, plus duration and position when available.
 
-Until album artwork arrives, the page shows the same **Home Assistant logo** as the boot screen. **SendSpin** is optional: when a compatible source (for example Music Assistant with SendSpin enabled) pushes artwork to the Dial, a 100 × 100 album cover replaces the logo with a short fade. Album art is kept small for the Dial's memory budget. Without SendSpin, playback and metadata still work — only the cover image stays on the logo.
+Until a **SendSpin** source (optional, e.g. Music Assistant with SendSpin enabled) has pushed at least one album cover, the page uses a bigger no-artwork layout: a large volume dial in place of the cover, bigger title/artist text and bigger transport buttons. The first time real artwork arrives, the page switches — for the rest of that boot — to the compact layout with a 100 × 100 cover (replacing the Home Assistant logo placeholder with a short fade) alongside the small volume bars. Playback and metadata work identically either way; SendSpin only changes how much of the page artwork gets to use.
 
 ### Climate
 
