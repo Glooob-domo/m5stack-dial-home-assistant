@@ -241,6 +241,19 @@ script:
                      title_attr_valid, title.c_str(), artist.c_str());
             last_logged_title = title;
           }
+          // Temporary: prove whether the underlying HA subscriptions ever
+          // push a second update at all, regardless of whether it changes
+          // the value we render - one snapshot every ~3s while on Music.
+          static uint32_t last_probe_ms = 0;
+          uint32_t probe_now = millis();
+          if (probe_now - last_probe_ms >= 3000) {
+            last_probe_ms = probe_now;
+            ESP_LOGI("music", "PROBE state_valid=%d state='%s' title_valid=%d title_raw='%s'",
+                     id(dial_media_players_id).active_state_valid(),
+                     id(dial_media_players_id).active_state().c_str(),
+                     title_attr_valid,
+                     id(dial_media_players_id).active_attr("title").c_str());
+          }
           lv_label_set_text(id(lbl_music_title), title.c_str());
           if (artist.empty()) artist = id(track_artist).state;
           lv_label_set_text(id(lbl_music_artist), artist.c_str());
