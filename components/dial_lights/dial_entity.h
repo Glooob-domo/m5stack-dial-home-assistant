@@ -16,10 +16,12 @@ struct DialMenuCounts {
   size_t temperatures{0};
 };
 
-inline int dial_collect_menu_items(int *items, const DialMenuCounts &c) {
+inline int dial_collect_menu_items(int *items, bool alarm_enabled, const DialMenuCounts &c) {
   int n = 0;
-  // Alarm is always available: purely local, no Home Assistant entity needed.
-  items[n++] = 0;
+  // Alarm is purely local (no Home Assistant entity), so it's gated by the
+  // show_alarm substitution instead of an entity check.
+  if (alarm_enabled)
+    items[n++] = 0;
   if (c.lights > 0)
     items[n++] = 1;
   if (c.covers > 0)

@@ -90,7 +90,7 @@ Le M5Stack Dial V1.1 est la cible testée. Le maintien d'alimentation GPIO46 est
 - Un accès Wi-Fi pour le Dial.
 - Des entités Home Assistant uniquement pour les fonctionnalités que vous souhaitez activer.
 
-Météo et AQI sont optionnels : laissez-les en `weather.disabled` / `sensor.disabled` (ou pointez vers des entités indisponibles) et l'Horloge affiche `--`. Clim, Musique, Lumières et Volets sont également optionnels ; ces entrées de menu disparaissent quand la ligne correspondante dans `m5-dial.FR.yaml` / `m5-dial.EN.yaml` reste `*.disabled`, ou, pour les pages à liste, quand la liste est vide. L'Alarme ne nécessite aucune configuration — elle est toujours dans le menu et se règle entièrement sur le Dial.
+Météo et AQI sont optionnels : laissez-les en `weather.disabled` / `sensor.disabled` (ou pointez vers des entités indisponibles) et l'Horloge affiche `--`. Clim, Musique, Lumières et Volets sont également optionnels ; ces entrées de menu disparaissent quand la ligne correspondante dans `m5-dial.FR.yaml` / `m5-dial.EN.yaml` reste `*.disabled`, ou, pour les pages à liste, quand la liste est vide. L'Alarme ne nécessite aucune entité — elle se règle entièrement sur le Dial — et est dans le menu par défaut ; retirez-la avec `show_alarm: "false"`.
 
 ## Installation rapide
 
@@ -223,7 +223,9 @@ Une seule scène ou script ouvre directement la page ; plusieurs ouvrent d'abord
 
 ### Alarme
 
-Une alarme quotidienne unique, entièrement locale au Dial — aucune entité ni configuration Home Assistant impliquée. Appuyez une fois sur la page Alarme pour commencer à éditer l'heure (elle clignote) ; la molette l'ajuste. Appuyez à nouveau pour passer à la minute, puis une fois de plus pour confirmer et enregistrer. Touchez **ON**/**OFF** pour l'armer ou la désarmer. L'heure réglée et l'état armé survivent à un redémarrage. Une fois armée, elle sonne à nouveau à la même heure chaque jour jusqu'à être désarmée. Quand elle se déclenche, le Dial se réveille, ouvre l'Alarme et bipe toutes les quelques secondes jusqu'à ce que vous touchiez l'écran ou appuyiez sur le bouton.
+Une alarme quotidienne unique, entièrement locale au Dial — aucune entité Home Assistant impliquée. Appuyez une fois sur la page Alarme pour commencer à éditer l'heure (elle clignote) ; la molette l'ajuste. Appuyez à nouveau pour passer à la minute, puis une fois de plus pour confirmer et enregistrer. Touchez **ON**/**OFF** pour l'armer ou la désarmer. L'heure réglée et l'état armé survivent à un redémarrage. Une fois armée, elle sonne à nouveau à la même heure chaque jour jusqu'à être désarmée. Quand elle se déclenche, le Dial se réveille, ouvre l'Alarme et bipe toutes les quelques secondes jusqu'à ce que vous touchiez l'écran ou appuyiez sur le bouton.
+
+Elle est dans le menu par défaut ; réglez `show_alarm: "false"` pour la retirer complètement (et l'empêcher de sonner, même si elle était déjà armée).
 
 ### Batterie
 
@@ -232,7 +234,7 @@ Le package active le GPIO46 au démarrage pour le maintien d'alimentation batter
 ## Dépannage
 
 - **L'appareil n'apparaît pas dans Home Assistant :** vérifiez le Wi-Fi, la connectivité API et une `api_encryption_key` valide.
-- **Une entrée de menu est masquée :** ajoutez au moins une entrée à la liste correspondante (`dial_lights`, `dial_climates`, `dial_media_players`, `dial_covers`, `dial_garages`, `dial_switches`, `dial_scenes`, `dial_temperatures`). Les listes vides masquent cette page. L'Alarme n'est jamais masquée.
+- **Une entrée de menu est masquée :** ajoutez au moins une entrée à la liste correspondante (`dial_lights`, `dial_climates`, `dial_media_players`, `dial_covers`, `dial_garages`, `dial_switches`, `dial_scenes`, `dial_temperatures`). Les listes vides masquent cette page. L'Alarme n'est masquée que par `show_alarm: "false"`.
 - **L'AQI affiche `--` :** utilisez un capteur numérique existant pour `aqi_entity`.
 - **Une fonctionnalité est indisponible :** vérifiez que son entité configurée existe et est disponible dans Home Assistant.
 - **La musique est indisponible :** utilisez l'entité qui joue réellement l'audio et expose son état média.

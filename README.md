@@ -90,7 +90,7 @@ M5Stack Dial V1.1 is the tested target. GPIO46 power hold is configured for V1.1
 - Wi-Fi access for the Dial.
 - Home Assistant entities only for the features and information you want to enable.
 
-Weather and AQI are optional: leave them as `weather.disabled` / `sensor.disabled` (or point at unavailable entities) and Clock shows `--`. AC, Music, Lights and Covers are also optional; those menu entries disappear when the matching line in `m5-dial.FR.yaml` / `m5-dial.EN.yaml` stays `*.disabled` or, for list-based pages, when the list is empty. Alarm needs no configuration at all — it is always in the menu and is set entirely on the Dial.
+Weather and AQI are optional: leave them as `weather.disabled` / `sensor.disabled` (or point at unavailable entities) and Clock shows `--`. AC, Music, Lights and Covers are also optional; those menu entries disappear when the matching line in `m5-dial.FR.yaml` / `m5-dial.EN.yaml` stays `*.disabled` or, for list-based pages, when the list is empty. Alarm needs no entity — it's set entirely on the Dial — and is in the menu by default; remove it with `show_alarm: "false"`.
 
 ## Quick installation
 
@@ -223,7 +223,9 @@ One scene or script opens the page directly; several open a selector first. A la
 
 ### Alarm
 
-A single daily alarm, entirely local to the Dial — no Home Assistant entity or configuration involved. Press once on the Alarm page to start editing the hour (it blinks); the encoder adjusts it. Press again to move to the minute, then once more to confirm and save. Tap **ON**/**OFF** to arm or disarm it. The set time and armed state survive a reboot. Once armed, it rings again at the same time every day until disarmed. When it fires, the Dial wakes, opens Alarm and beeps every couple of seconds until you tap the screen or press the button.
+A single daily alarm, entirely local to the Dial — no Home Assistant entity involved. Press once on the Alarm page to start editing the hour (it blinks); the encoder adjusts it. Press again to move to the minute, then once more to confirm and save. Tap **ON**/**OFF** to arm or disarm it. The set time and armed state survive a reboot. Once armed, it rings again at the same time every day until disarmed. When it fires, the Dial wakes, opens Alarm and beeps every couple of seconds until you tap the screen or press the button.
+
+It's in the menu by default; set `show_alarm: "false"` to remove it entirely (and stop it from ever ringing, even if previously armed).
 
 ### Battery
 
@@ -232,7 +234,7 @@ The package enables GPIO46 at boot for M5Dial V1.1 battery power hold. This keep
 ## Troubleshooting
 
 - **Device does not appear in Home Assistant:** confirm Wi-Fi, API connectivity and a valid `api_encryption_key`.
-- **A menu item is hidden:** add at least one entry to the matching list (`dial_lights`, `dial_climates`, `dial_media_players`, `dial_covers`, `dial_garages`, `dial_switches`, `dial_scenes`, `dial_temperatures`). Empty lists hide that page. Alarm is never hidden.
+- **A menu item is hidden:** add at least one entry to the matching list (`dial_lights`, `dial_climates`, `dial_media_players`, `dial_covers`, `dial_garages`, `dial_switches`, `dial_scenes`, `dial_temperatures`). Empty lists hide that page. Alarm is hidden only by `show_alarm: "false"`.
 - **AQI shows `--`:** use an existing numeric sensor for `aqi_entity`.
 - **A feature is unavailable:** check that its configured entity exists and is available in Home Assistant.
 - **Music is unavailable:** use the entity that actually plays audio and exposes its media state.

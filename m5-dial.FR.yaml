@@ -41,8 +41,11 @@ substitutions:
   weather_entity: weather.disabled
   aqi_entity: sensor.disabled
 
-# La page Alarme est locale à l'appareil : rien à configurer ici,
-# elle se règle directement sur le Dial (molette + bouton).
+  # --- Alarme ---
+  # La page Alarme est locale à l'appareil : l'heure et l'armement se
+  # règlent directement sur le Dial (molette + bouton), rien d'autre à
+  # configurer ici. Passez à "false" pour la retirer complètement du menu.
+  show_alarm: "true"
 
 # Une seule entrée = ouverture directe. Plusieurs = sélecteur.
 

@@ -157,7 +157,7 @@ script:
           counts.temperatures = id(dial_temperatures_id).count();
           int items[DIAL_MENU_MAX];
           const int n = dial_collect_menu_items(
-              items, counts);
+              items, ${show_alarm}, counts);
 
           const int home_idx = n - 1;
           bool found = false;
@@ -220,7 +220,7 @@ script:
                   counts.temperatures = id(dial_temperatures_id).count();
                   int local_items[DIAL_MENU_MAX];
                   const int local_n = dial_collect_menu_items(
-                      local_items, counts);
+                      local_items, ${show_alarm}, counts);
 
                   id(menu_sel) = ((id(menu_sel) - 1) % local_n + local_n) % local_n;
                   id(menu_func) = local_items[id(menu_sel)];
@@ -254,7 +254,7 @@ script:
                   counts.temperatures = id(dial_temperatures_id).count();
                   int local_items[DIAL_MENU_MAX];
                   const int local_n = dial_collect_menu_items(
-                      local_items, counts);
+                      local_items, ${show_alarm}, counts);
 
                   id(menu_sel) = (id(menu_sel) + 1) % local_n;
                   id(menu_func) = local_items[id(menu_sel)];
@@ -658,7 +658,7 @@ script:
           counts.temperatures = id(dial_temperatures_id).count();
           int items[DIAL_MENU_MAX];
           const int n = dial_collect_menu_items(
-              items, counts);
+              items, ${show_alarm}, counts);
 
           int slot = -1;
           for (int s = 0; s < 5; s++) {
@@ -713,7 +713,7 @@ script:
           counts.temperatures = id(dial_temperatures_id).count();
           int items[DIAL_MENU_MAX];
           const int n = dial_collect_menu_items(
-              items, counts);
+              items, ${show_alarm}, counts);
 
           lv_obj_t* icons[5] = {
             id(slot_far_up_img),  id(slot_near_up_img),

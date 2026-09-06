@@ -193,7 +193,7 @@ esphome:
         if (now_ms - last_tick_alarm_ms < 1000) return;
         last_tick_alarm_ms = now_ms;
 
-        if (id(alarm_enabled) && !id(alarm_ringing)) {
+        if (${show_alarm} && id(alarm_enabled) && !id(alarm_ringing)) {
           auto t = id(rtctime).now();
           if (t.is_valid()) {
             const int key = t.hour * 60 + t.minute;

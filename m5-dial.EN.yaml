@@ -41,8 +41,11 @@ substitutions:
   weather_entity: weather.disabled
   aqi_entity: sensor.disabled
 
-# The Alarm page is local to the device: nothing to configure here,
-# it is set directly on the Dial (encoder + button).
+  # --- Alarm ---
+  # The Alarm page is local to the device: the time and armed state are
+  # set directly on the Dial (encoder + button), nothing else to configure
+  # here. Set to "false" to remove it from the menu entirely.
+  show_alarm: "true"
 
 # One entry = opens directly. Several = opens a selector first.
 

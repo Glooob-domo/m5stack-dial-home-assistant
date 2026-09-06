@@ -45,7 +45,7 @@ Leave `weather.disabled` or `sensor.disabled` in `m5-dial.FR.yaml` / `m5-dial.EN
 
 ## Optional menu features
 
-Unconfigured optional features are hidden from the menu. Fill the matching list to show a page. **Omit** a list key entirely to hide that page — you do not need to add empty `dial_*: []` entries in `m5-dial.FR.yaml` / `m5-dial.EN.yaml`. Clock weather/AQI stay on the clock page and show `--` when left as `*.disabled`. Alarm needs no field at all — it is always in the menu, set entirely on the Dial.
+Unconfigured optional features are hidden from the menu. Fill the matching list to show a page. **Omit** a list key entirely to hide that page — you do not need to add empty `dial_*: []` entries in `m5-dial.FR.yaml` / `m5-dial.EN.yaml`. Clock weather/AQI stay on the clock page and show `--` when left as `*.disabled`. Alarm needs no entity — set it up entirely on the Dial — but can be removed from the menu with `show_alarm: "false"`.
 
 | Field | Enables | Example |
 | --- | --- | --- |
@@ -154,7 +154,12 @@ Each entry needs an `entity_id` and a display `name`. Use a numeric `sensor.*` (
 
 ### Alarm
 
-Nothing to configure — Alarm is always in the menu. It is a single daily alarm, entirely local to the Dial: the target time and armed state live on the device (they survive a reboot) and there is no Home Assistant entity involved.
+```yaml
+substitutions:
+  show_alarm: "true"
+```
+
+No entity to configure — it is a single daily alarm, entirely local to the Dial: the target time and armed state live on the device (they survive a reboot) and there is no Home Assistant entity involved. It is in the menu by default; set `show_alarm: "false"` to remove it entirely. This also stops it from ever ringing, even if it was previously armed.
 
 Press once on the Alarm page to edit the hour (it blinks; the encoder adjusts it), press again to move to the minute, then once more to confirm. Tap **ON**/**OFF** to arm or disarm it. Once armed, it fires at that time every day until disarmed. When it fires, the Dial wakes, opens Alarm and beeps every couple of seconds until dismissed (tap the screen or press the button).
 

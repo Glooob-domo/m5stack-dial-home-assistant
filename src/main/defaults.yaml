@@ -16,6 +16,9 @@ substitutions:
   light_brightness_step: "1"    # % per step, 1-100
   climate_temperature_step: "2" # 0.5C units per step: 2 = 1C, 1 = 0.5C
   music_volume_step: "10"       # % per step, 1-100
+  # Set to false to remove the Alarm page from the menu entirely (and
+  # stop it from ever ringing, even if it was previously armed).
+  show_alarm: "true"
 
 # Empty lists hide those pages until m5-dial.FR.yaml / m5-dial.EN.yaml lists entities.
 dial_lights: []

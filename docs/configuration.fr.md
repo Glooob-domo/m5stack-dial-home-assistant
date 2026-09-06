@@ -45,7 +45,7 @@ Laissez `weather.disabled` ou `sensor.disabled` dans votre fichier de config pou
 
 ## Fonctionnalités de menu optionnelles
 
-Les fonctionnalités optionnelles non configurées sont masquées du menu. Remplissez la liste correspondante pour afficher une page. **Omettez** entièrement une clé de liste pour masquer cette page — inutile d'ajouter des entrées `dial_*: []` vides dans votre fichier de config. La météo/AQI de l'Horloge restent sur la page horloge et affichent `--` quand elles sont laissées en `*.disabled`. L'Alarme ne nécessite aucun champ — elle est toujours dans le menu, réglée entièrement sur le Dial.
+Les fonctionnalités optionnelles non configurées sont masquées du menu. Remplissez la liste correspondante pour afficher une page. **Omettez** entièrement une clé de liste pour masquer cette page — inutile d'ajouter des entrées `dial_*: []` vides dans votre fichier de config. La météo/AQI de l'Horloge restent sur la page horloge et affichent `--` quand elles sont laissées en `*.disabled`. L'Alarme ne nécessite aucune entité — elle se règle entièrement sur le Dial — mais peut être retirée du menu avec `show_alarm: "false"`.
 
 | Champ | Active | Exemple |
 | --- | --- | --- |
@@ -154,7 +154,12 @@ Chaque entrée nécessite un `entity_id` et un `name` affiché. Utilisez un `sen
 
 ### Alarme
 
-Rien à configurer — l'Alarme est toujours dans le menu. C'est une alarme quotidienne unique, entièrement locale au Dial : l'heure cible et l'état armé vivent sur l'appareil (ils survivent à un redémarrage) et aucune entité Home Assistant n'est impliquée.
+```yaml
+substitutions:
+  show_alarm: "true"
+```
+
+Aucune entité à configurer — c'est une alarme quotidienne unique, entièrement locale au Dial : l'heure cible et l'état armé vivent sur l'appareil (ils survivent à un redémarrage) et aucune entité Home Assistant n'est impliquée. Elle est dans le menu par défaut ; réglez `show_alarm: "false"` pour la retirer complètement. Cela l'empêche aussi de sonner, même si elle était déjà armée.
 
 Appuyez une fois sur la page Alarme pour éditer l'heure (elle clignote ; la molette l'ajuste), appuyez à nouveau pour passer à la minute, puis une fois de plus pour confirmer. Touchez **ON**/**OFF** pour l'armer ou la désarmer. Une fois armée, elle se déclenche à cette heure chaque jour jusqu'à être désarmée. Quand elle se déclenche, le Dial se réveille, ouvre l'Alarme et bipe toutes les quelques secondes jusqu'à ce qu'elle soit arrêtée (toucher l'écran ou appuyer sur le bouton).
 
