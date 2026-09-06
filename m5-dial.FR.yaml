@@ -29,9 +29,8 @@ substitutions:
   encoder_resolution: "1"
 
   # Amplitude d'un pas de molette sur les pages qui modifient une valeur d'entité.
-  # cover_position_step et light_brightness_step : en %, de 1 à 100.
+  # cover_position_step, music_volume_step et light_brightness_step : en %, de 1 à 100.
   # climate_temperature_step : en demi-degrés (2 = 1°C, 1 = 0,5°C).
-  # music_volume_step : en %, de 1 à 100.
   cover_position_step: "5"
   light_brightness_step: "1"
   climate_temperature_step: "2"
@@ -42,10 +41,9 @@ substitutions:
   aqi_entity: sensor.disabled
 
   # --- Alarme ---
-  # La page Alarme est locale à l'appareil : l'heure et l'armement se
-  # règlent directement sur le Dial (molette + bouton), rien d'autre à
-  # configurer ici. Passez à "false" pour la retirer complètement du menu.
-  show_alarm: "true"
+  # La page Alarme est locale à l'appareil : l'heure et l'armement se règlent  
+  # directement sur le Dial (molette + bouton). Passez à "true" pour l'activer.
+  show_alarm: "false"
 
 # Une seule entrée = ouverture directe. Plusieurs = sélecteur.
 
