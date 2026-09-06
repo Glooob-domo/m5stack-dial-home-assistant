@@ -5,9 +5,7 @@
 # ESPHome télécharge le firmware depuis GitHub. Wi-Fi / clé API / OTA : secrets.yaml.
 #
 # Pages optionnelles : décommentez seulement les blocs dial_* dont vous avez besoin.
-# Pas besoin de dial_*: [] — une liste absente = page masquée dans le menu.
-# Horloge, date (JJ/MM en fr), anneau des secondes : toujours actifs.
-# Molette : encoder_resolution "1" = un pas par cran (recommandé).
+# Une liste commenté = page masquée dans le menu.
 # Identifiants : Home Assistant → Outils de développement → États.
 
 substitutions:
