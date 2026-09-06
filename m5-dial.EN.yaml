@@ -29,9 +29,8 @@ substitutions:
   encoder_resolution: "1"
 
   # Amount one encoder step changes on pages that edit an entity value.
-  # cover_position_step and light_brightness_step: in %, 1 to 100.
+  # cover_position_step, music_volume_step and light_brightness_step: in %, 1 to 100.
   # climate_temperature_step: in half-degree units (2 = 1°C, 1 = 0.5°C).
-  # music_volume_step: in %, 1 to 100.
   cover_position_step: "5"
   light_brightness_step: "1"
   climate_temperature_step: "2"
@@ -42,10 +41,9 @@ substitutions:
   aqi_entity: sensor.disabled
 
   # --- Alarm ---
-  # The Alarm page is local to the device: the time and armed state are
-  # set directly on the Dial (encoder + button), nothing else to configure
-  # here. Set to "false" to remove it from the menu entirely.
-  show_alarm: "true"
+  # The Alarm page is local to the device: the time and armed state are set
+  # directly on the Dial (encoder + button). Set to "true" to enable it.
+  show_alarm: "false"
 
 # One entry = opens directly. Several = opens a selector first.
 
