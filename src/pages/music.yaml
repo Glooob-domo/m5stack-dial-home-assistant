@@ -493,6 +493,9 @@ lvgl:
                   arc_rounded: true
                   adjustable: false
                   clickable: false
+                  on_boot:
+                    - lambda: |-
+                        lv_group_remove_obj(id(arc_music_volume));
                   indicator:
                     arc_color: col_music_ring_progress
                     arc_width: 14
