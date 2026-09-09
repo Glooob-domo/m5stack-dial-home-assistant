@@ -154,6 +154,13 @@ lvgl:
       # Binding front_button here also sends LVGL ENTER to hidden widgets
       # (e.g. music play), which beeps and steals the press.
       enter_button: lvgl_encoder_enter
+      # Every page drives the encoder itself via on_clockwise/on_anticlockwise;
+      # LVGL's own group-focus navigation is never wanted (e.g. Music's
+      # prev/play/next buttons visibly grabbing selection on rotation).
+      # Give the encoder its own always-empty group instead of LVGL's
+      # default group (which every focusable widget auto-joins) - nothing
+      # is ever added to this group, so there's nothing to navigate to.
+      group: lvgl_encoder_unused_group
   buffer_size: "12%"
   color_depth: 16
   bg_color: col_bg
