@@ -23,12 +23,6 @@ i2c:
     sda: GPIO13
     scl: GPIO15
 
-rc522_i2c:
-  - id: nfc_reader
-    i2c_id: internal_i2c
-    # M5Dial RFID. Explicit: ESPHome 2026.8 changed the default from 0x2C to 0x28.
-    address: 0x28
-
 switch:
   # M5Dial V1.1 battery power hold. GPIO46 must stay HIGH after WAKE,
   # otherwise the device immediately returns to sleep on battery-only power.
