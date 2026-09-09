@@ -281,14 +281,14 @@ La personnalisation des pages se trouve dans `src/pages/` ; le matériel et la l
 
 ## Vidéo
 
-Une vidéo de présentation et de démonstration pour **cette version Glooob Domo** arrive bientôt sur la chaîne YouTube **Glooob Domo**.
+Vidéo de présentation et de démonstration pour **cette version Glooob Domo**, sur la chaîne YouTube **Glooob Domo** :
+
+[![Regarder la démo M5Stack Dial de Glooob Domo](https://img.youtube.com/vi/5WKUILdJ8HQ/maxresdefault.jpg)](https://youtu.be/5WKUILdJ8HQ)
 
 Pour une présentation antérieure du dérivé hectorzin (architecture et premières intégrations HA), voir :
 
 - [hectorzin — article](https://hectorzin.com/en/posts/m5stack-dial-home-assistant-esphome-controller)
 - [hectorzin — démo YouTube](https://www.youtube.com/watch?v=EskhrfUTLOM)
-
-[![Regarder la démo M5Stack Dial de hectorzin](docs/images/m5stack-dial-home-assistant.webp)](https://www.youtube.com/watch?v=EskhrfUTLOM)
 
 ## Documentation
 
