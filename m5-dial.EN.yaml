@@ -58,6 +58,9 @@ substitutions:
 #    name: Living room
 
 ### --- Media Player ---
+# Warning: known bug under investigation with more than one media
+# player configured (title/artist stop refreshing after a while).
+# A single media player is not affected.
 #dial_media_players:
 #  - entity_id: media_player.living_room
 #    name: Living room

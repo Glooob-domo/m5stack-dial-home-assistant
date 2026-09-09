@@ -56,6 +56,9 @@ substitutions:
 #    name: Salon
 
 ### --- Media Player ---
+# Attention : bug connu en cours d'investigation avec plusieurs media
+# players configurés (titre/artiste qui cessent de s'actualiser après
+# un moment). Un seul media player n'est pas concerné.
 #dial_media_players:
 #  - entity_id: media_player.salon
 #    name: Salon
