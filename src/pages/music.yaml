@@ -211,6 +211,21 @@ script:
                      title_attr_valid, title.c_str(), artist.c_str());
             last_logged_title = title;
           }
+          // TEMP DIAGNOSTIC: unconditional, throttled trace of every tick's raw
+          // inputs, to see whether this function stops observing new HA data
+          // or observes it correctly but fails to apply it. Remove once the
+          // stale-title bug is understood.
+          static uint32_t last_trace_ms = 0;
+          uint32_t trace_now = millis();
+          if (trace_now - last_trace_ms >= 2000) {
+            last_trace_ms = trace_now;
+            ESP_LOGD("music", "TRACE idx=%u count=%u attr_valid=%d raw_attr='%s' sendspin='%s'",
+                     (unsigned) id(dial_media_players_id).active_index(),
+                     (unsigned) id(dial_media_players_id).count(),
+                     title_attr_valid,
+                     id(dial_media_players_id).active_attr("title").c_str(),
+                     id(track_title).state.c_str());
+          }
           // Cap the displayed title at 20 characters so a long title (some
           // are 60+) can't wrap across lines; keep the full string for
           // logging above. UTF-8 safe: back off from a cut that would
