@@ -75,6 +75,20 @@ esphome:
             // focusable and both visibly grabbed selection on rotation and
             // ate the front-button ENTER press meant for on_multi_click).
             lv_indev_set_group(id(lvgl_rotary_indev).get_drv(), nullptr);
+  # TEMP DIAGNOSTIC: minimal canary on_loop, declared in this same file as
+  # the esphome: block above (no cross-file package merge involved), to
+  # establish whether ANY on_loop trigger fires at all in a session where
+  # Music metadata and idle screen-dim (both on_loop-driven, from other
+  # files) stopped updating. Remove once understood.
+  on_loop:
+    - lambda: |-
+        static uint32_t last_canary_ms = 0;
+        uint32_t now_ms = millis();
+        if (now_ms - last_canary_ms < 3000) return;
+        last_canary_ms = now_ms;
+        static uint32_t canary_count = 0;
+        canary_count++;
+        ESP_LOGI("canary", "on_loop alive tick=%u uptime_ms=%u", (unsigned) canary_count, (unsigned) now_ms);
 
 esp32:
   board: m5stack-stamps3
