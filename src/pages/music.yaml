@@ -674,6 +674,14 @@ esphome:
           // not on the media player's overall "state" sensor — keep them
           // refreshing even if state briefly lags or reports invalid, so a
           // flaky state sync doesn't also blank out what's playing.
+          // TEMP DIAGNOSTIC: unconditional, throttled heartbeat right where the
+          // metadata refresh is (or isn't) dispatched, to see whether in_music
+          // silently flips false or the on_loop tick itself stops reaching here.
+          static uint32_t last_gate_trace_ms = 0;
+          if (now_ms - last_gate_trace_ms >= 2000) {
+            last_gate_trace_ms = now_ms;
+            ESP_LOGD("music", "GATE in_music=%d have_players=%d", (int) id(in_music), (int) have_players);
+          }
           if (id(in_music) && have_players) {
             id(refresh_music_metadata).execute();
           }
