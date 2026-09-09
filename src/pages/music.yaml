@@ -226,13 +226,13 @@ script:
                      id(dial_media_players_id).active_attr("title").c_str(),
                      id(track_title).state.c_str());
           }
-          // Cap the displayed title at 20 characters so a long title (some
+          // Cap the displayed title at 15 characters so a long title (some
           // are 60+) can't wrap across lines; keep the full string for
           // logging above. UTF-8 safe: back off from a cut that would
           // land inside a multi-byte character (accents, punctuation).
           std::string title_shown = title;
-          if (title_shown.size() > 20) {
-            size_t cut = 20;
+          if (title_shown.size() > 15) {
+            size_t cut = 15;
             while (cut > 0 && (title_shown[cut] & 0xC0) == 0x80) cut--;
             title_shown = title_shown.substr(0, cut) + "...";
           }
